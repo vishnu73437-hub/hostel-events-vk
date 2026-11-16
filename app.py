@@ -305,4 +305,3 @@ def save_design(body:DesignBody, uid=Depends(require_admin)):
 @app.get("/")
 def index(): return FileResponse(ROOT/"index.html")
 
-app.mount("/static", StaticFiles(directory=ROOT), name="static")
