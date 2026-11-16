@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#ffffff">
   <title>Hostel Cultural Events</title>
   <style>
     body {
@@ -36,14 +37,13 @@
 </head>
 <body>
   <h2>🎭 Hostel Cultural Events</h2>
-  <p id="greeting">Loading…</p>
+  <p id="greeting">Loading events…</p>
   <div id="list"></div>
 
-  <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
   <script>
     const events = [
-      { id: 101, name: "Movie Night",    date: "Fri 8 PM", seats: 12 },
-      { id: 102, name: "Open Mic",       date: "Sat 7 PM", seats: 5  },
+      { id: 101, name: "Movie Night", date: "Fri 8 PM", seats: 12 },
+      { id: 102, name: "Open Mic", date: "Sat 7 PM", seats: 5 },
       { id: 103, name: "Dance Workshop", date: "Sun 5 PM", seats: 20 },
     ];
 
@@ -64,7 +64,7 @@
 
     function register(id) {
       const e = events.find(ev => ev.id === id);
-      if (e.seats > 0) {
+      if (e && e.seats > 0) {
         e.seats--;
         render();
         alert(`✅ You're registered for ${e.name}, ${userName}! See you there.`);
@@ -76,29 +76,38 @@
       render();
     }
 
-    function startInBrowser() {
-      // Running outside VK (plain Chrome, GitHub preview) — no bridge, but show content anyway
-      userName = "friend";
-      showEvents();
-      console.warn('Running outside VK — bridge unavailable.');
-    }
+    // Render immediately; a slow or blocked bridge CDN must not block the app.
+    showEvents();
 
-    function startInVK() {
+    function initializeVK() {
+      const bridge = window.vkBridge;
+      if (!bridge || typeof bridge.send !== 'function') {
+        console.warn('VK Bridge unavailable; running in browser mode.');
+        return;
+      }
+
       bridge.send('VKWebAppInit')
         .then(() => bridge.send('VKWebAppGetUserInfo'))
-        .then(u => {
-          userName = u.first_name || "friend";
+        .then(user => {
+          userName = user.first_name || "friend";
           showEvents();
         })
-        .catch(() => showEvents()); // still show events even if user info fails
+        .catch(error => {
+          console.warn('VK Bridge initialization/user info failed:', error);
+          showEvents();
+        });
     }
 
-    // Entry point: decide where we are running
-    if (typeof bridge !== 'undefined') {
-      startInVK();
-    } else {
-      startInBrowser();
-    }
+    // The browser bundle exposes window.vkBridge, not a global named bridge.
+    // Load asynchronously so a network issue cannot prevent page rendering.
+    const bridgeScript = document.createElement('script');
+    bridgeScript.src = 'https://unpkg.com/@vkontakte/vk-bridge@2.14.2/dist/browser.min.js';
+    bridgeScript.async = true;
+    bridgeScript.onload = initializeVK;
+    bridgeScript.onerror = () => {
+      console.warn('Could not load VK Bridge; the events page remains available.');
+    };
+    document.head.appendChild(bridgeScript);
   </script>
 </body>
 </html>
