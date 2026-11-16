@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: hostel-events-vk
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: VK_APP_ID
+        sync: false
+      - key: VK_APP_SECRET
+        sync: false
+      - key: VK_ADMIN_IDS
+        sync: false
+      - key: EVENT_NAME
+        value: DEEPOTSAV 2026 — A Journey Through India
+      - key: EVENT_DATE
+        value: Set event date in Render environment
+      - key: EVENT_VENUE
+        value: Set event venue in Render environment
+      - key: FOOD_COLLECTION_ENABLED
+        value: "true"
+      - key: DEV_MODE
+        value: "false"
