@@ -25,6 +25,9 @@
 
   <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
   <script>
+  console.log('Bridge script loaded:', typeof bridge !== 'undefined' ? 'OK' : 'NOT FOUND');
+</script>
+  <script>
     const events = [
       { id: 101, name: "Movie Night",    date: "Fri 8 PM", seats: 12 },
       { id: 102, name: "Open Mic",       date: "Sat 7 PM", seats: 5  },
