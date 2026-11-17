@@ -611,7 +611,11 @@ async function adminApi(request, env) {
   }
   if(action==="sheets_queue_status") {
     const row=await env.DB.prepare("SELECT COUNT(*) pending,SUM(CASE WHEN attempts>0 THEN 1 ELSE 0 END) retrying,MIN(created_at) oldest FROM sheets_outbox WHERE event_id=? AND synced_at IS NULL").bind(eventId).first();
-    return json({ok:true,configured:!!env.SHEETS_SYNC_URL&&!!env.SHEETS_SYNC_SECRET,pending:row.pending||0,retrying:row.retrying||0,oldestCreatedAt:row.oldest||""});
+    return json({ok:true,configured:!!env.SHEETS_SYNC_SECRET&&(!!env.SHEETS_SYNC_URL),pending:row.pending||0,retrying:row.retrying||0,oldestCreatedAt:row.oldest||""});
+  }
+  if(action==="sheets_sync") {
+    const result=await syncSheetsBatch(env,5);
+    return json({ok:true,...result,message:result.configured?"Google Sheets sync batch processed.":"Google Sheets secret/endpoint is not configured."});
   }
 
   if(action==="announcement_preview"||action==="announcement_send") {
@@ -714,6 +718,33 @@ async function adminApi(request, env) {
     return json({ok:true,message:"EventHub admin access removed."});
   }
   return fail("Unknown admin action: "+action,404);
+}
+
+
+async function syncSheetsBatch(env, limit=5) {
+  if(!env.SHEETS_SYNC_SECRET) return {configured:false,processed:0,synced:0,failed:0};
+  const nowSeconds=Math.floor(Date.now()/1000);
+  const pending=await env.DB.prepare("SELECT * FROM sheets_outbox WHERE synced_at IS NULL AND next_attempt_at<=? ORDER BY id LIMIT ?").bind(nowSeconds,Math.min(5,Math.max(1,limit))).all();
+  let synced=0,failed=0;
+  for(const row of pending.results) {
+    try {
+      const event=await env.DB.prepare("SELECT sheets_url FROM events WHERE id=?").bind(row.event_id).first();
+      const endpoint=event?.sheets_url||env.SHEETS_SYNC_URL;
+      if(!endpoint) throw new Error("Google Sheets endpoint is not configured.");
+      const payload=JSON.parse(row.payload_json);
+      const response=await fetch(endpoint,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({...payload,secret:env.SHEETS_SYNC_SECRET})});
+      const result=await response.json();
+      if(!response.ok||!result?.ok) throw new Error(String(result?.error||"Sheets receiver rejected the update.").slice(0,300));
+      await env.DB.prepare("UPDATE sheets_outbox SET synced_at=?,attempts=attempts+1,last_error='' WHERE id=?").bind(now(),row.id).run();
+      synced++;
+    } catch(e) {
+      const attempts=Number(row.attempts||0)+1;
+      const delay=Math.min(3600,60*Math.pow(2,Math.min(attempts,6)));
+      await env.DB.prepare("UPDATE sheets_outbox SET attempts=?,last_error=?,next_attempt_at=? WHERE id=?").bind(attempts,String(e.message||"Sheets sync failed").slice(0,400),nowSeconds+delay,row.id).run();
+      failed++;
+    }
+  }
+  return {configured:true,processed:pending.results.length,synced,failed};
 }
 
 async function api(request, env) {
@@ -898,6 +929,9 @@ async function api(request, env) {
 }
 
 export default {
+  async scheduled(controller, env) {
+    await syncSheetsBatch(env,5);
+  },
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/api/")) {
