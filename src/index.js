@@ -307,7 +307,7 @@ async function actionApi(request, env) {
     await env.DB.prepare("DELETE FROM proof_not_collected WHERE guest_id=?").bind(guest.id).run();
   } else if(action==="proof_no_proof") {
     if(!guest.entry_used) return fail("Record entry before accepting a guest without proof.",409);
-    if(proof && proof.deposited_at && !proof.returned_at) return fail("This guest already has proof stored.",409);
+    if(proof) return fail("A proof-storage record already exists for this guest. Do not replace it with a no-proof record.",409);
     if(noProof) return fail("No-proof confirmation was already recorded.",409);
     try { await env.DB.prepare("INSERT INTO proof_not_collected(event_id,guest_id,recorded_at,recorded_by) VALUES(?,?,?,?)").bind(eventId,guest.id,stamp,uid).run(); }
     catch(e) { if(String(e.message).toLowerCase().includes("unique")) return fail("No-proof confirmation was already recorded.",409); throw e; }
@@ -318,6 +318,7 @@ async function actionApi(request, env) {
   } else if(action==="exit") {
     if(!guest.entry_used) return fail("Guest entry has not been recorded.",409);
     if(proof && proof.deposited_at && !proof.returned_at) return fail("Return the guest's stored proof before completing exit.",409);
+    if(!noProof && !proof) return fail("Record proof storage or confirm no proof was provided before completing exit.",409);
     try { await env.DB.prepare("INSERT INTO event_exit_records(event_id,guest_id,exit_at,exit_by) VALUES(?,?,?,?)").bind(eventId,guest.id,stamp,uid).run(); }
     catch(e) { if(String(e.message).toLowerCase().includes("unique")) return fail("Exit was already recorded.",409); throw e; }
   }
@@ -346,6 +347,8 @@ async function checkpointScanApi(request, env) {
   const eventId=Number(data.event_id||0), checkpointId=Number(data.checkpoint_id||0), value=String(data.qr||"").trim();
   const role=await eventRole(uid,eventId,env);
   if(!role) return fail("Volunteer access required for this event.",403);
+  const event=await env.DB.prepare("SELECT status FROM events WHERE id=?").bind(eventId).first();
+  if(!event || event.status!=="active") return fail("Checkpoint scanning is available only for active events.",409);
   if(role==="checkpoint") {
     const assignment=await env.DB.prepare("SELECT 1 AS ok FROM event_checkpoint_assignments WHERE event_id=? AND checkpoint_id=? AND vk_user_id=?").bind(eventId,checkpointId,uid).first();
     if(!assignment) return fail("You are not assigned to this checkpoint.",403);
@@ -677,8 +680,9 @@ async function adminApi(request, env) {
     return json({ok:true,configured:!!env.SHEETS_SYNC_SECRET&&!!(event?.sheets_url||env.SHEETS_SYNC_URL),pending:row.pending||0,retrying:row.retrying||0,oldestCreatedAt:row.oldest||""});
   }
   if(action==="sheets_sync") {
-    const result=await syncSheetsBatch(env,5);
-    return json({ok:true,...result,message:result.configured?"Google Sheets sync batch processed.":"Google Sheets secret/endpoint is not configured."});
+    if(!await getEvent()) return fail("Event workspace not found.",404);
+    const result=await syncSheetsBatch(env,5,eventId);
+    return json({ok:true,...result,message:result.configured?"This event's Google Sheets sync batch was processed.":"Google Sheets secret/endpoint is not configured."});
   }
 
   if(action==="announcement_preview"||action==="announcement_send") {
@@ -735,7 +739,9 @@ async function adminApi(request, env) {
   if(action==="announcement_unsend") {
     if(!env.VK_GROUP_TOKEN) return fail("VK group messaging is not configured.",409);
     const announcementId=Number(data.announcement_id||0);
-    const rows=await env.DB.prepare("SELECT id,vk_user_id,message_id FROM announcement_deliveries WHERE announcement_id=? AND status='sent' AND message_id IS NOT NULL ORDER BY id LIMIT 20").bind(announcementId).all();
+    const announcement=await env.DB.prepare("SELECT id FROM event_announcements WHERE id=? AND event_id=?").bind(announcementId,eventId).first();
+    if(!announcement) return fail("Announcement not found in this event.",404);
+    const rows=await env.DB.prepare("SELECT d.id,d.vk_user_id,d.message_id FROM announcement_deliveries d JOIN event_announcements a ON a.id=d.announcement_id WHERE d.announcement_id=? AND a.event_id=? AND d.status='sent' AND d.message_id IS NOT NULL ORDER BY d.id LIMIT 20").bind(announcementId,eventId).all();
     let deleted=0,failed=0;
     for(const row of rows.results) {
       try {
@@ -746,7 +752,7 @@ async function adminApi(request, env) {
         else { await env.DB.prepare("UPDATE announcement_deliveries SET status='unsend_failed',error=? WHERE id=?").bind(String(result.error?.error_msg||"VK delete failed").slice(0,400),row.id).run(); failed++; }
       } catch(e) { await env.DB.prepare("UPDATE announcement_deliveries SET status='unsend_failed',error=? WHERE id=?").bind(String(e.message||"Network error").slice(0,400),row.id).run(); failed++; }
     }
-    const remaining=await env.DB.prepare("SELECT COUNT(*) n FROM announcement_deliveries WHERE announcement_id=? AND status='sent' AND message_id IS NOT NULL").bind(announcementId).first();
+    const remaining=await env.DB.prepare("SELECT COUNT(*) n FROM announcement_deliveries d JOIN event_announcements a ON a.id=d.announcement_id WHERE d.announcement_id=? AND a.event_id=? AND d.status='sent' AND d.message_id IS NOT NULL").bind(announcementId,eventId).first();
     await log("ANNOUNCEMENT_UNSEND","announcement",announcementId,{deleted,failed,remaining:remaining.n||0});
     return json({ok:true,deleted,failed,remaining:remaining.n||0,message:"VK unsend batch finished. Deleted: "+deleted+"; failed: "+failed+"; remaining: "+(remaining.n||0)+"."});
   }
@@ -815,10 +821,13 @@ async function guestSheetsPayload(env,eventId,guestId) {
   };
 }
 
-async function syncSheetsBatch(env, limit=5) {
+async function syncSheetsBatch(env, limit=5, eventId=null) {
   if(!env.SHEETS_SYNC_SECRET) return {configured:false,processed:0,synced:0,failed:0};
   const nowSeconds=Math.floor(Date.now()/1000);
-  const pending=await env.DB.prepare("SELECT * FROM sheets_outbox WHERE synced_at IS NULL AND next_attempt_at<=? ORDER BY id LIMIT ?").bind(nowSeconds,Math.min(5,Math.max(1,limit))).all();
+  const boundedLimit=Math.min(5,Math.max(1,limit));
+  const pending=eventId
+    ? await env.DB.prepare("SELECT * FROM sheets_outbox WHERE event_id=? AND synced_at IS NULL AND next_attempt_at<=? ORDER BY id LIMIT ?").bind(eventId,nowSeconds,boundedLimit).all()
+    : await env.DB.prepare("SELECT * FROM sheets_outbox WHERE synced_at IS NULL AND next_attempt_at<=? ORDER BY id LIMIT ?").bind(nowSeconds,boundedLimit).all();
   let synced=0,failed=0;
   for(const row of pending.results) {
     try {
