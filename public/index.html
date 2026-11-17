@@ -74,7 +74,7 @@
     try { data=await res.json(); }
     catch(_) { throw new Error('The server returned an unreadable response. Check the Cloudflare service logs.'); }
     if(!data || typeof data!=='object') throw new Error('The server returned an unexpected response.');
-    if(!res.ok || data.ok===false) throw new Error(data.error || `Request failed (${res.status}).`);
+    if(!res.ok || data.ok===false) throw new Error(data.error || data.detail || `Request failed (${res.status}).`);
     return data;
   }
   const adminCall = (action, extra={}) => post('/api/admin',{action,event_id:state.eventId,...extra});
