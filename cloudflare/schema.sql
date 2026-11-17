@@ -60,8 +60,7 @@ CREATE INDEX IF NOT EXISTS idx_guests_pass_code ON guests(pass_code);
 CREATE TABLE IF NOT EXISTS pending_registrations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   event_id INTEGER NOT NULL REFERENCES events(id),
-  vk_user_id TEXT,
-  legacy_telegram_id TEXT,
+  vk_user_id TEXT NOT NULL,
   full_name TEXT NOT NULL,
   email TEXT,
   phone TEXT NOT NULL DEFAULT '',
@@ -72,8 +71,7 @@ CREATE TABLE IF NOT EXISTS pending_registrations (
   registration_data TEXT NOT NULL DEFAULT '{}',
   created_at TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','approved','rejected','revoked')),
-  UNIQUE(event_id,vk_user_id),
-  UNIQUE(event_id,legacy_telegram_id)
+  UNIQUE(event_id,vk_user_id)
 );
 CREATE INDEX IF NOT EXISTS idx_pending_event_status ON pending_registrations(event_id,status,created_at);
 
