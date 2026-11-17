@@ -114,6 +114,8 @@ async function roleApi(request, env) {
     const event = await env.DB.prepare("SELECT id,status FROM events WHERE id=?").bind(eventId).first();
     if (!event || (event.status !== "active" && !admin)) throw Object.assign(new Error("This event page is not available."), { status: 404 });
     selectedRole = await eventRole(uid, eventId, env);
+    await env.DB.prepare("INSERT INTO event_app_users(event_id,vk_user_id,first_seen_at,last_seen_at) VALUES(?,?,?,?) ON CONFLICT(event_id,vk_user_id) DO UPDATE SET last_seen_at=excluded.last_seen_at")
+      .bind(eventId,uid,now(),now()).run();
   }
   return json({ ok: true, role: admin ? "admin" : (selectedRole ? "volunteer" : "guest"), staff_role: selectedRole || "", user: { id: uid, name: user?.display_name || ("VK user " + uid) }, events: events.results, workspaces: workspaces.results });
 }
@@ -643,7 +645,7 @@ async function adminApi(request, env) {
     if(!message||message.length>3500) return fail("Enter a message between 1 and 3500 characters.");
     const count=audience==="registered_guests"
       ? await env.DB.prepare("SELECT COUNT(*) n FROM guests WHERE event_id=? AND status='approved' AND vk_user_id IS NOT NULL").bind(eventId).first()
-      : await env.DB.prepare("SELECT COUNT(*) n FROM app_users").first();
+      : await env.DB.prepare("SELECT COUNT(*) n FROM event_app_users WHERE event_id=?").bind(eventId).first();
     if(action==="announcement_preview") return json({ok:true,event:{id:eventId,name:event.name},audience,recipient_count:count.n||0,message,note:"VK messages can only be delivered to users who have opened the community conversation or allowed community messages."});
     if(!env.VK_GROUP_TOKEN) return fail("VK group messaging is not configured yet. Set VK_GROUP_TOKEN as a Worker secret before sending announcements.",409);
     const inserted=await env.DB.prepare("INSERT INTO event_announcements(event_id,created_by,message,created_at,recipients) VALUES(?,?,?,?,?)").bind(eventId,uid,message,now(),count.n||0).run();
@@ -651,7 +653,7 @@ async function adminApi(request, env) {
     if(audience==="registered_guests") {
       await env.DB.prepare("INSERT INTO announcement_deliveries(announcement_id,vk_user_id,status,error,delivered_at) SELECT ?,vk_user_id,'pending','',? FROM guests WHERE event_id=? AND status='approved' AND vk_user_id IS NOT NULL").bind(announcementId,now(),eventId).run();
     } else {
-      await env.DB.prepare("INSERT INTO announcement_deliveries(announcement_id,vk_user_id,status,error,delivered_at) SELECT ?,vk_user_id,'pending','',? FROM app_users").bind(announcementId,now()).run();
+      await env.DB.prepare("INSERT INTO announcement_deliveries(announcement_id,vk_user_id,status,error,delivered_at) SELECT ?,vk_user_id,'pending','',? FROM event_app_users WHERE event_id=?").bind(announcementId,now(),eventId).run();
     }
     await log("ANNOUNCEMENT_QUEUED","announcement",announcementId,{audience,recipients:count.n||0});
     return json({ok:true,announcement_id:announcementId,attempted:0,sent:0,failed:0,remaining:count.n||0,message:"Announcement queued. VK delivery will run in small batches."});
@@ -690,7 +692,7 @@ async function adminApi(request, env) {
   if(action==="announcement_unsend") {
     if(!env.VK_GROUP_TOKEN) return fail("VK group messaging is not configured.",409);
     const announcementId=Number(data.announcement_id||0);
-    const rows=await env.DB.prepare("SELECT id,vk_user_id,message_id FROM announcement_deliveries WHERE announcement_id=? AND status='sent' AND message_id IS NOT NULL").bind(announcementId).all();
+    const rows=await env.DB.prepare("SELECT id,vk_user_id,message_id FROM announcement_deliveries WHERE announcement_id=? AND status='sent' AND message_id IS NOT NULL ORDER BY id LIMIT 20").bind(announcementId).all();
     let deleted=0,failed=0;
     for(const row of rows.results) {
       try {
@@ -701,8 +703,9 @@ async function adminApi(request, env) {
         else { await env.DB.prepare("UPDATE announcement_deliveries SET error=? WHERE id=?").bind(String(result.error?.error_msg||"VK delete failed").slice(0,400),row.id).run(); failed++; }
       } catch(e) { await env.DB.prepare("UPDATE announcement_deliveries SET error=? WHERE id=?").bind(String(e.message||"Network error").slice(0,400),row.id).run(); failed++; }
     }
-    await log("ANNOUNCEMENT_UNSEND","announcement",announcementId,{deleted,failed});
-    return json({ok:true,deleted,failed,unavailable:0,message:"VK unsend attempt finished. Deleted: "+deleted+"; failed: "+failed+"."});
+    const remaining=await env.DB.prepare("SELECT COUNT(*) n FROM announcement_deliveries WHERE announcement_id=? AND status='sent' AND message_id IS NOT NULL").bind(announcementId).first();
+    await log("ANNOUNCEMENT_UNSEND","announcement",announcementId,{deleted,failed,remaining:remaining.n||0});
+    return json({ok:true,deleted,failed,remaining:remaining.n||0,message:"VK unsend batch finished. Deleted: "+deleted+"; failed: "+failed+"; remaining: "+(remaining.n||0)+"."});
   }
   if(action==="announcement_delete") {
     const announcementId=Number(data.announcement_id||0);
