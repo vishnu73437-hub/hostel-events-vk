@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const worker = await readFile(new URL("../src/index.js", import.meta.url), "utf8");
 const schema = await readFile(new URL("../cloudflare/schema.sql", import.meta.url), "utf8");
+const frontend = await readFile(new URL("../public/index.html", import.meta.url), "utf8");
 
 test("entry and food actions use conditional updates to reject duplicate scans", () => {
   assert.match(worker, /UPDATE guests SET entry_used=1,entry_used_at=\? WHERE id=\? AND entry_used=0 AND status='approved'/);
@@ -24,4 +25,19 @@ test("proof storage and checkpoint uniqueness are enforced by D1 indexes", () =>
 test("exit requires proof return or a recorded no-proof decision", () => {
   assert.match(worker, /Return the guest's stored proof before completing exit/);
   assert.match(worker, /Record proof storage or confirm no proof was provided before completing exit/);
+});
+
+test("checkpoint scans are limited by role and attendance state", () => {
+  assert.match(worker, /Your volunteer role does not include checkpoint scanning/);
+  assert.match(worker, /Record guest entry before scanning an additional checkpoint/);
+  assert.match(worker, /Additional checkpoint scans are disabled/);
+  assert.match(worker, /status='approved' AND revoked_at IS NULL/);
+});
+
+test("scanner UI filters actions by the signed-in volunteer role", () => {
+  assert.match(frontend, /const staffRole=state\.staffRole\|\|''/);
+  assert.match(frontend, /staffRole==='entry'.*proof_no_proof/s);
+  assert.match(frontend, /staffRole==='food'.*action==='food'/s);
+  assert.match(frontend, /staffRole==='proof'.*proof_return/s);
+  assert.match(frontend, /g\.entryUsed&&!g\.exitRecorded/);
 });
