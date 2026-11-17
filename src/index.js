@@ -399,8 +399,8 @@ async function adminApi(request, env) {
     if(name.length<3) return fail("Event name must contain at least 3 characters.");
     const theme=data.theme&&typeof data.theme==="object"?JSON.stringify(data.theme):event.theme_json;
     const schema=Array.isArray(data.registration_schema)?JSON.stringify(data.registration_schema):event.registration_schema;
-    await env.DB.prepare("UPDATE events SET name=?,description=?,event_date=?,event_time=?,venue=?,theme_json=?,registration_schema=?,food_enabled=?,sheets_url=? WHERE id=?")
-      .bind(name,String(data.description??event.description).slice(0,1000),String(data.event_date??event.event_date).slice(0,20),String(data.event_time??event.event_time).slice(0,40),String(data.venue??event.venue).slice(0,200),theme,schema,data.food_enabled===undefined?event.food_enabled:(asBool(data.food_enabled)?1:0),String(data.sheets_url??event.sheets_url).slice(0,500),eventId).run();
+    await env.DB.prepare("UPDATE events SET name=?,description=?,event_date=?,event_time=?,venue=?,theme_json=?,registration_schema=?,food_enabled=?,registration_open=?,sheets_url=? WHERE id=?")
+      .bind(name,String(data.description??event.description).slice(0,1000),String(data.event_date??event.event_date).slice(0,20),String(data.event_time??event.event_time).slice(0,40),String(data.venue??event.venue).slice(0,200),theme,schema,data.food_enabled===undefined?event.food_enabled:(asBool(data.food_enabled)?1:0),data.registration_open===undefined?event.registration_open:(asBool(data.registration_open)?1:0),String(data.sheets_url??event.sheets_url).slice(0,500),eventId).run();
     await log("EVENT_UPDATED","event",eventId,{name});
     return json({ok:true,event_id:eventId,message:"Event details and registration form saved."});
   }
