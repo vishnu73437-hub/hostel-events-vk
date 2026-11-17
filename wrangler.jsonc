@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "eventhub-vk",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-17",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "eventhub-db",
+      "database_id": "REPLACE_WITH_EVENTHUB_D1_DATABASE_ID"
+    }
+  ],
+  "vars": {
+    "VK_APP_ID": "SET_IN_CLOUDFLARE_DASHBOARD",
+    "VK_ADMIN_IDS": "SET_COMMA_SEPARATED_VK_IDS",
+    "EVENT_NAME": "EventHub",
+    "EVENT_DATE": "Set event date",
+    "EVENT_VENUE": "Set event venue",
+    "FOOD_COLLECTION_ENABLED": "true",
+    "DEV_MODE": "false"
+  }
+}
