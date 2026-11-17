@@ -143,6 +143,8 @@ async function registerApi(request, env) {
   if (!fields || typeof fields !== "object" || Array.isArray(fields)) return fail("Registration fields are missing.");
   const foodEnabled = asBool(event.food_enabled);
   const cleaned = {};
+  const requestedResidence=String(fields.residence_type||"Apartment").trim();
+  if(!["Hostel","Apartment"].includes(requestedResidence)) return fail("Choose Hostel or Apartment.");
   const allowed = new Set(["text","tel","email","number","date","textarea","select","checkbox"]);
   for (const field of schema) {
     if (!field || typeof field.key !== "string" || !/^[a-zA-Z][a-zA-Z0-9_]{0,39}$/.test(field.key) || !allowed.has(field.type || "text")) return fail("The event registration form contains an invalid field.");
@@ -153,7 +155,7 @@ async function registerApi(request, env) {
     } else {
       value = String(value ?? "").trim().replace(/\s+/g," ").slice(0,1000);
     }
-    const required = !!field.required && !(key === "food_preference" && !foodEnabled);
+    const required = !!field.required && !(key === "food_preference" && !foodEnabled) && !((key === "hostel_number" || key === "room_number") && requestedResidence !== "Hostel");
     if (required && (value === "" || value === false)) return fail("Please complete: " + label + ".");
     if (key === "food_preference" && !foodEnabled) value = "";
     if (type === "select" && value && !((field.options || []).map(String).includes(value))) return fail("Choose a valid option for " + label + ".");
