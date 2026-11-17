@@ -388,13 +388,68 @@
   }
   async function renderGuests(host) {
     const readOnly=state.event?.status==='archived';
-    host.innerHTML=`${readOnly?showNotice('Archived events are read-only. The guest register remains available for review.','error'):''}<div class="section-title"><h2>Guest register</h2><span class="muted">Search this event only</span></div><div class="inline-fields"><div class="field"><label>Search name, phone or pass code</label><input id="guestQuery" placeholder="Search guests…"></div><div class="field"><label>Status</label><select id="guestStatus"><option value="all">All</option><option value="approved">Approved</option><option value="revoked">Revoked</option></select></div></div><div class="actions"><button class="btn primary" id="searchGuests">Search</button></div>${readOnly?'':'<p class="footnote">Reset entry + proof storage is blocked while an item is still recorded as stored. Physically return the item first. Food collection status can be reset separately.</p>'}<div id="guestList" class="list"></div>`;
-    const search=async()=>{try{const r=await adminCall('guest_search',{query:$('guestQuery').value,status:$('guestStatus').value});$('guestList').innerHTML=(r.guests||[]).map(g=>`<article class="list-item"><div class="row"><strong>${safe(g.full_name)}</strong><span class="pill ${g.status==='approved'?'good':'warn'}">${safe(g.status)}</span></div><div class="sub">${safe(g.phone||'No phone')} · ${safe(g.pass_code)} · ${safe(g.food_preference||'No food preference')}</div><div class="sub">${safe(g.residence_type||'')} ${safe(g.hostel_number||'')} ${safe(g.room_number?'· Room '+g.room_number:'')}</div><div class="sub">VK user ID: ${safe(g.vk_user_id)} · Registered ${safe(g.registered_at||'')}</div><div class="sub">Entry ${g.entry_used?'✓':'—'} · Food ${g.food_used?'✓':'—'}</div>${readOnly?'':`<div class="actions">${g.status==='approved'?`<button class="btn small" data-guest-op="reissue_pass" data-id="${g.id}">Reissue QR</button><button class="btn danger small" data-guest-op="revoke_pass" data-id="${g.id}">Revoke</button>`:`<button class="btn success small" data-guest-op="reactivate_pass" data-id="${g.id}">Reactivate</button>`}<button class="btn small" data-guest-op="reset_entry_and_storage" data-id="${g.id}" data-confirm="Reset entry and proof-storage tracking? Any physical proof must already be returned. Food status will stay unchanged.">Reset entry + proof storage</button><button class="btn small" data-guest-op="reset_status" data-target="food" data-id="${g.id}" data-confirm="Reset this guest’s food collection status?">Reset food status</button></div>`}</article>`).join('')||'<div class="empty">No matching guests.</div>';
-      if(!readOnly) {
-        document.querySelectorAll('[data-guest-op]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm(b.dataset.confirm||`Confirm ${b.dataset.guestOp.replaceAll('_',' ')} for this guest?`))return;b.disabled=true;try{const r=await adminCall('guest_action',{guest_id:Number(b.dataset.id),operation:b.dataset.guestOp,target:b.dataset.target||''});toast(r.message||'Guest action saved');await search();}catch(e){toast(e.message,true);b.disabled=false;}}));
-      }
-    }catch(e){$('guestList').innerHTML=showNotice(e.message,'error');}};
-    $('searchGuests').addEventListener('click',search);$('guestQuery').addEventListener('keydown',e=>{if(e.key==='Enter')search();});await search();
+    const schemaRaw=parseJSON(state.event?.registration_schema,defaultSchema());
+    const schema=(Array.isArray(schemaRaw)&&schemaRaw.length?schemaRaw:defaultSchema()).filter(f=>asFoodEnabled(state.event)||f.key!=='food_preference');
+    const editMarkup=g=>{
+      const values=parseJSON(g.registration_data,{});
+      Object.assign(values,{full_name:g.full_name,phone:g.phone,email:g.email||'',residence_type:g.residence_type||'Apartment',hostel_number:g.hostel_number||'',room_number:g.room_number||'',food_preference:g.food_preference==='Not applicable'?'':g.food_preference});
+      return schema.map(f=>{
+        const key=String(f.key||''),type=f.type||'text',value=values[key]??'',label=safe(f.label||key),required=!!f.required;
+        const residenceField=key==='hostel_number'||key==='room_number';
+        const hidden=residenceField&&values.residence_type!=='Hostel'?'hidden':'';
+        const req=required&&!residenceField?'required':'';
+        if(type==='select') return `<div class="field ${residenceField?hidden:''}" ${residenceField?`data-residence-field="${safe(key)}"`:''}><label>${label}${required?' *':''}</label><select name="${safe(key)}" ${req} ${residenceField&&required?'data-hostel-required="1"':''}><option value="">Choose…</option>${(Array.isArray(f.options)?f.options:[]).map(o=>`<option value="${safe(o)}" ${String(value)===String(o)?'selected':''}>${safe(o)}</option>`).join('')}</select></div>`;
+        if(type==='textarea') return `<div class="field"><label>${label}${required?' *':''}</label><textarea name="${safe(key)}" ${req} maxlength="1000">${safe(value)}</textarea></div>`;
+        if(type==='checkbox') return `<div class="field"><label><input type="checkbox" name="${safe(key)}" ${value?'checked':''} style="width:auto;min-height:0"> ${label}${required?' *':''}</label></div>`;
+        const inputType=['text','tel','email','number','date'].includes(type)?type:'text';
+        return `<div class="field ${residenceField?hidden:''}" ${residenceField?`data-residence-field="${safe(key)}"`:''}><label>${label}${required?' *':''}</label><input name="${safe(key)}" type="${inputType}" value="${safe(value)}" maxlength="1000" ${req} ${residenceField&&required?'data-hostel-required="1"':''}></div>`;
+      }).join('');
+    };
+    host.innerHTML=`${readOnly?showNotice('Archived events are read-only. The guest register remains available for review.','error'):''}<div class="section-title"><h2>Guest register</h2><span class="muted">Search this event only</span></div><div class="inline-fields"><div class="field"><label>Search name, phone or pass code</label><input id="guestQuery" placeholder="Search guests…"></div><div class="field"><label>Status</label><select id="guestStatus"><option value="all">All</option><option value="approved">Approved</option><option value="pending">Pending</option><option value="rejected">Rejected</option><option value="revoked">Revoked</option></select></div></div><div class="actions"><button class="btn primary" id="searchGuests">Search</button></div>${readOnly?'':'<p class="footnote">Editing guest details preserves the existing QR token and attendance history. Reset entry + proof storage is blocked while an item is still recorded as stored.</p>'}<div id="guestList" class="list"></div>`;
+    const search=async()=>{
+      try{
+        const r=await adminCall('guest_search',{query:$('guestQuery').value,status:$('guestStatus').value});
+        $('guestList').innerHTML=(r.guests||[]).map(g=>`<article class="list-item"><div class="row"><strong>${safe(g.full_name)}</strong><span class="pill ${g.status==='approved'?'good':'warn'}">${safe(g.status)}</span></div><div class="sub">${safe(g.phone||'No phone')} · ${safe(g.pass_code)} · ${safe(g.food_preference||'No food preference')}</div><div class="sub">${safe(g.residence_type||'')} ${safe(g.hostel_number||'')} ${safe(g.room_number?'· Room '+g.room_number:'')}</div><div class="sub">VK user ID: ${safe(g.vk_user_id)} · Registered ${safe(g.registered_at||'')}</div><div class="sub">Entry ${g.entry_used?'✓':'—'} · Food ${g.food_used?'✓':'—'}</div>${readOnly?'':`<div class="actions"><button class="btn small" data-edit-guest="${g.id}">Edit details</button>${g.status==='approved'?`<button class="btn small" data-guest-op="reissue_pass" data-id="${g.id}">Reissue QR</button><button class="btn danger small" data-guest-op="revoke_pass" data-id="${g.id}">Revoke</button>`:g.status==='revoked'?'<span class="muted">Pass revoked</span>':''}<button class="btn small" data-guest-op="reset_entry_and_storage" data-id="${g.id}" data-confirm="Reset entry and proof-storage tracking? Any physical proof must already be returned. Food status will stay unchanged.">Reset entry + proof storage</button><button class="btn small" data-guest-op="reset_status" data-target="food" data-id="${g.id}" data-confirm="Reset this guest’s food collection status?">Reset food status</button></div><div id="guestEdit-${g.id}" class="hidden"><form class="card guest-edit-form" data-guest-edit-form="${g.id}"><h3>Edit guest details</h3><p class="muted">Event-specific form fields are shown here. The pass token will not change.</p>${editMarkup(g)}<div class="actions"><button class="btn primary" type="submit">Save guest details</button><button class="btn" type="button" data-cancel-edit="${g.id}">Cancel</button></div></form></div>`}</article>`).join('')||'<div class="empty">No matching guests.</div>';
+        if(!readOnly){
+          document.querySelectorAll('[data-edit-guest]').forEach(b=>b.addEventListener('click',()=>{$('guestEdit-'+b.dataset.editGuest)?.classList.toggle('hidden');}));
+          document.querySelectorAll('[data-cancel-edit]').forEach(b=>b.addEventListener('click',()=>{$('guestEdit-'+b.dataset.cancelEdit)?.classList.add('hidden');}));
+          document.querySelectorAll('[data-guest-edit-form]').forEach(form=>{
+            const residence=form.elements.namedItem('residence_type');
+            const syncResidence=()=>{
+              const hostel=residence?.value==='Hostel';
+              form.querySelectorAll('[data-residence-field]').forEach(w=>{
+                w.classList.toggle('hidden',!hostel);
+                const input=w.querySelector('input,select,textarea');
+                if(input) input.required=hostel&&input.dataset.hostelRequired==='1';
+              });
+            };
+            residence?.addEventListener('change',syncResidence);syncResidence();
+            form.addEventListener('submit',async e=>{
+              e.preventDefault();
+              const submit=form.querySelector('button[type="submit"]');submit.disabled=true;
+              try{
+                const fields={};
+                for(const f of schema){
+                  const input=form.elements.namedItem(f.key);
+                  fields[f.key]=f.type==='checkbox'?!!input?.checked:(input?.value??'');
+                }
+                const result=await adminCall('guest_edit',{guest_id:Number(form.dataset.guestEditForm),fields});
+                toast(result.message||'Guest details saved');await search();
+              }catch(err){toast(err.message,true);submit.disabled=false;}
+            });
+          });
+          document.querySelectorAll('[data-guest-op]').forEach(b=>b.addEventListener('click',async()=>{
+            if(!confirm(b.dataset.confirm||`Confirm ${b.dataset.guestOp.replaceAll('_',' ')} for this guest?`))return;
+            b.disabled=true;
+            try{const result=await adminCall('guest_action',{guest_id:Number(b.dataset.id),operation:b.dataset.guestOp,target:b.dataset.target||''});toast(result.message||'Guest action saved');await search();}
+            catch(err){toast(err.message,true);b.disabled=false;}
+          }));
+        }
+      }catch(e){$('guestList').innerHTML=showNotice(e.message,'error');}
+    };
+    $('searchGuests').addEventListener('click',search);
+    $('guestQuery').addEventListener('keydown',e=>{if(e.key==='Enter')search();});
+    await search();
   }
   async function renderStorage(host) {
     host.innerHTML=`<div class="section-title"><h2>Proof storage</h2><button class="btn small" id="refreshStorage">↻ Refresh</button></div><div class="card"><h3>Storage layout</h3><p class="muted">Each event has a separate box/section/slot map.</p><form id="storageForm"><div class="inline-fields"><div class="field"><label>Boxes / units</label><input id="units" type="number" min="1" max="100" value="5"></div><div class="field"><label>Sections per box</label><input id="sections" type="number" min="1" max="26" value="4"></div><div class="field"><label>Slots per section</label><input id="capacity" type="number" min="1" max="500" value="10"></div><div class="field"><label>Box label</label><input id="unitPrefix" value="Box" maxlength="30"></div><div class="field"><label>Section label</label><input id="sectionPrefix" value="Section" maxlength="30"></div></div><button class="btn primary" type="submit">Save layout</button></form><div id="storageMessage"></div></div><div class="section"><div class="stat-grid" id="storageStats"></div><div class="list" id="storageRecords"></div></div>`;
