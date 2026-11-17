@@ -507,12 +507,64 @@ async function adminApi(request, env) {
     ]);
     return json({ok:true,stats:{approvedGuests:total.n,checkedIn:entered.n,mealsServed:meals.n,vegetarians:veg.n,nonVegetarians:nonveg.n,vegetarianServed:veg.n,nonVegetarianServed:nonveg.n,volunteers:volunteers.n,proofCurrentlyStored:proof.n,exited:exits.n}});
   }
+  if(action==="guest_edit") {
+    const guestId=Number(data.guest_id||0);
+    const guest=await env.DB.prepare("SELECT * FROM guests WHERE id=? AND event_id=?").bind(guestId,eventId).first();
+    if(!guest) return fail("Guest record not found in this event.",404);
+    if(guest.status==="revoked") return fail("Reactivate this pass before editing guest details.",409);
+    const event=await getEvent();
+    let schema=[];
+    try { schema=JSON.parse(event?.registration_schema||"[]"); } catch { schema=[]; }
+    if(!Array.isArray(schema)||!schema.length) return fail("This event's registration form is not configured.",409);
+    const fields=data.fields;
+    if(!fields||typeof fields!=="object"||Array.isArray(fields)) return fail("Guest details are missing.");
+    const foodEnabled=asBool(event.food_enabled);
+    const requestedResidence=String(fields.residence_type||"Apartment").trim();
+    if(!["Hostel","Apartment"].includes(requestedResidence)) return fail("Choose Hostel or Apartment.");
+    const allowed=new Set(["text","tel","email","number","date","textarea","select","checkbox"]);
+    const cleaned={};
+    for(const field of schema) {
+      if(!field||typeof field.key!=="string"||!allowed.has(field.type||"text")) return fail("The event registration form contains an invalid field.");
+      const key=field.key,type=field.type||"text",label=String(field.label||key).slice(0,80);
+      let value=fields[key]??(type==="checkbox"?false:"");
+      if(type==="checkbox") {
+        if(typeof value!=="boolean") return fail("Invalid checkbox value for "+label+".");
+      } else {
+        value=String(value??"").trim().replace(/\s+/g," ").slice(0,1000);
+      }
+      const required=!!field.required && !(key==="food_preference"&&!foodEnabled) && !((key==="hostel_number"||key==="room_number")&&requestedResidence!=="Hostel");
+      if(required&&(value===""||value===false)) return fail("Please complete: "+label+".");
+      if(key==="food_preference"&&!foodEnabled) value="";
+      if(type==="select"&&value&&!((field.options||[]).map(String).includes(value))) return fail("Choose a valid option for "+label+".");
+      if(type==="email"&&value&&!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(value)) return fail("Enter a valid email address for "+label+".");
+      if(type==="tel"&&value) { value=value.replace(/[\\s().-]/g,""); if(!/^\\+?[0-9]{7,15}$/.test(value)) return fail("Enter a valid phone number for "+label+"."); }
+      cleaned[key]=value;
+    }
+    const fullName=String(cleaned.full_name||"").trim(), phone=String(cleaned.phone||"").trim();
+    if(fullName.length<2||fullName.length>100) return fail("Full name must be between 2 and 100 characters.");
+    if(!phone) return fail("Phone number is required.");
+    const residence=requestedResidence;
+    const hostelNumber=residence==="Hostel"?String(cleaned.hostel_number||""):"";
+    const roomNumber=residence==="Hostel"?String(cleaned.room_number||""):"";
+    if(residence==="Apartment") { cleaned.hostel_number=""; cleaned.room_number=""; }
+    const food=foodEnabled?String(cleaned.food_preference||"Not specified"):"Not applicable";
+    const email=String(cleaned.email??guest.email??"");
+    const registrationData=JSON.stringify(cleaned);
+    await env.DB.prepare("UPDATE guests SET full_name=?,email=?,phone=?,residence=?,residence_type=?,hostel=?,hostel_number=?,room=?,room_number=?,food_preference=?,registration_data=? WHERE id=? AND event_id=?")
+      .bind(fullName,email,phone,residence,residence,hostelNumber,hostelNumber,roomNumber,roomNumber,food,registrationData,guestId,eventId).run();
+    await env.DB.prepare("UPDATE pending_registrations SET full_name=?,email=?,phone=?,food_preference=?,residence_type=?,hostel_number=?,room_number=?,registration_data=? WHERE event_id=? AND vk_user_id=?")
+      .bind(fullName,email,phone,food,residence,hostelNumber,roomNumber,registrationData,eventId,guest.vk_user_id).run();
+    await log("GUEST_DETAILS_EDITED","guest",guestId,{residence_type:residence});
+    await outbox(env,eventId,guestId,"upsert",{action:"upsert",...(await guestSheetsPayload(env,eventId,guestId))});
+    const fresh=await env.DB.prepare("SELECT id,full_name,phone,residence_type,hostel_number,room_number,food_preference,registration_data FROM guests WHERE id=? AND event_id=?").bind(guestId,eventId).first();
+    return json({ok:true,guest:fresh,message:"Guest details updated. Existing QR token and attendance history were preserved."});
+  }
   if(action==="guest_search") {
     const query=String(data.query||"").trim().slice(0,120), status=String(data.status||"all");
     if(!eventId) return fail("Event ID required.");
     if(!["all","approved","pending","rejected","revoked"].includes(status)) return fail("Invalid guest status filter.");
     const like="%"+query+"%";
-    const rows=await env.DB.prepare("SELECT id,vk_user_id,full_name,email,phone,residence_type,hostel_number,room_number,food_preference,pass_code,status,entry_used,food_used,registered_at FROM guests WHERE event_id=? AND (?='all' OR status=?) AND (?='' OR full_name LIKE ? OR phone LIKE ? OR pass_code LIKE ? OR vk_user_id LIKE ?) ORDER BY id DESC LIMIT 100")
+    const rows=await env.DB.prepare("SELECT id,vk_user_id,full_name,email,phone,residence_type,hostel_number,room_number,food_preference,registration_data,pass_code,status,entry_used,food_used,registered_at FROM guests WHERE event_id=? AND (?='all' OR status=?) AND (?='' OR full_name LIKE ? OR phone LIKE ? OR pass_code LIKE ? OR vk_user_id LIKE ?) ORDER BY id DESC LIMIT 100")
       .bind(eventId,status,status,query,like,like,like,like).all();
     return json({ok:true,guests:rows.results,limit:100});
   }
