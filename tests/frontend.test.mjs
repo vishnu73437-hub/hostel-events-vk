@@ -6,9 +6,12 @@ import vm from "node:vm";
 const frontend = await readFile(new URL("../public/index.html", import.meta.url), "utf8");
 
 function inlineApplicationScript(html) {
-  const scripts = [...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)];
-  assert.ok(scripts.length, "frontend must include its application script");
-  return scripts[scripts.length - 1][1];
+  const start = html.indexOf("<script>");
+  assert.notEqual(start, -1, "frontend must include its application script");
+  const contentStart = start + "<script>".length;
+  const end = html.indexOf("</script>", contentStart);
+  assert.notEqual(end, -1, "frontend application script must be closed");
+  return html.slice(contentStart, end);
 }
 
 test("frontend inline JavaScript parses", () => {
@@ -18,12 +21,12 @@ test("frontend inline JavaScript parses", () => {
 });
 
 test("language selector exposes English and Russian and persists the selection", () => {
-  assert.match(frontend, /id="languageSelect"/);
-  assert.match(frontend, /<option value="en">English<\\/option>/);
-  assert.match(frontend, /<option value="ru">Русский<\\/option>/);
-  assert.match(frontend, /eventhub\\.language\\.v1/);
-  assert.match(frontend, /navigator\\.language/);
-  assert.match(frontend, /function setLanguage\\(/);
+  assert.ok(frontend.includes('id="languageSelect"'));
+  assert.ok(frontend.includes('<option value="en">English</option>'));
+  assert.ok(frontend.includes('<option value="ru">Русский</option>'));
+  assert.ok(frontend.includes("eventhub.language.v1"));
+  assert.ok(frontend.includes("navigator.language"));
+  assert.ok(frontend.includes("function setLanguage("));
 });
 
 test("Russian dictionary covers core guest and volunteer flows", () => {
@@ -32,22 +35,24 @@ test("Russian dictionary covers core guest and volunteer flows", () => {
     "Record entry", "Record food collection", "Record exit",
     "Pending registrations", "Guest register", "Proof storage"
   ]) assert.ok(frontend.includes(phrase), `missing source phrase: ${phrase}`);
-  assert.match(frontend, /'Register now':'Зарегистрироваться'/);
-  assert.match(frontend, /'Start camera':'Включить камеру'/);
-  assert.match(frontend, /'Record entry':'Отметить вход'/);
+  assert.ok(frontend.includes("'Register now':'Зарегистрироваться'"));
+  assert.ok(frontend.includes("'Start camera':'Включить камеру'"));
+  assert.ok(frontend.includes("'Record entry':'Отметить вход'"));
 });
 
 test("scanner start is guarded against overlapping and stale permission requests", () => {
-  assert.match(frontend, /let scannerStartGeneration=0/);
-  assert.match(frontend, /let scannerStartPending=false/);
-  assert.match(frontend, /state\\.scanner\\?\\.active\\|\\|scannerStartPending/);
-  assert.match(frontend, /generation!==scannerStartGeneration/);
-  assert.match(frontend, /scannerStartGeneration\\+\\+/);
-  assert.match(frontend, /scanner\\.active&&state\\.scanner===scanner/);
+  for (const fragment of [
+    "let scannerStartGeneration=0",
+    "let scannerStartPending=false",
+    "state.scanner?.active||scannerStartPending",
+    "generation!==scannerStartGeneration",
+    "scannerStartGeneration++",
+    "scanner.active&&state.scanner===scanner"
+  ]) assert.ok(frontend.includes(fragment), `missing scanner safeguard: ${fragment}`);
 });
 
 test("offline QR queue clearly distinguishes saved scans from attendance", () => {
-  assert.match(frontend, /not attendance records/i);
-  assert.match(frontend, /verify each pass and record its action/i);
-  assert.match(frontend, /eventhub-offline-scans-v1/);
+  assert.ok(frontend.toLowerCase().includes("not attendance records"));
+  assert.ok(frontend.toLowerCase().includes("verify each pass and record its action"));
+  assert.ok(frontend.includes("eventhub-offline-scans-v1"));
 });
