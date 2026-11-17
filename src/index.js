@@ -536,8 +536,8 @@ async function adminApi(request, env) {
       if(required&&(value===""||value===false)) return fail("Please complete: "+label+".");
       if(key==="food_preference"&&!foodEnabled) value="";
       if(type==="select"&&value&&!((field.options||[]).map(String).includes(value))) return fail("Choose a valid option for "+label+".");
-      if(type==="email"&&value&&!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(value)) return fail("Enter a valid email address for "+label+".");
-      if(type==="tel"&&value) { value=value.replace(/[\\s().-]/g,""); if(!/^\\+?[0-9]{7,15}$/.test(value)) return fail("Enter a valid phone number for "+label+"."); }
+      if(type==="email"&&value&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) return fail("Enter a valid email address for "+label+".");
+      if(type==="tel"&&value) { value=value.replace(/[\s().-]/g,""); if(!/^\+?[0-9]{7,15}$/.test(value)) return fail("Enter a valid phone number for "+label+"."); }
       cleaned[key]=value;
     }
     const fullName=String(cleaned.full_name||"").trim(), phone=String(cleaned.phone||"").trim();
