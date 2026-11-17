@@ -411,7 +411,7 @@ async function adminApi(request, env) {
     const createdAt=now();
     const slug=String(event.name||"event").normalize("NFKD").replace(/[^a-zA-Z0-9]+/g,"-").replace(/^-|-$/g,"").toLowerCase().slice(0,48)||"event";
     const fileName="eventhub-"+slug+"-"+eventId+"-"+createdAt.slice(0,10)+".json";
-    const backup={format:"eventhub-event-backup",version:1,created_at:createdAt,event_id:eventId,event,tables,row_counts:Object.fromEntries(Object.entries(tables).map(([key,rows])=>[key,rows.length])),security_notice:"Contains personal data and QR pass tokens. Store securely and never share publicly."};
+    const backup={format:"eventhub-event-backup",version:1,file_name:fileName,created_at:createdAt,event_id:eventId,event,tables,row_counts:Object.fromEntries(Object.entries(tables).map(([key,rows])=>[key,rows.length])),security_notice:"Contains personal data and QR pass tokens. Store securely and never share publicly."};
     const canonical=JSON.stringify(backup);
     const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical))),b=>b.toString(16).padStart(2,"0")).join("");
     const snapshot=await env.DB.prepare("INSERT INTO event_backup_snapshots(event_id,created_by,file_name,created_at,note,sha256) VALUES(?,?,?,?,?,?)")
