@@ -28,7 +28,7 @@
   'use strict';
   const params = new URLSearchParams(location.search);
   const vkLaunchParams = location.search.replace(/^\?/, '');
-  const API_BASE = (params.get('api_base') || window.EVENTHUB_API_BASE || location.origin).replace(/\/$/, '');
+  const API_BASE = location.origin.replace(/\/$/, '');
   const initialEventId = Number(params.get('event_id') || 0);
   const state = { role:'guest', user:null, activeEvents:[], workspaces:[], eventId:initialEventId, event:null, stats:null, page:'home', guest:null, scanner:null, formSchema:[], pass:null };
   const $ = (id) => document.getElementById(id);
@@ -81,7 +81,7 @@
   function updateUrl(eid, push=false) {
     const u=new URL(location.href);
     if(eid) u.searchParams.set('event_id',String(eid)); else u.searchParams.delete('event_id');
-    if(API_BASE) u.searchParams.set('api_base',API_BASE);
+    u.searchParams.delete('api_base');
     const next=u.pathname+u.search+u.hash;
     if(push) history.pushState({event_id:Number(eid)||0},'',next);
     else history.replaceState({event_id:Number(eid)||0},'',next);
