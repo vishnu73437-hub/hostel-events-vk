@@ -55,3 +55,10 @@ test("guest register keeps the existing exact 34-column header order", () => {
     "Exit Time","Exit Volunteer ID"
   ]);
 });
+
+test("Apps Script escapes formula-like user content before writing cells", () => {
+  assert.match(receiver, /function ehSafeCellValue_\(value\)/);
+  assert.match(receiver, /\^\[=\+\\-@\]/);
+  assert.match(receiver, /ehSafeCellValue_\(value\)/);
+  assert.match(receiver, /ehSafeCellValue_\(values\[h\]\)/);
+});
