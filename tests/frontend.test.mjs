@@ -146,3 +146,17 @@ test("new mobile, scanner, guest and volunteer controls have Russian text", () =
     assert.ok(frontend.includes(translated), `missing Russian translation: ${translated}`);
   }
 });
+
+
+test("KSMU Hostel 5 branding follows the selected language and appears on exported QR passes", () => {
+  assert.ok(frontend.includes("Kazan State Medical University"));
+  assert.ok(frontend.includes("Hostel 5"));
+  assert.ok(frontend.includes("Казанский государственный медицинский университет"));
+  assert.ok(frontend.includes("Общежитие № 5"));
+  assert.ok(frontend.includes("function updateAppBranding()"));
+  assert.ok(frontend.includes("updateAppBranding();"));
+  assert.ok(frontend.includes("function brandedPassDataUrl(pass)"));
+  assert.ok(frontend.includes("const artwork=brandedPassDataUrl(pass)"));
+  assert.ok(frontend.includes("const file=new File([blob]"));
+  assert.ok(frontend.includes("eventhub.language.v1"));
+});
