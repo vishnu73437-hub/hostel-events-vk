@@ -18,3 +18,4 @@ jobs:
       - run: node --check src/index.js
       - run: npm test
       - run: python tests/schema.test.py
+      - run: python tests/backup_restore.test.py
