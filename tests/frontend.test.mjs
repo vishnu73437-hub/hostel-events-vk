@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 
 const frontend = await readFile(new URL("../public/index.html", import.meta.url), "utf8");
+const backend = await readFile(new URL("../src/index.js", import.meta.url), "utf8");
 
 function inlineApplicationScript(html) {
   const start = html.indexOf("<script>");
@@ -84,4 +85,64 @@ test("toast messages and native confirmation dialogs use the selected language",
   assert.ok(frontend.includes("function confirmLocalized(message)"));
   assert.ok(frontend.includes("function promptLocalized(message"));
   assert.ok(frontend.includes("confirmLocalized("));
+});
+
+test("mobile admin navigation is accessible and keeps desktop navigation", () => {
+  assert.ok(frontend.includes('class="admin-nav-desktop"'));
+  assert.ok(frontend.includes('class="admin-nav-mobile"'));
+  assert.ok(frontend.includes('id="adminMobileNav"'));
+  assert.ok(frontend.includes("bindMobileAdminNav()"));
+  assert.ok(frontend.includes('class="skip-link"'));
+  assert.ok(frontend.includes(":focus-visible"));
+  assert.ok(frontend.includes("prefers-reduced-motion:reduce"));
+});
+
+test("admin dashboard preview is compact and its metrics navigate to relevant screens", () => {
+  assert.ok(frontend.includes('<details class="section card admin-preview">'));
+  assert.ok(frontend.includes('class="stat stat-link"'));
+  assert.ok(frontend.includes('data-admin-page="guests"'));
+  assert.ok(frontend.includes('data-admin-page="staff"'));
+});
+
+test("scanner activity distinguishes verification from confirmed attendance", () => {
+  assert.ok(frontend.includes("function addRecentScannerActivity("));
+  assert.ok(frontend.includes("This list is only for this open app session."));
+  assert.ok(frontend.includes("Verification only — no attendance action was recorded yet."));
+  assert.ok(frontend.includes("Offline QR saved on this device only"));
+  assert.ok(frontend.includes("setScannerStatus(r.message||'Action recorded successfully.','good')"));
+  assert.ok(frontend.includes("aria-live=\"polite\""));
+});
+
+test("volunteer screen supports name/ID search, role filters and event activity", () => {
+  assert.ok(frontend.includes('id="volunteerSearch"'));
+  assert.ok(frontend.includes('id="volunteerRoleFilter"'));
+  assert.ok(frontend.includes("adminCall('audit')"));
+  assert.ok(frontend.includes("Recently active"));
+  assert.ok(frontend.includes("No recorded volunteer activity for this event yet."));
+});
+
+test("guest profile timeline is loaded through an event-scoped read-only admin action", () => {
+  assert.ok(frontend.includes('data-guest-profile='));
+  assert.ok(frontend.includes("adminCall('guest_profile'"));
+  assert.ok(frontend.includes("Attendance timeline"));
+  assert.ok(backend.includes('if(action==="guest_profile")'));
+  assert.ok(backend.includes("WHERE id=? AND event_id=?").includes("true"));
+  assert.ok(backend.includes("target_type='guest' AND target_id=?"));
+  assert.ok(backend.includes("return json({ok:true,guest,proof:proof||null,noProof:!!noProof,exitRecorded:!!exitRow,timeline:timeline.slice(0,100)})"));
+});
+
+test("new mobile, scanner, guest and volunteer controls have Russian text", () => {
+  for (const [source, translated] of [
+    ["Go to section", "Перейти к разделу"],
+    ["Recent scanner activity", "Последняя активность сканера"],
+    ["Recent volunteer activity", "Последняя активность волонтёров"],
+    ["Attendance timeline", "Хронология посещения"],
+    ["Search by name or VK ID", "Поиск по имени или VK ID"],
+    ["Filter by role", "Фильтр по роли"],
+    ["Pass verified", "Пропуск проверен"],
+    ["Entry recorded", "Вход отмечен"]
+  ]) {
+    assert.ok(frontend.includes(source), `missing English UI phrase: ${source}`);
+    assert.ok(frontend.includes(translated), `missing Russian translation: ${translated}`);
+  }
 });
