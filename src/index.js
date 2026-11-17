@@ -64,9 +64,9 @@ async function activeEvent(env) {
   if (!event) throw Object.assign(new Error("No active event configured."), { status: 404 });
   return event;
 }
-async function audit(env, actor, action, type, target, details = {}) {
-  await env.DB.prepare("INSERT INTO audit_log(event_id,actor,actor_vk_user_id,action,target_type,target_id,details_json,created_at) VALUES((SELECT id FROM events WHERE active=1 ORDER BY id DESC LIMIT 1),?,?,?,?,?,?,?)")
-    .bind(actor, actor, action, type, String(target), JSON.stringify(details), now()).run();
+async function audit(env, actor, action, type, target, details = {}, eventId = null) {
+  await env.DB.prepare("INSERT INTO audit_log(event_id,actor,actor_vk_user_id,action,target_type,target_id,details_json,created_at) VALUES(?,?,?,?,?,?,?,?)")
+    .bind(eventId, actor, actor, action, type, String(target), JSON.stringify(details), now()).run();
 }
 async function outbox(env, eventId, guestId, action, payload) {
   await env.DB.prepare("INSERT INTO sheets_outbox(event_id,guest_id,action,event_key,payload_json,created_at) VALUES(?,?,?,?,?,?)")
@@ -189,6 +189,133 @@ async function myPassApi(request, env) {
   return json({ ok:true, pass:{ name:guest.full_name, passCode:guest.pass_code, qrToken:guest.qr_token, qrPayload:"EVENTHUB:"+eventId+":"+guest.qr_token, residence:guest.residence, roomNumber:guest.room, food:guest.food_preference, status:guest.status, entryUsed:!!guest.entry_used, foodUsed:!!guest.food_used }, event, design:design ? JSON.parse(design.design_json) : {}, scans:Object.fromEntries(scans.results.map(x=>[x.stage,x.scanned_at])) });
 }
 
+
+async function guestLookupApi(request, env) {
+  const uid = await requireUser(request, env), data = await body(request);
+  const eventId = Number(data.event_id || 0), value = String(data.qr || "").trim();
+  if (!eventId || !value) return fail("An event and QR value are required.");
+  const role = await eventRole(uid,eventId,env);
+  if (!role) return fail("Volunteer access required for this event.",403);
+  let token = value;
+  const parts = value.split("|");
+  if (parts.length === 2) token = parts[1];
+  const colon = value.match(/^EVENTHUB:(\d+):(.+)$/);
+  if (colon) {
+    if (Number(colon[1]) !== eventId) return fail("This QR belongs to a different event.",409);
+    token = colon[2];
+  }
+  const guest = await env.DB.prepare("SELECT * FROM guests WHERE event_id=? AND (qr_token=? OR pass_code=?)").bind(eventId,token,token).first();
+  if (!guest) return fail("Pass not found in this event.",404);
+  if (guest.status !== "approved" || guest.revoked_at) return fail("This pass is not active.",403);
+  const proof = await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first();
+  const noProof = await env.DB.prepare("SELECT * FROM proof_not_collected WHERE guest_id=?").bind(guest.id).first();
+  const exit = await env.DB.prepare("SELECT * FROM event_exit_records WHERE guest_id=?").bind(guest.id).first();
+  return json({ ok:true, guest:{ id:guest.id, name:guest.full_name, full_name:guest.full_name, phone:guest.phone, residence:guest.residence, hostel:guest.hostel, roomNumber:guest.room, food:guest.food_preference, passCode:guest.pass_code, qrToken:guest.qr_token, status:guest.status, entryUsed:!!guest.entry_used, foodUsed:!!guest.food_used }, proof:{ assigned:!!proof, box:proof?.box_number ?? null, section:proof?.section_letter ?? null, slot:proof?.slot_number ?? null, deposited:!!proof?.deposited_at, returned:!!proof?.returned_at, noProof:!!noProof, exitRecorded:!!exit } });
+}
+
+async function actionApi(request, env) {
+  const uid = await requireUser(request, env), data = await body(request);
+  const eventId = Number(data.event_id || 0), action = String(data.action || "").trim(), value = String(data.qr || "").trim();
+  const allowed = new Set(["entry","food","proof_deposit","proof_no_proof","proof_return","exit"]);
+  if (!eventId || !allowed.has(action) || !value) return fail("Choose a valid event, action and QR pass.");
+  const role = await eventRole(uid,eventId,env);
+  if (!role) return fail("You do not have volunteer access to this event.",403);
+  const roleActions = { entry:["entry","proof_deposit","proof_no_proof"], food:["food"], proof:["proof_deposit","proof_no_proof","proof_return","exit"], checkpoint:[], scanner:[...allowed], event_lead:[...allowed], global:[...allowed], admin:[...allowed] };
+  if (role !== "global" && role !== "admin" && !(roleActions[role] || []).includes(action)) return fail("Your event role does not include this action.",403);
+  const event = await env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
+  if (!event || event.status !== "active") return fail("This event is not active.",409);
+  if (action === "food" && !asBool(event.food_enabled)) return fail("Food collection is disabled for this event.",409);
+  let token=value, split=value.split("|");
+  if (split.length===2) token=split[1];
+  const colon=value.match(/^EVENTHUB:(\d+):(.+)$/);
+  if (colon) { if(Number(colon[1])!==eventId) return fail("This QR belongs to a different event.",409); token=colon[2]; }
+  const guest=await env.DB.prepare("SELECT * FROM guests WHERE event_id=? AND (qr_token=? OR pass_code=?)").bind(eventId,token,token).first();
+  if(!guest) return fail("Pass not found in this event.",404);
+  if(guest.status!=="approved" || guest.revoked_at) return fail("This pass is not active.",403);
+  const stamp=now();
+  const proof=await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first();
+  const noProof=await env.DB.prepare("SELECT * FROM proof_not_collected WHERE guest_id=?").bind(guest.id).first();
+  const exited=await env.DB.prepare("SELECT 1 AS ok FROM event_exit_records WHERE guest_id=?").bind(guest.id).first();
+  if(exited) return fail("Exit is already recorded. No further event-day actions are allowed.",409);
+  if(action==="entry") {
+    if(guest.entry_used) return fail("Entry already recorded for this pass.",409);
+    await env.DB.prepare("UPDATE guests SET entry_used=1,entry_used_at=? WHERE id=? AND entry_used=0 AND status='approved'").bind(stamp,guest.id).run();
+  } else if(action==="food") {
+    if(!guest.entry_used) return fail("Entry must be recorded before food collection.",409);
+    if(guest.food_used) return fail("Food collection already recorded for this pass.",409);
+    if(!((proof && proof.deposited_at && !proof.returned_at) || noProof)) return fail("Record proof storage or confirm no proof was provided before food collection.",409);
+    await env.DB.prepare("UPDATE guests SET food_used=1,food_used_at=? WHERE id=? AND food_used=0 AND entry_used=1 AND status='approved'").bind(stamp,guest.id).run();
+  } else if(action==="proof_deposit") {
+    if(!guest.entry_used) return fail("Record entry before storing proof.",409);
+    if(noProof) return fail("No-proof status is already recorded for this guest.",409);
+    if(proof && proof.deposited_at && !proof.returned_at) return fail("Proof is already stored in the assigned slot.",409);
+    if(proof && proof.returned_at) return fail("Proof was already returned. Ask an admin for correction.",409);
+    const cfg=await env.DB.prepare("SELECT * FROM event_storage_configs WHERE event_id=?").bind(eventId).first();
+    const units=Number(cfg?.unit_count||5), sections=Number(cfg?.sections_per_unit||4), capacity=Number(cfg?.capacity_per_section||10);
+    const occupied=await env.DB.prepare("SELECT box_number,section_letter,slot_number FROM proof_storage WHERE event_id=? AND returned_at IS NULL AND slot_number IS NOT NULL").bind(eventId).all();
+    const used=new Set(occupied.results.map(x=>x.box_number+":"+x.section_letter+":"+x.slot_number));
+    let slot=null;
+    for(let box=1;box<=units&&!slot;box++) for(let si=0;si<sections&&!slot;si++) for(let n=1;n<=capacity;n++) {
+      const section=String.fromCharCode(65+si);
+      if(!used.has(box+":"+section+":"+n)){slot={box,section,n};break;}
+    }
+    if(!slot) return fail("Proof storage is full. Ask an admin to review capacity.",409);
+    await env.DB.prepare("INSERT INTO proof_storage(event_id,guest_id,box_number,section_letter,slot_number,assigned_at,assigned_by,deposited_at,deposited_by) VALUES(?,?,?,?,?,?,?,?,?)")
+      .bind(eventId,guest.id,slot.box,slot.section,slot.n,stamp,uid,stamp,uid).run();
+    await env.DB.prepare("DELETE FROM proof_not_collected WHERE guest_id=?").bind(guest.id).run();
+  } else if(action==="proof_no_proof") {
+    if(!guest.entry_used) return fail("Record entry before accepting a guest without proof.",409);
+    if(proof && proof.deposited_at && !proof.returned_at) return fail("This guest already has proof stored.",409);
+    if(noProof) return fail("No-proof confirmation was already recorded.",409);
+    await env.DB.prepare("INSERT INTO proof_not_collected(event_id,guest_id,recorded_at,recorded_by) VALUES(?,?,?,?)").bind(eventId,guest.id,stamp,uid).run();
+  } else if(action==="proof_return") {
+    if(!proof || !proof.deposited_at) return fail("No stored proof record found.",409);
+    if(proof.returned_at) return fail("Proof return was already recorded.",409);
+    await env.DB.prepare("UPDATE proof_storage SET returned_at=?,returned_by=? WHERE guest_id=? AND returned_at IS NULL").bind(stamp,uid,guest.id).run();
+  } else if(action==="exit") {
+    if(!guest.entry_used) return fail("Guest entry has not been recorded.",409);
+    if(proof && proof.deposited_at && !proof.returned_at) return fail("Return the guest's stored proof before completing exit.",409);
+    await env.DB.prepare("INSERT INTO event_exit_records(event_id,guest_id,exit_at,exit_by) VALUES(?,?,?,?)").bind(eventId,guest.id,stamp,uid).run();
+  }
+  await audit(env,uid,action.toUpperCase()+"_RECORDED","guest",guest.id,{stage:action},eventId);
+  await outbox(env,eventId,guest.id,action,{guest_id:guest.id,event_id:eventId,action,scanned_by:uid,scanned_at:stamp});
+  const fresh=await env.DB.prepare("SELECT * FROM guests WHERE id=?").bind(guest.id).first();
+  const currentProof=await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first();
+  const currentNoProof=await env.DB.prepare("SELECT 1 AS ok FROM proof_not_collected WHERE guest_id=?").bind(guest.id).first();
+  const currentExit=await env.DB.prepare("SELECT 1 AS ok FROM event_exit_records WHERE guest_id=?").bind(guest.id).first();
+  const storageLabel=currentProof ? ("Box "+currentProof.box_number+" / Section "+currentProof.section_letter+" / Slot "+String(currentProof.slot_number||"—")) : (currentNoProof ? "Accepted without proof — no slot assigned" : "");
+  return json({ok:true,message:storageLabel || (action.replaceAll("_"," ")+" recorded for "+fresh.full_name),guest:{id:fresh.id,name:fresh.full_name,food:fresh.food_preference,passCode:fresh.pass_code,entryUsed:!!fresh.entry_used,foodUsed:!!fresh.food_used},proof:{assigned:!!currentProof,box:currentProof?.box_number??null,section:currentProof?.section_letter??null,slot:currentProof?.slot_number??null,deposited:!!currentProof?.deposited_at,returned:!!currentProof?.returned_at,noProof:!!currentNoProof,exitRecorded:!!currentExit}});
+}
+
+async function checkpointsApi(request, env) {
+  const uid=await requireUser(request,env), data=await body(request), eventId=Number(data.event_id||0);
+  const role=await eventRole(uid,eventId,env);
+  if(!role) return fail("Volunteer access required for this event.",403);
+  const rows=await env.DB.prepare("SELECT id,name,checkpoint_type FROM event_checkpoints WHERE event_id=? AND enabled=1 ORDER BY id").bind(eventId).all();
+  return json({ok:true,checkpoints:rows.results});
+}
+async function checkpointScanApi(request, env) {
+  const uid=await requireUser(request,env), data=await body(request);
+  const eventId=Number(data.event_id||0), checkpointId=Number(data.checkpoint_id||0), value=String(data.qr||"").trim();
+  const role=await eventRole(uid,eventId,env);
+  if(!role) return fail("Volunteer access required for this event.",403);
+  if(!eventId||!checkpointId||!value) return fail("A guest QR and enabled checkpoint are required.");
+  const checkpoint=await env.DB.prepare("SELECT * FROM event_checkpoints WHERE id=? AND event_id=? AND enabled=1").bind(checkpointId,eventId).first();
+  if(!checkpoint) return fail("Checkpoint not found or disabled.",404);
+  let token=value; const colon=value.match(/^EVENTHUB:(\d+):(.+)$/); if(colon){if(Number(colon[1])!==eventId)return fail("This QR belongs to another event.",409);token=colon[2];}
+  const parts=token.split("|"); if(parts.length===2)token=parts[1];
+  const guest=await env.DB.prepare("SELECT * FROM guests WHERE event_id=? AND (qr_token=? OR pass_code=?) AND status='approved'").bind(eventId,token,token).first();
+  if(!guest) return fail("Active guest pass not found.",404);
+  try {
+    await env.DB.prepare("INSERT INTO event_checkpoint_scans(event_id,checkpoint_id,guest_id,volunteer_vk_user_id,scanned_at) VALUES(?,?,?,?,?)").bind(eventId,checkpointId,guest.id,uid,now()).run();
+  } catch(e) {
+    if(String(e.message).toLowerCase().includes("unique")) return fail("This guest was already scanned at this checkpoint.",409);
+    throw e;
+  }
+  await audit(env,uid,"CHECKPOINT_SCAN","guest",guest.id,{checkpoint_id:checkpointId,checkpoint_name:checkpoint.name},eventId);
+  return json({ok:true,message:checkpoint.name+" recorded for "+guest.full_name,guest:{id:guest.id,name:guest.full_name}});
+}
+
 async function api(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -199,6 +326,10 @@ async function api(request, env) {
   if (path === "/api/event_details" && method === "POST") return eventDetailsApi(request, env);
   if (path === "/api/register" && method === "POST") return registerApi(request, env);
   if (path === "/api/my_pass" && method === "POST") return myPassApi(request, env);
+  if (path === "/api/guest" && method === "POST") return guestLookupApi(request, env);
+  if (path === "/api/action" && method === "POST") return actionApi(request, env);
+  if (path === "/api/checkpoints" && method === "POST") return checkpointsApi(request, env);
+  if (path === "/api/checkpoint_scan" && method === "POST") return checkpointScanApi(request, env);
 
   if (path === "/api/bootstrap" && method === "GET") {
     const uid = await requireUser(request, env);
