@@ -321,6 +321,263 @@ async function checkpointScanApi(request, env) {
   return json({ok:true,message:checkpoint.name+" recorded for "+guest.full_name,guest:{id:guest.id,name:guest.full_name}});
 }
 
+
+async function adminApi(request, env) {
+  const uid=await requireAdmin(request,env), data=await body(request), action=String(data.action||"");
+  const eventId=Number(data.event_id||0);
+  const getEvent=async()=>env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
+  const log=async(name,type="event",target=eventId,details={})=>audit(env,uid,name,type,target,details,eventId||null);
+  if(action==="events") {
+    const rows=await env.DB.prepare("SELECT id,name,description,event_date,event_time,venue,status,registration_open,food_enabled,theme_json,registration_schema FROM events ORDER BY id DESC").all();
+    return json({ok:true,events:rows.results});
+  }
+  if(action==="create_event") {
+    const name=String(data.name||"").trim().slice(0,120);
+    if(name.length<3) return fail("Enter an event name (at least 3 characters).");
+    const description=String(data.description||"").slice(0,1000), eventDate=String(data.event_date||"").slice(0,20), eventTime=String(data.event_time||"").slice(0,40), venue=String(data.venue||"").slice(0,200);
+    const schema=Array.isArray(data.registration_schema)&&data.registration_schema.length?data.registration_schema:[{key:"full_name",label:"Full name",type:"text",required:true},{key:"phone",label:"Phone",type:"tel",required:true}];
+    const theme=data.theme&&typeof data.theme==="object"?data.theme:{primary:"#25113b",accent:"#ff7518",background:"#171321",gold:"#ffd166"};
+    const foodEnabled=data.food_enabled===undefined?true:asBool(data.food_enabled);
+    const result=await env.DB.prepare("INSERT INTO events(name,description,event_date,event_time,venue,theme_json,registration_schema,status,active,registration_open,food_enabled,created_by,created_at) VALUES(?,?,?,?,?,?,?,'draft',0,1,?,?,?)")
+      .bind(name,description,eventDate,eventTime,venue,JSON.stringify(theme),JSON.stringify(schema),foodEnabled?1:0,uid,now()).run();
+    const id=result.meta.last_row_id;
+    await env.DB.prepare("INSERT INTO event_checkpoints(event_id,name,checkpoint_type,created_at) VALUES(?,?,?,?)").bind(id,"Main Entry","entry",now()).run();
+    await env.DB.prepare("INSERT INTO event_storage_configs(event_id,updated_at,updated_by) VALUES(?,?,?)").bind(id,now(),uid).run();
+    await env.DB.prepare("INSERT INTO event_app_settings(event_id,updated_at,updated_by) VALUES(?,?,?)").bind(id,now(),uid).run();
+    await log("EVENT_CREATED","event",id,{name});
+    return json({ok:true,event_id:id,message:"Event workspace created as a draft. Configure its registration form and activate it when ready."},201);
+  }
+  if(action==="update_event") {
+    const event=await getEvent();
+    if(!event) return fail("Event workspace not found.",404);
+    if(event.status==="archived") return fail("Archived event settings are read-only.",409);
+    const name=String(data.name||event.name).trim().slice(0,120);
+    if(name.length<3) return fail("Event name must contain at least 3 characters.");
+    const theme=data.theme&&typeof data.theme==="object"?JSON.stringify(data.theme):event.theme_json;
+    const schema=Array.isArray(data.registration_schema)?JSON.stringify(data.registration_schema):event.registration_schema;
+    await env.DB.prepare("UPDATE events SET name=?,description=?,event_date=?,event_time=?,venue=?,theme_json=?,registration_schema=?,food_enabled=? WHERE id=?")
+      .bind(name,String(data.description??event.description).slice(0,1000),String(data.event_date??event.event_date).slice(0,20),String(data.event_time??event.event_time).slice(0,40),String(data.venue??event.venue).slice(0,200),theme,schema,data.food_enabled===undefined?event.food_enabled:(asBool(data.food_enabled)?1:0),eventId).run();
+    await log("EVENT_UPDATED","event",eventId,{name});
+    return json({ok:true,event_id:eventId,message:"Event details and registration form saved."});
+  }
+  if(action==="activate_event") {
+    const event=await getEvent(); if(!event) return fail("Event workspace not found.",404);
+    if(event.status==="archived") return fail("Archived events cannot be activated.",409);
+    await env.DB.prepare("UPDATE events SET status='active',active=1 WHERE id=?").bind(eventId).run();
+    await log("EVENT_ACTIVATED"); return json({ok:true,message:"Event activated. It is now visible to guests."});
+  }
+  if(action==="archive_event") {
+    const event=await getEvent(); if(!event) return fail("Event workspace not found.",404);
+    await env.DB.prepare("UPDATE events SET status='archived',active=0,archived_at=? WHERE id=?").bind(now(),eventId).run();
+    await log("EVENT_ARCHIVED"); return json({ok:true,message:"Event archived. Existing registrations and event history were retained."});
+  }
+  if(action==="set_registration_status") {
+    if(typeof data.registration_open!=="boolean") return fail("registration_open must be true or false.");
+    const event=await getEvent(); if(!event||event.status==="archived") return fail("Active or draft event not found.",404);
+    await env.DB.prepare("UPDATE events SET registration_open=? WHERE id=?").bind(data.registration_open?1:0,eventId).run();
+    await log(data.registration_open?"REGISTRATION_OPENED":"REGISTRATION_CLOSED");
+    return json({ok:true,registration_open:data.registration_open,message:data.registration_open?"Registration is open.":"Registration is closed. Existing passes and attendance history are unchanged."});
+  }
+  if(action==="stats") {
+    const event=await getEvent(); if(!event) return fail("Event not found.",404);
+    const [total,entered,meals,volunteers,proof,exits]=await Promise.all([
+      env.DB.prepare("SELECT COUNT(*) n FROM guests WHERE event_id=? AND status='approved'").bind(eventId).first(),
+      env.DB.prepare("SELECT COUNT(*) n FROM guests WHERE event_id=? AND status='approved' AND entry_used=1").bind(eventId).first(),
+      env.DB.prepare("SELECT COUNT(*) n FROM guests WHERE event_id=? AND status='approved' AND food_used=1").bind(eventId).first(),
+      env.DB.prepare("SELECT COUNT(*) n FROM event_volunteers WHERE event_id=?").bind(eventId).first(),
+      env.DB.prepare("SELECT COUNT(*) n FROM proof_storage WHERE event_id=? AND deposited_at IS NOT NULL AND returned_at IS NULL").bind(eventId).first(),
+      env.DB.prepare("SELECT COUNT(*) n FROM event_exit_records WHERE event_id=?").bind(eventId).first()
+    ]);
+    return json({ok:true,stats:{approvedGuests:total.n,checkedIn:entered.n,mealsServed:meals.n,volunteers:volunteers.n,proofCurrentlyStored:proof.n,exited:exits.n}});
+  }
+  if(action==="guest_search") {
+    const query=String(data.query||"").trim().slice(0,120), status=String(data.status||"all");
+    if(!eventId) return fail("Event ID required.");
+    if(!["all","approved","pending","rejected","revoked"].includes(status)) return fail("Invalid guest status filter.");
+    const like="%"+query+"%";
+    const rows=await env.DB.prepare("SELECT id,vk_user_id,legacy_telegram_id,full_name,phone,residence_type,hostel_number,room_number,food_preference,pass_code,status,entry_used,food_used,registered_at FROM guests WHERE event_id=? AND (?='all' OR status=?) AND (?='' OR full_name LIKE ? OR phone LIKE ? OR pass_code LIKE ? OR vk_user_id LIKE ? OR legacy_telegram_id LIKE ?) ORDER BY id DESC LIMIT 100")
+      .bind(eventId,status,status,query,like,like,like,like,like).all();
+    return json({ok:true,guests:rows.results,limit:100});
+  }
+  if(action==="pending_registrations") {
+    const rows=await env.DB.prepare("SELECT id,vk_user_id,legacy_telegram_id,full_name,phone,residence_type,hostel_number,room_number,food_preference,registration_data,created_at,status FROM pending_registrations WHERE event_id=? AND status='pending' ORDER BY created_at DESC LIMIT 100").bind(eventId).all();
+    return json({ok:true,registrations:rows.results});
+  }
+  if(action==="registration_decision") {
+    const requestId=Number(data.request_id||0), decision=String(data.decision||"");
+    if(!requestId||!["approve","reject"].includes(decision)) return fail("Choose a valid pending request and approve/reject decision.");
+    const pending=await env.DB.prepare("SELECT * FROM pending_registrations WHERE id=? AND event_id=? AND status='pending'").bind(requestId,eventId).first();
+    if(!pending) return fail("Pending registration not found or already handled.",409);
+    if(decision==="reject") {
+      await env.DB.prepare("UPDATE pending_registrations SET status='rejected' WHERE id=?").bind(requestId).run();
+      await log("REGISTRATION_REJECTED","pending_registration",requestId,{full_name:pending.full_name});
+      return json({ok:true,decision,message:"Registration rejected. The previous record remains in history."});
+    }
+    const code="EH-"+crypto.randomUUID().slice(0,8).toUpperCase();
+    const token=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,"0")).join("");
+    const insert=await env.DB.prepare("INSERT INTO guests(event_id,vk_user_id,legacy_telegram_id,full_name,email,phone,residence,residence_type,hostel,hostel_number,room,room_number,food_preference,registration_data,status,pass_code,qr_token,registered_at,created_at,approved_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,'approved',?,?,?,?,?)")
+      .bind(eventId,pending.vk_user_id,pending.legacy_telegram_id,pending.full_name,pending.email,pending.phone,pending.residence_type,pending.residence_type,pending.hostel_number,pending.hostel_number,pending.room_number,pending.room_number,pending.food_preference,pending.registration_data,code,token,pending.created_at,pending.created_at,now()).run();
+    const guestId=insert.meta.last_row_id;
+    await env.DB.prepare("UPDATE pending_registrations SET status='approved' WHERE id=?").bind(requestId).run();
+    await outbox(env,eventId,guestId,"approved",{guest_id:guestId,event_id:eventId,status:"approved",pass_code:code});
+    await log("REGISTRATION_APPROVED","guest",guestId,{request_id:requestId});
+    return json({ok:true,decision,guest_id:guestId,passCode:code,message:pending.vk_user_id?"Registration approved. The guest can now open My Pass.":"Registration approved, but this legacy record is not linked to a VK account yet."});
+  }
+  if(action==="guest_action") {
+    const guestId=Number(data.guest_id||0), operation=String(data.operation||""), target=String(data.target||"");
+    const guest=await env.DB.prepare("SELECT * FROM guests WHERE id=? AND event_id=?").bind(guestId,eventId).first();
+    if(!guest) return fail("Guest record not found.",404);
+    if(operation==="revoke_pass") {
+      if(guest.status!=="approved") return fail("This pass is not currently active.",409);
+      await env.DB.prepare("UPDATE guests SET status='revoked',revoked_at=? WHERE id=?").bind(now(),guestId).run();
+    } else if(operation==="reissue_pass"||operation==="reactivate_pass") {
+      if(operation==="reissue_pass"&&guest.status!=="approved") return fail("Only an approved pass can be reissued.",409);
+      if(operation==="reactivate_pass"&&guest.status!=="revoked") return fail("Only a revoked pass can be reactivated.",409);
+      const code="EH-"+crypto.randomUUID().slice(0,8).toUpperCase();
+      const token=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,"0")).join("");
+      await env.DB.prepare("UPDATE guests SET pass_code=?,qr_token=?,status='approved',revoked_at=NULL WHERE id=?").bind(code,token,guestId).run();
+    } else if(operation==="reset_status") {
+      if(!["entry","food","both"].includes(target)) return fail("Choose entry, food, or both.");
+      const proof=await env.DB.prepare("SELECT 1 AS ok FROM proof_storage WHERE guest_id=? AND deposited_at IS NOT NULL AND returned_at IS NULL").bind(guestId).first();
+      if(proof&&target==="entry"||proof&&target==="both") return fail("Cannot reset entry while the guest's proof is still stored. Return the proof first.",409);
+      if(target==="entry"||target==="both") await env.DB.prepare("UPDATE guests SET entry_used=0,entry_used_at=NULL WHERE id=?").bind(guestId).run();
+      if(target==="food"||target==="both") await env.DB.prepare("UPDATE guests SET food_used=0,food_used_at=NULL WHERE id=?").bind(guestId).run();
+    } else return fail("Invalid guest action.");
+    const fresh=await env.DB.prepare("SELECT * FROM guests WHERE id=?").bind(guestId).first();
+    await log("GUEST_"+operation.toUpperCase(),"guest",guestId,{status:fresh.status});
+    await outbox(env,eventId,guestId,operation,{guest_id:guestId,event_id:eventId,operation,status:fresh.status,pass_code:fresh.pass_code});
+    return json({ok:true,guest:{id:guestId,status:fresh.status,passCode:fresh.pass_code,entryUsed:!!fresh.entry_used,foodUsed:!!fresh.food_used},message:"Guest record updated. Existing attendance and proof history were preserved unless the selected status reset applied."});
+  }
+  if(action==="link_legacy_guest"||action==="link_legacy_pending") {
+    const legacyId=String(data.legacy_telegram_id||"").trim(), vkId=String(data.vk_user_id||"").trim();
+    if(!legacyId||!vkId) return fail("Both the legacy Telegram ID and verified VK user ID are required.");
+    if(action==="link_legacy_guest") {
+      const result=await env.DB.prepare("UPDATE guests SET vk_user_id=? WHERE event_id=? AND legacy_telegram_id=? AND vk_user_id IS NULL").bind(vkId,eventId,legacyId).run();
+      if(!result.meta.changes) return fail("Legacy guest not found or already linked.",409);
+    } else {
+      const result=await env.DB.prepare("UPDATE pending_registrations SET vk_user_id=? WHERE event_id=? AND legacy_telegram_id=? AND vk_user_id IS NULL").bind(vkId,eventId,legacyId).run();
+      if(!result.meta.changes) return fail("Legacy pending registration not found or already linked.",409);
+    }
+    await log("LEGACY_IDENTITY_LINKED",action==="link_legacy_guest"?"guest":"pending_registration",legacyId,{vk_user_id:vkId,verification:"admin_manual"});
+    return json({ok:true,message:"Legacy record linked to the verified VK account. The original Telegram ID remains in migration history."});
+  }
+  if(action==="volunteers") {
+    const rows=await env.DB.prepare("SELECT * FROM global_volunteers ORDER BY added_at DESC").all();
+    return json({ok:true,volunteers:rows.results});
+  }
+  if(action==="add_volunteer"||action==="remove_volunteer") {
+    const vkId=String(data.vk_user_id||"").trim();
+    if(!vkId) return fail("Enter a VK user ID.");
+    if(action==="add_volunteer") await env.DB.prepare("INSERT INTO global_volunteers(vk_user_id,display_name,added_at,added_by) VALUES(?,?,?,?) ON CONFLICT(vk_user_id) DO UPDATE SET display_name=excluded.display_name").bind(vkId,String(data.display_name||"").slice(0,120),now(),uid).run();
+    else await env.DB.prepare("DELETE FROM global_volunteers WHERE vk_user_id=?").bind(vkId).run();
+    await log(action==="add_volunteer"?"GLOBAL_VOLUNTEER_ADDED":"GLOBAL_VOLUNTEER_REMOVED","volunteer",vkId);
+    return json({ok:true,message:action==="add_volunteer"?"Global volunteer access granted.":"Global volunteer access removed."});
+  }
+  if(action==="event_volunteers") {
+    const rows=await env.DB.prepare("SELECT * FROM event_volunteers WHERE event_id=? ORDER BY assigned_at DESC").bind(eventId).all();
+    return json({ok:true,volunteers:rows.results});
+  }
+  if(action==="assign_event_volunteer") {
+    const vkId=String(data.vk_user_id||"").trim(), role=String(data.role||"scanner");
+    if(!vkId||!["entry","food","proof","checkpoint","scanner","event_lead"].includes(role)) return fail("Choose a VK user ID and valid event role.");
+    await env.DB.prepare("INSERT INTO event_volunteers(event_id,vk_user_id,role,assigned_by,assigned_at) VALUES(?,?,?,?,?) ON CONFLICT(event_id,vk_user_id) DO UPDATE SET role=excluded.role,assigned_by=excluded.assigned_by,assigned_at=excluded.assigned_at").bind(eventId,vkId,role,uid,now()).run();
+    await log("EVENT_VOLUNTEER_ASSIGNED","volunteer",vkId,{role});
+    return json({ok:true,message:"Volunteer assigned to this event."});
+  }
+  if(action==="remove_event_volunteer") {
+    const vkId=String(data.vk_user_id||"").trim();
+    await env.DB.prepare("DELETE FROM event_volunteers WHERE event_id=? AND vk_user_id=?").bind(eventId,vkId).run();
+    await log("EVENT_VOLUNTEER_REMOVED","volunteer",vkId);
+    return json({ok:true,message:"Event-specific volunteer access removed. Global roles are unchanged."});
+  }
+  if(action==="checkpoints") {
+    const rows=await env.DB.prepare("SELECT id,name,checkpoint_type,enabled FROM event_checkpoints WHERE event_id=? ORDER BY id").bind(eventId).all();
+    return json({ok:true,checkpoints:rows.results});
+  }
+  if(action==="create_checkpoint") {
+    const name=String(data.name||"").trim().slice(0,100), type=String(data.checkpoint_type||"entry");
+    if(!name||!["entry","food","workshop","other"].includes(type)) return fail("Valid checkpoint name and type are required.");
+    const r=await env.DB.prepare("INSERT INTO event_checkpoints(event_id,name,checkpoint_type,created_at) VALUES(?,?,?,?)").bind(eventId,name,type,now()).run();
+    await log("CHECKPOINT_CREATED","checkpoint",r.meta.last_row_id,{name,type});
+    return json({ok:true,checkpoint_id:r.meta.last_row_id});
+  }
+  if(action==="update_checkpoint") {
+    const checkpointId=Number(data.checkpoint_id||0), name=String(data.name||"").trim().slice(0,100), enabled=data.enabled===undefined?1:(asBool(data.enabled)?1:0);
+    if(!checkpointId||!name) return fail("Checkpoint ID and name are required.");
+    const r=await env.DB.prepare("UPDATE event_checkpoints SET name=?,enabled=? WHERE id=? AND event_id=?").bind(name,enabled,checkpointId,eventId).run();
+    if(!r.meta.changes) return fail("Checkpoint not found.",404);
+    await log("CHECKPOINT_UPDATED","checkpoint",checkpointId,{name,enabled});
+    return json({ok:true});
+  }
+  if(action==="delete_checkpoint") {
+    const checkpointId=Number(data.checkpoint_id||0);
+    const scans=await env.DB.prepare("SELECT COUNT(*) n FROM event_checkpoint_scans WHERE checkpoint_id=?").bind(checkpointId).first();
+    if(scans.n) return fail("This checkpoint has scan history. Disable it instead of deleting it.",409);
+    await env.DB.prepare("DELETE FROM event_checkpoint_assignments WHERE event_id=? AND checkpoint_id=?").bind(eventId,checkpointId).run();
+    await env.DB.prepare("DELETE FROM event_checkpoints WHERE event_id=? AND id=?").bind(eventId,checkpointId).run();
+    await log("CHECKPOINT_DELETED","checkpoint",checkpointId);
+    return json({ok:true});
+  }
+  if(action==="storage_config") {
+    const config=await env.DB.prepare("SELECT * FROM event_storage_configs WHERE event_id=?").bind(eventId).first();
+    return json({ok:true,config:config||{unit_count:5,sections_per_unit:4,capacity_per_section:10,unit_prefix:"Box",section_prefix:"Section"}});
+  }
+  if(action==="save_storage_config") {
+    const units=Number(data.unit_count),sections=Number(data.sections_per_unit),capacity=Number(data.capacity_per_section);
+    if(!Number.isInteger(units)||units<1||units>100||!Number.isInteger(sections)||sections<1||sections>26||!Number.isInteger(capacity)||capacity<1||capacity>500) return fail("Storage layout values are outside allowed limits.");
+    const active=await env.DB.prepare("SELECT box_number,section_letter,slot_number FROM proof_storage WHERE event_id=? AND deposited_at IS NOT NULL AND returned_at IS NULL").bind(eventId).all();
+    for(const p of active.results) {
+      const section=p.section_letter.charCodeAt(0)-65;
+      if(p.box_number>units||section<0||section>=sections||!p.slot_number||p.slot_number>capacity) return fail("The new layout would invalidate an active stored-proof slot. Return or relocate that proof first.",409);
+    }
+    await env.DB.prepare("INSERT INTO event_storage_configs(event_id,unit_count,sections_per_unit,capacity_per_section,unit_prefix,section_prefix,updated_at,updated_by) VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(event_id) DO UPDATE SET unit_count=excluded.unit_count,sections_per_unit=excluded.sections_per_unit,capacity_per_section=excluded.capacity_per_section,unit_prefix=excluded.unit_prefix,section_prefix=excluded.section_prefix,updated_at=excluded.updated_at,updated_by=excluded.updated_by")
+      .bind(eventId,units,sections,capacity,String(data.unit_prefix||"Box").slice(0,30),String(data.section_prefix||"Section").slice(0,30),now(),uid).run();
+    await log("STORAGE_LAYOUT_UPDATED","event",eventId,{units,sections,capacity});
+    return json({ok:true,message:"Storage layout saved. Existing assignments and history were preserved."});
+  }
+  if(action==="proof_storage_report") {
+    const [rows,summary,noProof,exits,cfg]=await Promise.all([
+      env.DB.prepare("SELECT p.*,g.full_name,g.phone,g.pass_code,g.id AS guest_serial_number FROM proof_storage p LEFT JOIN guests g ON g.id=p.guest_id WHERE p.event_id=? ORDER BY p.box_number,p.section_letter,p.slot_number").bind(eventId).all(),
+      env.DB.prepare("SELECT COUNT(*) total,SUM(CASE WHEN deposited_at IS NOT NULL AND returned_at IS NULL THEN 1 ELSE 0 END) currently_stored,SUM(CASE WHEN returned_at IS NOT NULL THEN 1 ELSE 0 END) returned FROM proof_storage WHERE event_id=?").bind(eventId).first(),
+      env.DB.prepare("SELECT COUNT(*) n FROM proof_not_collected WHERE event_id=?").bind(eventId).first(),
+      env.DB.prepare("SELECT COUNT(*) n FROM event_exit_records WHERE event_id=?").bind(eventId).first(),
+      env.DB.prepare("SELECT * FROM event_storage_configs WHERE event_id=?").bind(eventId).first()
+    ]);
+    const capacity=(cfg?.unit_count||5)*(cfg?.sections_per_unit||4)*(cfg?.capacity_per_section||10);
+    return json({ok:true,summary:{tracked:summary.total||0,currentlyStored:summary.currently_stored||0,returned:summary.returned||0,noProof:noProof.n,exited:exits.n,capacity},records:rows.results});
+  }
+  if(action==="audit") {
+    const rows=await env.DB.prepare("SELECT actor_vk_user_id AS actor_id,action,target_type, target_id,details_json,created_at FROM audit_log WHERE event_id=? ORDER BY id DESC LIMIT 100").bind(eventId).all();
+    return json({ok:true,logs:rows.results});
+  }
+  if(action==="sheets_queue_status") {
+    const row=await env.DB.prepare("SELECT COUNT(*) pending,SUM(CASE WHEN attempts>0 THEN 1 ELSE 0 END) retrying,MIN(created_at) oldest FROM sheets_outbox WHERE event_id=? AND synced_at IS NULL").bind(eventId).first();
+    return json({ok:true,configured:!!env.SHEETS_SYNC_URL&&!!env.SHEETS_SYNC_SECRET,pending:row.pending||0,retrying:row.retrying||0,oldestCreatedAt:row.oldest||""});
+  }
+  if(action==="admins") {
+    const rows=await env.DB.prepare("SELECT vk_user_id,added_at,added_by FROM app_admins ORDER BY added_at").all();
+    return json({ok:true,admins:rows.results,configured_admin_ids:String(env.VK_ADMIN_IDS||"").split(",").map(x=>x.trim()).filter(Boolean)});
+  }
+  if(action==="add_admin") {
+    const target=String(data.vk_user_id||"").trim(); if(!target)return fail("VK user ID required.");
+    await env.DB.prepare("INSERT INTO app_admins(vk_user_id,added_at,added_by) VALUES(?,?,?) ON CONFLICT(vk_user_id) DO NOTHING").bind(target,now(),uid).run();
+    await log("ADMIN_ADDED","admin",target);
+    return json({ok:true,message:"EventHub admin access granted."});
+  }
+  if(action==="remove_admin") {
+    const target=String(data.vk_user_id||"").trim();
+    if(String(env.VK_ADMIN_IDS||"").split(",").map(x=>x.trim()).includes(target)) return fail("Configured recovery admins cannot be removed from the dashboard.",409);
+    if(target===uid)return fail("You cannot remove your own admin access while using this dashboard.",409);
+    const count=await env.DB.prepare("SELECT COUNT(*) n FROM app_admins").first();
+    const configured=String(env.VK_ADMIN_IDS||"").split(",").map(x=>x.trim()).filter(Boolean).length;
+    if(count.n+configured<=1)return fail("Cannot remove the last admin account.",409);
+    await env.DB.prepare("DELETE FROM app_admins WHERE vk_user_id=?").bind(target).run();
+    await log("ADMIN_REMOVED","admin",target);
+    return json({ok:true,message:"EventHub admin access removed."});
+  }
+  return fail("Unknown admin action: "+action,404);
+}
+
 async function api(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -328,6 +585,7 @@ async function api(request, env) {
 
   if (path === "/api/health" && method === "GET") return json({ ok: true, service: "vk-eventhub-cloudflare" });
   if (path === "/api/role" && method === "POST") return roleApi(request, env);
+  if (path === "/api/admin" && method === "POST") return adminApi(request, env);
   if (path === "/api/event_details" && method === "POST") return eventDetailsApi(request, env);
   if (path === "/api/register" && method === "POST") return registerApi(request, env);
   if (path === "/api/my_pass" && method === "POST") return myPassApi(request, env);
