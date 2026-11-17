@@ -529,6 +529,26 @@ async function adminApi(request, env) {
     await log("EVENT_VOLUNTEER_REMOVED","volunteer",vkId);
     return json({ok:true,message:"Event-specific volunteer access removed. Global roles are unchanged."});
   }
+  if(action==="checkpoint_team") {
+    const rows=await env.DB.prepare("SELECT a.checkpoint_id,a.vk_user_id,a.assigned_at,c.name AS checkpoint_name FROM event_checkpoint_assignments a JOIN event_checkpoints c ON c.id=a.checkpoint_id WHERE a.event_id=? ORDER BY c.id,a.vk_user_id").bind(eventId).all();
+    return json({ok:true,assignments:rows.results});
+  }
+  if(action==="assign_checkpoint_volunteer") {
+    const checkpointId=Number(data.checkpoint_id||0),vkId=String(data.vk_user_id||"").trim();
+    const checkpoint=await env.DB.prepare("SELECT id FROM event_checkpoints WHERE id=? AND event_id=?").bind(checkpointId,eventId).first();
+    if(!checkpoint||!vkId)return fail("Choose a checkpoint and volunteer VK ID.");
+    const assignedRole=await env.DB.prepare("SELECT role FROM event_volunteers WHERE event_id=? AND vk_user_id=?").bind(eventId,vkId).first();
+    if(!assignedRole||!["checkpoint","scanner","event_lead"].includes(assignedRole.role))return fail("Assign this user as a checkpoint volunteer, scanner or event lead first.",409);
+    await env.DB.prepare("INSERT INTO event_checkpoint_assignments(event_id,checkpoint_id,vk_user_id,assigned_by,assigned_at) VALUES(?,?,?,?,?) ON CONFLICT(event_id,checkpoint_id,vk_user_id) DO UPDATE SET assigned_by=excluded.assigned_by,assigned_at=excluded.assigned_at").bind(eventId,checkpointId,vkId,uid,now()).run();
+    await log("CHECKPOINT_VOLUNTEER_ASSIGNED","volunteer",vkId,{checkpoint_id:checkpointId});
+    return json({ok:true,message:"Volunteer assigned to the selected checkpoint."});
+  }
+  if(action==="remove_checkpoint_volunteer") {
+    const checkpointId=Number(data.checkpoint_id||0),vkId=String(data.vk_user_id||"").trim();
+    await env.DB.prepare("DELETE FROM event_checkpoint_assignments WHERE event_id=? AND checkpoint_id=? AND vk_user_id=?").bind(eventId,checkpointId,vkId).run();
+    await log("CHECKPOINT_VOLUNTEER_REMOVED","volunteer",vkId,{checkpoint_id:checkpointId});
+    return json({ok:true,message:"Checkpoint assignment removed."});
+  }
   if(action==="checkpoints") {
     const rows=await env.DB.prepare("SELECT id,name,checkpoint_type,enabled FROM event_checkpoints WHERE event_id=? ORDER BY id").bind(eventId).all();
     return json({ok:true,checkpoints:rows.results});
