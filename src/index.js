@@ -23,7 +23,7 @@ async function authenticate(request, env) {
   if (!env.VK_APP_SECRET) throw new Error("Server authentication is not configured.");
   const signedParams = [...params.entries()]
     .filter(([key]) => key.startsWith("vk_"))
-    .sort(([a], [b]) => a.localeCompare(b))
+    .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
     .map(([key, value]) => [key, value]);
   const signedQuery = new URLSearchParams(signedParams).toString();
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(env.VK_APP_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
@@ -56,6 +56,8 @@ async function requireStaff(request, env) {
   return uid;
 }
 async function activeEvent(env) {
+  await env.DB.prepare("INSERT INTO events(name,event_date,venue,food_enabled,active,created_at) SELECT ?,?,?,?,1,? WHERE NOT EXISTS (SELECT 1 FROM events WHERE active=1)")
+    .bind(env.EVENT_NAME || "EventHub", env.EVENT_DATE || "Set event date", env.EVENT_VENUE || "Set event venue", asBool(env.FOOD_COLLECTION_ENABLED) ? 1 : 0, now()).run();
   const event = await env.DB.prepare("SELECT * FROM events WHERE active=1 ORDER BY id LIMIT 1").first();
   if (!event) throw Object.assign(new Error("No active event configured."), { status: 404 });
   return event;
