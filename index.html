@@ -1,34 +1,469 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#171021"><title>EventHub · DEEPOTSAV</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f8f9">
+<meta name="description" content="Kazan State Medical University student hostel services">
+<title>Kazan State Medical University · Hostels</title>
 <style>
-:root{color-scheme:dark;--bg:#100c18;--panel:#1d1728;--panel2:#292137;--gold:#f4ce82;--muted:#b9adc8;--blue:#3988ed;--line:#40344f;--green:#48c78e;--red:#ff7373}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#fff;font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}header{padding:22px 18px 18px;background:linear-gradient(140deg,#291a3e,#171021 70%);border-bottom:1px solid var(--line)}.eyebrow{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:2px}h1{font-size:24px;margin:7px 0 5px}.muted{color:var(--muted)}main{max-width:760px;margin:auto;padding:16px 14px 90px}.tabs{display:flex;gap:7px;overflow:auto;padding:12px 14px;background:#17121f;position:sticky;top:0;z-index:3}.tabs button{white-space:nowrap;width:auto;margin:0;padding:9px 13px;background:var(--panel2);color:#ddd;border:1px solid var(--line)}button{border:0;border-radius:11px;padding:13px 15px;font-weight:700;font-size:14px;background:var(--blue);color:white;cursor:pointer}button.secondary{background:var(--panel2);border:1px solid var(--line)}button.danger{background:#8e343d}button:disabled{opacity:.45}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat{background:var(--panel2);padding:14px;border-radius:12px}.stat b{display:block;font-size:25px;color:var(--gold)}label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,select{width:100%;background:#120e19;border:1px solid var(--line);border-radius:10px;padding:13px;color:#fff;font-size:15px}button.full{width:100%;margin-top:14px}.hidden{display:none!important}.pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#3a2d4c;color:var(--gold);font-size:11px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.row button{width:auto;margin:0;padding:9px 11px}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1;min-width:100px}.notice{padding:12px;border-radius:10px;background:#2a2135;color:var(--muted);margin:12px 0}.success{color:var(--green)}.error{color:var(--red)}#qr{background:white;display:inline-block;padding:12px;border-radius:12px;margin:12px 0}small{color:var(--muted)}.guest{border-top:1px solid var(--line);padding:13px 0}.guest:first-child{border:0}.stage{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)}@media(min-width:650px){main{padding-top:22px}.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+:root{
+  color-scheme:light;
+  --ink:#18333a;--muted:#60777d;--muted2:#82969a;
+  --brand:#087b83;--brand-dark:#075b65;--brand-soft:#e7f4f3;
+  --accent:#c69b4b;--line:#dce7e8;--surface:#fff;--canvas:#f3f7f8;
+  --success:#177b58;--success-bg:#e9f6ef;--danger:#b5444b;--danger-bg:#fff0f0;
+  --shadow:0 10px 30px rgba(24,51,58,.07);--radius:18px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--canvas);color:var(--ink);font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.site-header{background:var(--surface);border-bottom:1px solid var(--line)}
+.header-inner{max-width:1160px;margin:0 auto;padding:20px 22px 18px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.brand{display:flex;align-items:center;gap:15px;min-width:0}
+.logo-frame{width:68px;height:68px;flex:0 0 68px;background:#fff;border:1px solid var(--line);border-radius:17px;display:grid;place-items:center;padding:7px;box-shadow:0 3px 12px rgba(22,64,70,.06)}
+.logo-frame img{width:100%;height:100%;object-fit:contain}
+.logo-fallback{width:100%;height:100%;border-radius:12px;background:var(--brand-soft);color:var(--brand-dark);display:grid;place-items:center;font-weight:800;font-size:17px;letter-spacing:-1px}
+.brand-copy{min-width:0}
+.brand-kicker{font-size:10px;font-weight:800;letter-spacing:1.8px;color:var(--brand);text-transform:uppercase;margin-bottom:3px}
+.brand-name{font-size:clamp(17px,2.6vw,23px);line-height:1.2;letter-spacing:-.45px;margin:0;font-weight:750;max-width:690px}
+.brand-subtitle{margin:5px 0 0;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.65px;text-transform:uppercase}
+.language-chip{display:inline-flex;align-items:center;justify-content:center;min-width:43px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.7px;background:#fbfdfd}
+.hero-wrap{max-width:1160px;margin:0 auto;padding:0 22px 19px}
+.event-hero{position:relative;overflow:hidden;min-height:118px;border-radius:20px;padding:19px 23px;background:linear-gradient(112deg,#103c49 0%,#0b6972 58%,#15828a 100%);color:#fff;display:flex;flex-direction:column;justify-content:center;box-shadow:0 10px 22px rgba(7,91,101,.13)}
+.event-hero:after{content:"";position:absolute;width:240px;height:240px;border:1px solid rgba(255,255,255,.13);border-radius:50%;right:8%;top:-130px;box-shadow:0 0 0 28px rgba(255,255,255,.035),0 0 0 58px rgba(255,255,255,.025)}
+.hero-label{position:relative;z-index:1;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;font-weight:800;color:#bfe5e2}
+.event-title{position:relative;z-index:1;margin:4px 0 6px;font-size:clamp(20px,3vw,28px);font-weight:750;line-height:1.2;letter-spacing:-.5px}
+.event-meta{position:relative;z-index:1;color:#e1f1ef;font-size:13px;display:flex;flex-wrap:wrap;gap:8px 17px}
+.event-meta span{display:inline-flex;align-items:center;gap:7px}
+.tabs-wrap{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.tabs{max-width:1160px;margin:0 auto;padding:0 22px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;border:0;border-radius:0;background:transparent;color:var(--muted);padding:14px 16px 13px;font-size:13px;font-weight:700;transition:color .18s,background .18s}
+.tab svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab:hover{color:var(--brand-dark);background:#f5fafa}
+.tab.active{color:var(--brand-dark)}
+.tab.active:after{content:"";position:absolute;left:13px;right:13px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--brand)}
+main{width:min(100% - 44px,1116px);margin:26px auto 0;padding-bottom:46px}
+.notice{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-radius:13px;padding:12px 15px;background:#fff;color:var(--muted);margin-bottom:19px;font-size:13px}
+.notice:before{content:"";width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#91a5a8;margin-top:6px}
+.notice.success{background:var(--success-bg);border-color:#cfe9da;color:var(--success)}
+.notice.success:before{background:var(--success)}
+.notice.error{background:var(--danger-bg);border-color:#f4d5d6;color:var(--danger)}
+.notice.error:before{background:var(--danger)}
+.view{animation:fadeIn .22s ease}
+@keyframes fadeIn{from{opacity:.55;transform:translateY(4px)}to{opacity:1;transform:none}}
+.page-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:2px 0 18px}
+.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:1.6px;font-weight:800;color:var(--brand)}
+h2{font-size:25px;line-height:1.2;letter-spacing:-.55px;margin:5px 0 7px;font-weight:760}
+h3{font-size:16px;line-height:1.3;margin:0 0 13px;font-weight:750;letter-spacing:-.15px}
+p{margin:0 0 10px}
+.lead{max-width:660px;color:var(--muted);font-size:14px}
+.muted{color:var(--muted)}
+.small{font-size:12px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:21px;box-shadow:var(--shadow);margin:0 0 16px;min-width:0}
+.home-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:16px;align-items:stretch}
+.welcome-card{position:relative;overflow:hidden;background:linear-gradient(135deg,#fff 0%,#f5fbfa 100%);min-height:210px}
+.welcome-card:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;border:1px solid rgba(8,123,131,.12);right:-70px;bottom:-95px;box-shadow:0 0 0 22px rgba(8,123,131,.035),0 0 0 44px rgba(8,123,131,.025)}
+.welcome-card>*{position:relative;z-index:1}
+.welcome-card h2{max-width:500px}
+.status-panel{display:flex;align-items:center;gap:10px;margin-top:22px;padding:12px 14px;background:#f3f8f8;border:1px solid var(--line);border-radius:12px;font-size:13px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#94a9ad;flex:0 0 8px}
+.status-panel.approved .status-dot{background:var(--success)}
+.status-panel.pending .status-dot{background:var(--accent)}
+.detail-list{display:grid;gap:0}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid #edf2f3;font-size:13px}
+.detail-row:last-child{border-bottom:0;padding-bottom:0}
+.detail-row:first-child{padding-top:0}
+.detail-row span:first-child{color:var(--muted)}
+.detail-row strong{text-align:right;font-weight:650}
+.process-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}
+.process-step{border:1px solid var(--line);border-radius:13px;padding:13px;background:#fbfdfd}
+.step-number{width:25px;height:25px;border-radius:8px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-dark);font-size:11px;font-weight:800;margin-bottom:9px}
+.process-step b{display:block;font-size:12px;margin-bottom:4px}
+.process-step span{display:block;color:var(--muted);font-size:11px;line-height:1.45}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 15px}
+.field{min-width:0;margin:0 0 14px}
+label{display:block;color:#425c62;font-size:12px;font-weight:700;margin:0 0 6px}
+input,select{display:block;width:100%;min-width:0;height:46px;border:1px solid #d8e3e5;border-radius:10px;background:#fbfdfd;color:var(--ink);padding:0 13px;outline:none;transition:border-color .16s,box-shadow .16s}
+input:focus,select:focus{border-color:#48a3a6;box-shadow:0 0 0 3px rgba(8,123,131,.11);background:#fff}
+input::placeholder{color:#9babad}
+button{border:0;border-radius:10px;padding:12px 16px;font-weight:750;font-size:13px;transition:transform .12s,box-shadow .12s,background .12s}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--brand);color:#fff;box-shadow:0 5px 12px rgba(8,123,131,.15)}
+.btn-primary:hover{background:var(--brand-dark);box-shadow:0 7px 16px rgba(8,123,131,.2)}
+.btn-secondary{background:#eef5f5;color:var(--brand-dark);border:1px solid #d9e9e9}
+.btn-secondary:hover{background:#e3f0ef}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid #f0d0d1}
+.btn-block{width:100%;margin-top:6px}
+.button-row{display:flex;flex-wrap:wrap;gap:9px}
+.button-row button{flex:0 0 auto}
+.form-note{font-size:12px;color:var(--muted);margin:0 0 13px}
+.pass-shell{max-width:470px;margin:0 auto}
+.pass-card{background:linear-gradient(145deg,#123d49,#08737b);border-radius:20px;padding:22px;color:#fff;box-shadow:0 14px 32px rgba(7,91,101,.2);text-align:center}
+.pass-brand{color:#bfe5e2;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}
+.pass-title{color:#fff;font-size:19px;font-weight:800;margin:7px 0 2px}
+.pass-subtitle{color:#d3eeea;font-size:12px;margin:0 0 16px}
+.pass-name{font-size:21px;font-weight:750;margin:4px 0 14px}
+.qr-wrap{display:inline-grid;place-items:center;background:#fff;border-radius:12px;padding:12px;min-width:164px;min-height:164px;margin:0 0 11px}
+.pass-code{font-size:13px;letter-spacing:1.4px;font-weight:850;color:#f3d59b;margin:3px 0 13px}
+.pass-details{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left;margin-top:14px}
+.pass-detail{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px}
+.pass-detail small{display:block;color:#bfe5e2;font-size:10px;margin-bottom:3px}
+.pass-detail b{font-size:12px;color:#fff}
+.checkpoint-list{margin-top:19px;text-align:left}
+.checkpoint-row{display:flex;justify-content:space-between;gap:12px;padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.16);font-size:12px;color:#e4f4f1}
+.checkpoint-row b{color:#d4f5e3}
+.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin-bottom:18px}
+.stat-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px;box-shadow:0 4px 14px rgba(24,51,58,.04)}
+.stat-value{font-size:27px;line-height:1.1;font-weight:800;color:var(--brand-dark);letter-spacing:-.7px}
+.stat-label{color:var(--muted);font-size:11px;font-weight:650;margin-top:6px}
+.guest{padding:14px 0;border-bottom:1px solid #edf2f3}
+.guest:last-child{border-bottom:0;padding-bottom:0}
+.guest-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.guest-name{font-size:14px;font-weight:750}
+.guest-meta{font-size:12px;color:var(--muted);margin-top:4px}
+.guest-actions{display:flex;gap:7px;margin-top:11px}
+.guest-actions button{padding:8px 12px;font-size:12px}
+.empty-state{padding:22px 10px;text-align:center;color:var(--muted);font-size:13px;background:#fafcfc;border:1px dashed #d8e3e5;border-radius:12px}
+.volunteer-item{font-size:12px;padding:9px 0;border-bottom:1px solid #edf2f3;color:var(--muted)}
+.volunteer-item:last-child{border-bottom:0}
+.color-control{height:46px;padding:5px;width:100%;background:#fff}
+.scanner-video{width:100%;max-height:360px;object-fit:cover;border-radius:13px;background:#102b32;display:block;margin:10px 0 12px}
+.scan-result{margin-top:13px}
+.footer{max-width:1116px;margin:0 auto;padding:0 22px 26px;color:var(--muted2);font-size:11px;text-align:center}
+.hidden{display:none!important}
+@media(max-width:760px){
+ .header-inner{padding:15px 16px 13px}.hero-wrap{padding:0 16px 14px}.logo-frame{width:57px;height:57px;flex-basis:57px;border-radius:14px}.brand{gap:11px}.brand-kicker{font-size:9px;letter-spacing:1.2px}.brand-name{font-size:17px}.brand-subtitle{font-size:10px}.language-chip{font-size:10px;padding:6px 8px}
+ .event-hero{min-height:108px;border-radius:16px;padding:16px 17px}.tabs{padding:0 10px}.tab{padding:13px 12px;font-size:12px;gap:6px}.tab svg{width:15px;height:15px}
+ main{width:calc(100% - 28px);margin-top:19px;padding-bottom:32px}.card{padding:17px;border-radius:15px}.home-grid{grid-template-columns:1fr;gap:12px}.process-list{grid-template-columns:1fr 1fr}.process-step:last-child{grid-column:span 2}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.page-heading{align-items:flex-start}
+}
+@media(max-width:430px){
+ .header-inner{align-items:flex-start}.language-chip{margin-top:3px}.brand-name{font-size:15px;max-width:245px}.brand-subtitle{font-size:9px;letter-spacing:.4px}.brand-kicker{font-size:8px}.logo-frame{width:52px;height:52px;flex-basis:52px}
+ .form-grid{grid-template-columns:1fr}.process-list{grid-template-columns:1fr}.process-step:last-child{grid-column:auto}.tab{padding:12px 10px}.tab svg{display:none}.guest-top{display:block}.guest-top .pill{margin-top:7px}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 </style>
-<script src="https://unpkg.com/@vkontakte/vk-bridge@2.14.2/dist/browser.min.js" async></script>
+<script src="https://unpkg.com/@vkontakte/vk-bridge@2.14.2/dist/browser.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-</head><body><header><div class="eyebrow">VK MINI APP · EVENTHUB</div><h1>🎭 DEEPOTSAV 2026</h1><div class="muted" id="eventMeta">Loading event details…</div></header>
-<nav class="tabs" id="tabs"><button data-tab="home">Home</button><button data-tab="register">Register</button><button data-tab="pass">My Pass</button><button data-tab="admin" class="hidden" id="adminTab">Admin</button><button data-tab="scan" class="hidden" id="scanTab">Scanner</button></nav>
-<main><div id="status" class="notice">Connecting securely to EventHub…</div>
-<section id="home" class="view"><div class="card"><h2>Welcome to EventHub</h2><p class="muted">Register once, receive your personal QR pass after approval, and use it at event checkpoints.</p><div id="homeState"></div></div><div class="card"><h3>Event information</h3><div id="eventInfo" class="muted"></div></div></section>
-<section id="register" class="view hidden"><div class="card"><h2>Guest registration</h2><p class="muted">Your registration is sent to the event administrators for approval.</p><form id="regForm"><label>Full name *</label><input name="full_name" required minlength="2" maxlength="120" autocomplete="name"><label>Phone number *</label><input name="phone" required minlength="5" maxlength="30" type="tel"><label>Residence / address *</label><input name="residence" required minlength="2"><label>Hostel / building *</label><input name="hostel" required><label>Room number *</label><input name="room" required><div id="foodField"><label>Food preference *</label><select name="food_preference"><option value="">Choose preference</option><option>Vegetarian</option><option>Non-vegetarian</option></select></div><button class="full" type="submit">Submit registration</button></form></div></section>
-<section id="pass" class="view hidden"><div class="card"><h2>My event pass</h2><div id="passContent" class="muted">Your approved pass will appear here.</div></div></section>
-<section id="admin" class="view hidden"><div class="card"><h2>Admin dashboard</h2><div class="grid" id="stats"></div><div class="actions"><button id="refreshAdmin" class="secondary">Refresh</button><button id="exportCsv" class="secondary">Export CSV</button></div></div><div class="card"><h3>Pending registrations</h3><div id="pendingList">Loading…</div></div><div class="card"><h3>Volunteer access</h3><form id="volForm"><label>VK user ID</label><input name="vk_user_id" required><label>Display name</label><input name="display_name"><button class="full">Add / restore volunteer</button></form><div id="volList"></div></div><div class="card"><h3>Pass design settings</h3><p class="muted">This central design applies to passes without changing existing pass codes, QR tokens or checkpoint history.</p><label>Pass title</label><input id="designTitle"><label>Subtitle</label><input id="designSubtitle"><label>Background color</label><input id="designBg" type="color" value="#21113d"><label>Accent color</label><input id="designAccent" type="color" value="#f8d68a"><button id="saveDesign" class="full">Save pass design</button></div></section>
-<section id="scan" class="view hidden"><div class="card"><h2>Checkpoint scanner</h2><p class="muted">Scan an approved guest QR. Each checkpoint can be recorded only once per guest.</p><label>Checkpoint</label><select id="stage"><option value="entry">Entry</option><option value="proof_storage">Proof storage</option><option value="food">Food collection</option><option value="exit">Exit</option><option value="proof_return">Proof return</option></select><video id="video" playsinline style="width:100%;border-radius:12px;background:#000"></video><button id="startCamera" class="full">Start camera scanner</button><label>Or enter QR token manually</label><input id="manualToken" placeholder="Paste QR token"><button id="manualScan" class="full">Verify pass</button><div id="scanResult"></div></div></section>
+</head>
+<body>
+<header class="site-header">
+ <div class="header-inner">
+  <div class="brand">
+   <div class="logo-frame">
+    <img src="https://kazangmu.com/assets/img/logo1.png" alt="Kazan State Medical University emblem" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+    <div class="logo-fallback" hidden>1814</div>
+   </div>
+   <div class="brand-copy">
+    <div class="brand-kicker" data-i18n="brandKicker">University accommodation</div>
+    <h1 class="brand-name" id="brandName">Kazan State Medical University</h1>
+    <p class="brand-subtitle" id="brandSubtitle">Student hostels</p>
+   </div>
+  </div>
+  <span class="language-chip" id="languageChip">EN</span>
+ </div>
+ <div class="hero-wrap">
+  <section class="event-hero">
+   <div class="hero-label" data-i18n="currentEvent">Current event</div>
+   <h2 class="event-title" id="eventTitle">Loading event…</h2>
+   <div class="event-meta" id="eventMeta"><span data-i18n="loadingDetails">Loading details…</span></div>
+  </section>
+ </div>
+</header>
+<div class="tabs-wrap">
+ <nav class="tabs" id="tabs" aria-label="Main navigation">
+  <button class="tab active" data-tab="home"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span data-i18n="navHome">Overview</span></button>
+  <button class="tab" data-tab="register"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/><circle cx="12" cy="12" r="9"/></svg><span data-i18n="navRegister">Register</span></button>
+  <button class="tab" data-tab="pass"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h4M7 13h3m5-4h2m-2 4h2"/></svg><span data-i18n="navPass">My pass</span></button>
+  <button class="tab hidden" data-tab="admin" id="adminTab"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15V9m4 6V5m4 10v-4"/></svg><span data-i18n="navAdmin">Administration</span></button>
+  <button class="tab hidden" data-tab="scan" id="scanTab"><svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3m8 0h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3m-8 0H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg><span data-i18n="navScanner">QR scanner</span></button>
+ </nav>
+</div>
+<main>
+ <div id="status" class="notice" role="status" aria-live="polite">Connecting securely…</div>
+ <section id="home" class="view">
+  <div class="page-heading">
+   <div><div class="eyebrow" data-i18n="studentPortal">Student portal</div><h2 data-i18n="welcomeTitle">Welcome</h2><p class="lead" data-i18n="welcomeText">Your university event access, registration and attendance in one place.</p></div>
+  </div>
+  <div class="home-grid">
+   <article class="card welcome-card">
+    <div class="eyebrow" data-i18n="eventAccess">Event access</div>
+    <h2 data-i18n="welcomeCardTitle">Your campus event pass</h2>
+    <p class="lead" data-i18n="welcomeCardText">Register with your details. Once approved, your personal QR pass will be available here.</p>
+    <div id="homeState" class="status-panel"><span class="status-dot"></span><span data-i18n="checkingRegistration">Checking registration…</span></div>
+   </article>
+   <article class="card">
+    <h3 data-i18n="eventDetails">Event details</h3>
+    <div id="eventInfo" class="detail-list"><div class="detail-row"><span data-i18n="loading">Loading…</span></div></div>
+   </article>
+  </div>
+  <article class="card">
+   <h3 data-i18n="howItWorks">How it works</h3>
+   <div class="process-list">
+    <div class="process-step"><div class="step-number">01</div><b data-i18n="stepRegister">Register</b><span data-i18n="stepRegisterText">Submit your name and contact details.</span></div>
+    <div class="process-step"><div class="step-number">02</div><b data-i18n="stepApproval">Approval</b><span data-i18n="stepApprovalText">The event administrator reviews your registration.</span></div>
+    <div class="process-step"><div class="step-number">03</div><b data-i18n="stepPass">Show your pass</b><span data-i18n="stepPassText">Use your personal QR pass at the checkpoints.</span></div>
+   </div>
+  </article>
+ </section>
+
+ <section id="register" class="view hidden">
+  <div class="page-heading"><div><div class="eyebrow" data-i18n="guestServices">Guest services</div><h2 data-i18n="registerTitle">Event registration</h2><p class="lead" data-i18n="registerIntro">Complete the form below. Your registration will be reviewed by an administrator.</p></div></div>
+  <div class="card">
+   <form id="regForm">
+    <div class="form-grid">
+     <div class="field"><label for="fullName" data-i18n="fullName">Full name *</label><input id="fullName" name="full_name" required minlength="2" maxlength="120" autocomplete="name" placeholder="Your full name"></div>
+     <div class="field"><label for="phone" data-i18n="phone">Phone number *</label><input id="phone" name="phone" required minlength="5" maxlength="30" type="tel" autocomplete="tel" placeholder="+7 …"></div>
+     <div class="field"><label for="residence" data-i18n="residence">Residence / address *</label><input id="residence" name="residence" required minlength="2" placeholder="Hostel or apartment"></div>
+     <div class="field"><label for="hostel" data-i18n="hostelBuilding">Hostel / building *</label><input id="hostel" name="hostel" required placeholder="Hostel number or building"></div>
+     <div class="field"><label for="room" data-i18n="roomNumber">Room number *</label><input id="room" name="room" required placeholder="Room number"></div>
+     <div class="field" id="foodField"><label for="foodPreference" data-i18n="foodPreference">Food preference *</label><select id="foodPreference" name="food_preference"><option value="" data-i18n="choosePreference">Choose preference</option><option value="Vegetarian" data-i18n="vegetarian">Vegetarian</option><option value="Non-vegetarian" data-i18n="nonVegetarian">Non-vegetarian</option></select></div>
+    </div>
+    <p class="form-note" data-i18n="requiredNote">Fields marked with * are required.</p>
+    <button class="btn-primary btn-block" type="submit" data-i18n="submitRegistration">Submit registration</button>
+   </form>
+  </div>
+ </section>
+
+ <section id="pass" class="view hidden">
+  <div class="page-heading"><div><div class="eyebrow" data-i18n="digitalIdentity">Digital identity</div><h2 data-i18n="myPassTitle">My event pass</h2><p class="lead" data-i18n="myPassIntro">Keep your QR pass ready when entering an event checkpoint.</p></div></div>
+  <div class="card pass-shell"><div id="passContent" class="muted" data-i18n="passNotReady">Your approved pass will appear here.</div></div>
+ </section>
+
+ <section id="admin" class="view hidden">
+  <div class="page-heading"><div><div class="eyebrow" data-i18n="management">Management</div><h2 data-i18n="adminTitle">Administration</h2><p class="lead" data-i18n="adminIntro">Registration overview and staff controls.</p></div></div>
+  <div class="stats-grid" id="stats"></div>
+  <div class="card">
+   <div class="page-heading"><div><h3 data-i18n="pendingRegistrations">Pending registrations</h3><p class="small" data-i18n="pendingIntro">Review and process new guest applications.</p></div><button id="refreshAdmin" class="btn-secondary" data-i18n="refresh">Refresh</button></div>
+   <div id="pendingList"><div class="empty-state" data-i18n="loading">Loading…</div></div>
+  </div>
+  <div class="card">
+   <h3 data-i18n="volunteerAccess">Volunteer access</h3>
+   <p class="form-note" data-i18n="volunteerIntro">Grant checkpoint scanner access to approved volunteers.</p>
+   <form id="volForm">
+    <div class="form-grid">
+     <div class="field"><label for="vkUserId" data-i18n="vkUserId">VK user ID</label><input id="vkUserId" name="vk_user_id" required></div>
+     <div class="field"><label for="displayName" data-i18n="displayName">Display name</label><input id="displayName" name="display_name"></div>
+    </div>
+    <button class="btn-secondary" type="submit" data-i18n="saveVolunteer">Save volunteer access</button>
+   </form>
+   <div id="volList"></div>
+  </div>
+  <div class="card">
+   <h3 data-i18n="passDesign">Pass design</h3>
+   <p class="form-note" data-i18n="passDesignIntro">Adjust the visual style of guest passes. Existing QR identities and scan history will remain unchanged.</p>
+   <div class="form-grid">
+    <div class="field"><label for="designTitle" data-i18n="passTitle">Pass title</label><input id="designTitle"></div>
+    <div class="field"><label for="designSubtitle" data-i18n="passSubtitle">Subtitle</label><input id="designSubtitle"></div>
+    <div class="field"><label for="designBg" data-i18n="backgroundColor">Background color</label><input id="designBg" class="color-control" type="color" value="#123d49"></div>
+    <div class="field"><label for="designAccent" data-i18n="accentColor">Accent color</label><input id="designAccent" class="color-control" type="color" value="#f3d59b"></div>
+   </div>
+   <button id="saveDesign" class="btn-primary" data-i18n="saveDesign">Save pass design</button>
+   <div class="button-row" style="margin-top:14px"><button id="exportCsv" class="btn-secondary" data-i18n="exportCsv">Export guest list (CSV)</button></div>
+  </div>
+ </section>
+
+ <section id="scan" class="view hidden">
+  <div class="page-heading"><div><div class="eyebrow" data-i18n="checkpointControl">Checkpoint control</div><h2 data-i18n="scannerTitle">QR scanner</h2><p class="lead" data-i18n="scannerIntro">Scan an approved guest pass and record the selected checkpoint.</p></div></div>
+  <div class="card">
+   <div class="field"><label for="stage" data-i18n="checkpoint">Checkpoint</label><select id="stage"><option value="entry" data-i18n="entry">Entry</option><option value="proof_storage" data-i18n="proofStorage">Proof storage</option><option value="food" data-i18n="foodCollection">Food collection</option><option value="exit" data-i18n="exit">Exit</option><option value="proof_return" data-i18n="proofReturn">Proof return</option></select></div>
+   <video id="video" class="scanner-video" playsinline muted></video>
+   <button id="startCamera" class="btn-primary btn-block" data-i18n="startCamera">Start camera scanner</button>
+   <div class="field" style="margin-top:17px"><label for="manualToken" data-i18n="manualToken">Or enter QR token manually</label><input id="manualToken" autocomplete="off" placeholder="Paste QR token"></div>
+   <button id="manualScan" class="btn-secondary btn-block" data-i18n="verifyPass">Verify pass</button>
+   <div id="scanResult" class="scan-result"></div>
+  </div>
+ </section>
 </main>
+<footer class="footer">© 1814 · <span id="footerUniversity">Kazan State Medical University</span></footer>
 <script>
-const $=s=>document.querySelector(s);let launchParams=location.search.slice(1),state=null,design={};let cameraStream=null,scanFrame=null;
-function msg(t,type=""){const el=$("#status");el.textContent=t;el.className="notice "+type}
-async function api(path,opts={}){const headers={"Content-Type":"application/json","X-VK-Launch-Params":launchParams,...(opts.headers||{})};const r=await fetch(path,{...opts,headers});let data={};try{data=await r.json()}catch{}if(!r.ok)throw Error(data.detail||data.message||"Request failed");return data}
-function showTab(name){document.querySelectorAll(".view").forEach(x=>x.classList.add("hidden"));$("#"+name).classList.remove("hidden");document.querySelectorAll("[data-tab]").forEach(b=>b.style.background=b.dataset.tab===name?"#514064":"");if(name==="admin")loadAdmin();if(name==="pass")loadPass()}
-document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
-async function init(){try{if(window.vkBridge?.send)await window.vkBridge.send("VKWebAppInit");state=await api("/api/bootstrap");const e=state.event;$("#eventMeta").textContent=e.event_date+" · "+e.venue;$("#eventInfo").textContent=e.name+" · "+e.event_date+" · "+e.venue;$("#foodField").classList.toggle("hidden",!e.food_enabled);$("#homeState").innerHTML=state.registration?'<p>Registration status: <b>'+state.registration.status+'</b></p>':'<p>You have not registered yet.</p>';if(state.user.is_admin){$("#adminTab").classList.remove("hidden");$("#scanTab").classList.remove("hidden")}else if(state.user.is_volunteer)$("#scanTab").classList.remove("hidden");msg("Connected to EventHub as VK user "+state.user.vk_user_id,"success");}catch(e){msg(e.message,"error")}}
-$("#regForm").onsubmit=async ev=>{ev.preventDefault();const d=Object.fromEntries(new FormData(ev.target));if(!state.event.food_enabled)delete d.food_preference;try{const r=await api("/api/register",{method:"POST",body:JSON.stringify(d)});msg(r.message,"success");state.registration=r.registration;$("#homeState").textContent="Registration status: "+r.registration.status;showTab("home")}catch(e){msg(e.message,"error")}};
-async function loadPass(){try{const d=await api("/api/my-pass");const g=d.guest,ds=d.design||{};$("#passContent").innerHTML='<div style="background:'+(ds.background||"#21113d")+';border:1px solid #72548a;border-radius:16px;padding:18px;text-align:center"><div style="color:'+(ds.accent||"#f8d68a")+';font-weight:800">'+(ds.title||d.event.name)+'</div><p>'+g.full_name+'</p><div id="qr"></div><b style="color:'+(ds.accent||"#f8d68a")+'">'+g.pass_code+'</b><p>'+g.hostel+' · Room '+g.room+'</p><p>'+g.residence+'</p>'+(g.food_preference?'<p>'+g.food_preference+'</p>':'')+'</div><h3>Checkpoint history</h3>'+["entry","proof_storage","food","exit","proof_return"].map(s=>'<div class="stage"><span>'+s.replace("_"," ")+'</span><b>'+(d.scans[s]?"✓":"—")+'</b></div>').join("");if(window.QRCode)new QRCode($("#qr"),{text:g.qr_token,width:220,height:220});else $("#qr").textContent="QR library unavailable; pass code: "+g.pass_code;}catch(e){$("#passContent").textContent=e.message}}
-async function loadAdmin(){try{const [s,g,v,d]=await Promise.all([api("/api/admin/stats"),api("/api/admin/guests?status=pending"),api("/api/admin/volunteers"),api("/api/admin/design")]);$("#stats").innerHTML=[["Registrations",s.total],["Approved",s.approved],["Pending",s.pending],["Sheets queue",s.sheets_pending]].map(x=>'<div class="stat"><b>'+x[1]+'</b><small>'+x[0]+'</small></div>').join("");$("#pendingList").innerHTML=g.guests.length?g.guests.map(x=>'<div class="guest"><b>'+esc(x.full_name)+'</b><div class="muted">'+esc(x.phone)+' · '+esc(x.hostel)+' / '+esc(x.room)+' · '+esc(x.food_preference||"No food data")+'</div><div class="actions"><button data-decision="approve" data-id="'+x.id+'">Approve</button><button class="danger" data-decision="reject" data-id="'+x.id+'">Reject</button></div></div>').join(""):"No pending registrations.";$("#volList").innerHTML=v.volunteers.map(x=>'<div class="guest">'+esc(x.display_name||x.vk_user_id)+' · '+x.vk_user_id+' · '+(x.active?"Active":"Inactive")+'</div>').join("");design=d.design;$("#designTitle").value=design.title||"";$("#designSubtitle").value=design.subtitle||"";$("#designBg").value=design.background||"#21113d";$("#designAccent").value=design.accent||"#f8d68a";$("#pendingList").querySelectorAll("[data-decision]").forEach(b=>b.onclick=async()=>{try{await api("/api/admin/guests/"+b.dataset.id+"/"+b.dataset.decision,{method:"POST"});msg("Registration "+b.dataset.decision+"d.","success");loadAdmin()}catch(e){msg(e.message,"error")}})}catch(e){msg(e.message,"error")}}
+const $=s=>document.querySelector(s);
+const isRussian=(navigator.languages&&navigator.languages.length?navigator.languages[0]:navigator.language||"en").toLowerCase().startsWith("ru");
+const lang=isRussian?"ru":"en";
+const copy={
+ en:{
+  brandKicker:"University accommodation",brandName:"Kazan State Medical University",brandSubtitle:"Student hostels",currentEvent:"Current event",loadingDetails:"Loading details…",
+  navHome:"Overview",navRegister:"Register",navPass:"My pass",navAdmin:"Administration",navScanner:"QR scanner",
+  studentPortal:"Student portal",welcomeTitle:"Welcome",welcomeText:"Your university event access, registration and attendance in one place.",eventAccess:"Event access",welcomeCardTitle:"Your campus event pass",welcomeCardText:"Register with your details. Once approved, your personal QR pass will be available here.",checkingRegistration:"Checking registration…",
+  eventDetails:"Event details",loading:"Loading…",howItWorks:"How it works",stepRegister:"Register",stepRegisterText:"Submit your name and contact details.",stepApproval:"Approval",stepApprovalText:"The event administrator reviews your registration.",stepPass:"Show your pass",stepPassText:"Use your personal QR pass at the checkpoints.",
+  guestServices:"Guest services",registerTitle:"Event registration",registerIntro:"Complete the form below. Your registration will be reviewed by an administrator.",fullName:"Full name *",phone:"Phone number *",residence:"Residence / address *",hostelBuilding:"Hostel / building *",roomNumber:"Room number *",foodPreference:"Food preference *",choosePreference:"Choose preference",vegetarian:"Vegetarian",nonVegetarian:"Non-vegetarian",requiredNote:"Fields marked with * are required.",submitRegistration:"Submit registration",
+  digitalIdentity:"Digital identity",myPassTitle:"My event pass",myPassIntro:"Keep your QR pass ready when entering an event checkpoint.",passNotReady:"Your approved pass will appear here.",
+  management:"Management",adminTitle:"Administration",adminIntro:"Registration overview and staff controls.",pendingRegistrations:"Pending registrations",pendingIntro:"Review and process new guest applications.",refresh:"Refresh",volunteerAccess:"Volunteer access",volunteerIntro:"Grant checkpoint scanner access to approved volunteers.",vkUserId:"VK user ID",displayName:"Display name",saveVolunteer:"Save volunteer access",passDesign:"Pass design",passDesignIntro:"Adjust the visual style of guest passes. Existing QR identities and scan history will remain unchanged.",passTitle:"Pass title",passSubtitle:"Subtitle",backgroundColor:"Background color",accentColor:"Accent color",saveDesign:"Save pass design",exportCsv:"Export guest list (CSV)",
+  checkpointControl:"Checkpoint control",scannerTitle:"QR scanner",scannerIntro:"Scan an approved guest pass and record the selected checkpoint.",checkpoint:"Checkpoint",entry:"Entry",proofStorage:"Proof storage",foodCollection:"Food collection",exit:"Exit",proofReturn:"Proof return",startCamera:"Start camera scanner",manualToken:"Or enter QR token manually",verifyPass:"Verify pass",
+  registrations:"Registrations",approved:"Approved",pending:"Pending",sheetsQueue:"Sheets queue",noPending:"There are no pending registrations.",approve:"Approve",reject:"Reject",active:"Active",inactive:"Inactive",registered:"Registered",status:"Status",date:"Date",venue:"Venue",residenceLabel:"Residence",hostelLabel:"Hostel",roomLabel:"Room",foodLabel:"Food preference",checkpointHistory:"Checkpoint history",notRecorded:"Not recorded",recorded:"Recorded",registrationPending:"Your registration is awaiting administrator approval.",registrationApproved:"Your registration is approved. Your QR pass is ready.",registrationRejected:"Your registration was not approved. Please contact the event administrator.",registrationRevoked:"Your pass is not active. Please contact the event administrator.",notRegistered:"You have not registered for this event yet.",connected:"Connected securely",registrationSubmitted:"Registration submitted for administrator approval.",alreadyRegistered:"You are already registered.",saved:"Saved successfully.",passSaved:"Pass design saved. Existing QR identities and scan history are unchanged.",volunteerSaved:"Volunteer access saved.",approvedMessage:"Registration approved.",rejectedMessage:"Registration rejected.",loadingCamera:"Starting camera…",cameraUnsupported:"QR camera scanning is not supported in this VK browser. Use manual token entry or a supported device.",scanRecorded:"Checkpoint recorded successfully.",scanError:"Unable to record this checkpoint.",invalidToken:"Enter a QR token first.",passCode:"Pass code",scanBy:"Scanned by",emptyVolunteers:"No volunteers have been added yet.",exportFailed:"Export failed.",footer:"Student services",
+ },
+ ru:{
+  brandKicker:"Университетское размещение",brandName:"Казанский государственный медицинский университет",brandSubtitle:"Студенческие общежития",currentEvent:"Текущее мероприятие",loadingDetails:"Загрузка информации…",
+  navHome:"Обзор",navRegister:"Регистрация",navPass:"Мой пропуск",navAdmin:"Администрирование",navScanner:"QR-сканер",
+  studentPortal:"Студенческий портал",welcomeTitle:"Добро пожаловать",welcomeText:"Регистрация, доступ на мероприятия и учёт посещаемости университета в одном месте.",eventAccess:"Доступ на мероприятие",welcomeCardTitle:"Ваш пропуск на мероприятие",welcomeCardText:"Заполните регистрационные данные. После подтверждения здесь появится ваш персональный QR-пропуск.",checkingRegistration:"Проверка регистрации…",
+  eventDetails:"Информация о мероприятии",loading:"Загрузка…",howItWorks:"Как это работает",stepRegister:"Регистрация",stepRegisterText:"Укажите имя и контактные данные.",stepApproval:"Подтверждение",stepApprovalText:"Администратор проверит вашу заявку.",stepPass:"Предъявите пропуск",stepPassText:"Используйте личный QR-пропуск на контрольных пунктах.",
+  guestServices:"Сервис для гостей",registerTitle:"Регистрация на мероприятие",registerIntro:"Заполните форму. Администратор проверит вашу заявку.",fullName:"ФИО *",phone:"Номер телефона *",residence:"Место проживания / адрес *",hostelBuilding:"Общежитие / корпус *",roomNumber:"Номер комнаты *",foodPreference:"Питание *",choosePreference:"Выберите вариант",vegetarian:"Вегетарианское",nonVegetarian:"Не вегетарианское",requiredNote:"Поля, отмеченные *, обязательны для заполнения.",submitRegistration:"Отправить заявку",
+  digitalIdentity:"Цифровой пропуск",myPassTitle:"Мой пропуск",myPassIntro:"Предъявляйте QR-пропуск при прохождении контрольных пунктов.",passNotReady:"Подтверждённый пропуск появится здесь.",
+  management:"Управление",adminTitle:"Администрирование",adminIntro:"Обзор заявок и управление персоналом.",pendingRegistrations:"Ожидают подтверждения",pendingIntro:"Проверьте новые заявки и примите решение.",refresh:"Обновить",volunteerAccess:"Доступ волонтёров",volunteerIntro:"Предоставьте подтверждённым волонтёрам доступ к QR-сканеру.",vkUserId:"ID пользователя VK",displayName:"Отображаемое имя",saveVolunteer:"Сохранить доступ",passDesign:"Дизайн пропуска",passDesignIntro:"Настройте внешний вид пропусков. QR-коды и история сканирований останутся без изменений.",passTitle:"Заголовок пропуска",passSubtitle:"Подзаголовок",backgroundColor:"Цвет фона",accentColor:"Цвет акцента",saveDesign:"Сохранить дизайн",exportCsv:"Экспорт списка гостей (CSV)",
+  checkpointControl:"Контрольные пункты",scannerTitle:"QR-сканер",scannerIntro:"Отсканируйте подтверждённый пропуск и зафиксируйте посещение выбранного пункта.",checkpoint:"Контрольный пункт",entry:"Вход",proofStorage:"Приём номерков",foodCollection:"Получение питания",exit:"Выход",proofReturn:"Возврат номерков",startCamera:"Запустить камеру",manualToken:"Или введите QR-токен вручную",verifyPass:"Проверить пропуск",
+  registrations:"Заявки",approved:"Подтверждено",pending:"Ожидают",sheetsQueue:"Очередь таблицы",noPending:"Нет заявок, ожидающих подтверждения.",approve:"Подтвердить",reject:"Отклонить",active:"Активен",inactive:"Неактивен",registered:"Зарегистрирован",status:"Статус",date:"Дата",venue:"Место",residenceLabel:"Проживание",hostelLabel:"Общежитие",roomLabel:"Комната",foodLabel:"Питание",checkpointHistory:"История отметок",notRecorded:"Не отмечено",recorded:"Отмечено",registrationPending:"Ваша заявка ожидает подтверждения администратора.",registrationApproved:"Регистрация подтверждена. Ваш QR-пропуск готов.",registrationRejected:"Заявка не подтверждена. Обратитесь к администратору мероприятия.",registrationRevoked:"Ваш пропуск не активен. Обратитесь к администратору мероприятия.",notRegistered:"Вы ещё не зарегистрированы на это мероприятие.",connected:"Безопасное соединение установлено",registrationSubmitted:"Заявка отправлена администратору на подтверждение.",alreadyRegistered:"Вы уже зарегистрированы.",saved:"Успешно сохранено.",passSaved:"Дизайн пропуска сохранён. QR-коды и история отметок не изменены.",volunteerSaved:"Доступ волонтёра сохранён.",approvedMessage:"Заявка подтверждена.",rejectedMessage:"Заявка отклонена.",loadingCamera:"Запуск камеры…",cameraUnsupported:"Сканирование QR не поддерживается в этом браузере VK. Введите токен вручную или используйте другое устройство.",scanRecorded:"Отметка успешно сохранена.",scanError:"Не удалось сохранить отметку.",invalidToken:"Сначала введите QR-токен.",passCode:"Код пропуска",scanBy:"Сканировал",emptyVolunteers:"Волонтёры ещё не добавлены.",exportFailed:"Не удалось выполнить экспорт.",footer:"Студенческие сервисы"
+ }
+};
+const t=k=>(copy[lang]&&copy[lang][k])||copy.en[k]||k;
+document.documentElement.lang=lang;
+document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
+$("#languageChip").textContent=lang.toUpperCase();
+$("#brandName").textContent=t("brandName");
+$("#brandSubtitle").textContent=t("brandSubtitle");
+$("#footerUniversity").textContent=t("brandName");
+const launchParams=location.search.slice(1);
+let state=null,design={},cameraStream=null,scanFrame=null,scanBusy=false;
+function msg(text,type=""){const el=$("#status");el.textContent=text;el.className="notice"+(type?" "+type:"")}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-$("#refreshAdmin").onclick=loadAdmin;$("#exportCsv").onclick=async()=>{try{const r=await fetch("/api/admin/export.csv",{headers:{"X-VK-Launch-Params":launchParams}});if(!r.ok)throw Error("Export failed");const blob=await r.blob(),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="event-guests.csv";a.click();URL.revokeObjectURL(url)}catch(e){msg(e.message,"error")}};$("#volForm").onsubmit=async e=>{e.preventDefault();try{await api("/api/admin/volunteers",{method:"POST",body:JSON.stringify(Object.fromEntries(new FormData(e.target)))});e.target.reset();loadAdmin();msg("Volunteer access saved.","success")}catch(x){msg(x.message,"error")}};
-$("#saveDesign").onclick=async()=>{const d={...design,title:$("#designTitle").value,subtitle:$("#designSubtitle").value,background:$("#designBg").value,accent:$("#designAccent").value};try{await api("/api/admin/design",{method:"PUT",body:JSON.stringify({design:d})});msg("Design saved. QR identities and scan history are unchanged.","success")}catch(e){msg(e.message,"error")}};
-async function doScan(token){try{const r=await api("/api/scan",{method:"POST",body:JSON.stringify({qr_token:token,stage:$("#stage").value})});$("#scanResult").innerHTML='<div class="notice success">✓ '+esc(r.stage)+' recorded<br>'+esc(r.guest.full_name)+'<br>'+esc(r.guest.hostel)+' / '+esc(r.guest.room)+'</div>';$("#manualToken").value=""}catch(e){$("#scanResult").innerHTML='<div class="notice error">'+esc(e.message)+'</div>'}}
-$("#manualScan").onclick=()=>doScan($("#manualToken").value.trim());$("#startCamera").onclick=async()=>{try{if(!("BarcodeDetector"in window))throw Error("Camera QR detection is not supported in this VK browser. Use manual token entry or a supported device.");cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});$("#video").srcObject=cameraStream;await $("#video").play();const detector=new BarcodeDetector({formats:["qr_code"]});const tick=async()=>{if(!cameraStream)return;try{const codes=await detector.detect($("#video"));if(codes.length){stopCamera();await doScan(codes[0].rawValue);return}}catch{}scanFrame=requestAnimationFrame(tick)};tick()}catch(e){msg(e.message,"error")}};
-function stopCamera(){if(scanFrame)cancelAnimationFrame(scanFrame);cameraStream?.getTracks().forEach(t=>t.stop());cameraStream=null}
-window.addEventListener("pagehide",stopCamera);init();
-</script></body></html>
+function statusLabel(s){return ({pending:t("pending"),approved:t("approved"),rejected:lang==="ru"?"Отклонено":"Rejected",revoked:lang==="ru"?"Аннулирован":"Revoked"})[s]||s||"—"}
+async function api(path,opts={}){const headers={"Content-Type":"application/json","X-VK-Launch-Params":launchParams,...(opts.headers||{})};const r=await fetch(path,{...opts,headers});let data={};try{data=await r.json()}catch{}if(!r.ok)throw Error(data.detail||data.message||"Request failed");return data}
+function setActiveTab(name){document.querySelectorAll(".view").forEach(x=>x.classList.add("hidden"));$("#"+name).classList.remove("hidden");document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));if(name==="admin")loadAdmin();if(name==="pass")loadPass();if(name!=="scan")stopCamera()}
+document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>setActiveTab(b.dataset.tab));
+function setHomeStatus(registration){
+ const el=$("#homeState");el.className="status-panel";
+ if(!registration){el.classList.add("pending");el.innerHTML='<span class="status-dot"></span><span>'+esc(t("notRegistered"))+'</span>';return}
+ const s=registration.status;el.classList.add(s==="approved"?"approved":"pending");
+ const message=s==="approved"?t("registrationApproved"):s==="rejected"?t("registrationRejected"):s==="revoked"?t("registrationRevoked"):t("registrationPending");
+ el.innerHTML='<span class="status-dot"></span><span><b>'+esc(statusLabel(s))+':</b> '+esc(message)+'</span>';
+}
+async function init(){
+ try{
+  if(window.vkBridge&&window.vkBridge.send){try{await window.vkBridge.send("VKWebAppInit")}catch(e){}}
+  state=await api("/api/bootstrap");
+  const e=state.event||{};
+  $("#eventTitle").textContent=e.name||t("eventDetails");
+  $("#eventMeta").innerHTML='<span>◷ '+esc(e.event_date||"—")+'</span><span>⌖ '+esc(e.venue||"—")+'</span>';
+  $("#eventInfo").innerHTML='<div class="detail-row"><span>'+esc(t("date"))+'</span><strong>'+esc(e.event_date||"—")+'</strong></div><div class="detail-row"><span>'+esc(t("venue"))+'</span><strong>'+esc(e.venue||"—")+'</strong></div>';
+  $("#foodField").classList.toggle("hidden",!e.food_enabled);
+  setHomeStatus(state.registration);
+  if(state.user&&state.user.is_admin){$("#adminTab").classList.remove("hidden");$("#scanTab").classList.remove("hidden")}
+  else if(state.user&&state.user.is_volunteer){$("#scanTab").classList.remove("hidden")}
+  msg(t("connected"),"success");
+ }catch(e){msg(e.message,"error")}
+}
+$("#regForm").onsubmit=async ev=>{
+ ev.preventDefault();
+ const d=Object.fromEntries(new FormData(ev.target));
+ if(!state?.event?.food_enabled)delete d.food_preference;
+ try{
+  const r=await api("/api/register",{method:"POST",body:JSON.stringify(d)});
+  state.registration=r.registration;setHomeStatus(r.registration);
+  msg(r.message||t("registrationSubmitted"),"success");ev.target.reset();setActiveTab("home");
+ }catch(e){msg(e.message,"error")}
+};
+function checkpointName(s){return ({entry:t("entry"),proof_storage:t("proofStorage"),food:t("foodCollection"),exit:t("exit"),proof_return:t("proofReturn")})[s]||s}
+async function loadPass(){
+ try{
+  const d=await api("/api/my-pass"),g=d.guest,ds=d.design||{};
+  const title=ds.title||d.event.name||t("myPassTitle"),subtitle=ds.subtitle||"";
+  $("#passContent").innerHTML=
+   '<div class="pass-card" style="background:linear-gradient(145deg,'+esc(ds.background||"#123d49")+','+esc(ds.background||"#08737b")+')">'+
+    '<div class="pass-brand">'+esc(t("brandName"))+'</div>'+
+    '<div class="pass-title">'+esc(title)+'</div>'+
+    (subtitle?'<div class="pass-subtitle">'+esc(subtitle)+'</div>':'')+
+    '<div class="pass-name">'+esc(g.full_name)+'</div>'+
+    '<div class="qr-wrap"><div id="qr"></div></div>'+
+    '<div class="pass-code">'+esc(g.pass_code||"")+'</div>'+
+    '<div class="pass-details">'+
+     '<div class="pass-detail"><small>'+esc(t("hostelLabel"))+'</small><b>'+esc(g.hostel||"—")+'</b></div>'+
+     '<div class="pass-detail"><small>'+esc(t("roomLabel"))+'</small><b>'+esc(g.room||"—")+'</b></div>'+
+     '<div class="pass-detail"><small>'+esc(t("residenceLabel"))+'</small><b>'+esc(g.residence||"—")+'</b></div>'+
+     '<div class="pass-detail"><small>'+esc(t("foodLabel"))+'</small><b>'+esc(g.food_preference||"—")+'</b></div>'+
+    '</div>'+
+    '<div class="checkpoint-list"><b>'+esc(t("checkpointHistory"))+'</b>'+
+     ["entry","proof_storage","food","exit","proof_return"].map(s=>'<div class="checkpoint-row"><span>'+esc(checkpointName(s))+'</span><b>'+(d.scans&&d.scans[s]?"✓ "+esc(t("recorded")):esc(t("notRecorded")))+'</b></div>').join("")+
+    '</div></div>';
+  if(window.QRCode)new QRCode($("#qr"),{text:g.qr_token,width:210,height:210,colorDark:"#163b42",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});
+  else $("#qr").textContent=esc(g.pass_code||"QR unavailable");
+ }catch(e){
+  $("#passContent").innerHTML='<div class="empty-state">'+esc(e.message)+'</div>';
+ }
+}
+function makeStat(value,label){return '<div class="stat-card"><div class="stat-value">'+esc(value??0)+'</div><div class="stat-label">'+esc(label)+'</div></div>'}
+async function loadAdmin(){
+ try{
+  const [s,g,v,d]=await Promise.all([api("/api/admin/stats"),api("/api/admin/guests?status=pending"),api("/api/admin/volunteers"),api("/api/admin/design")]);
+  $("#stats").innerHTML=[makeStat(s.total,t("registrations")),makeStat(s.approved,t("approved")),makeStat(s.pending,t("pending")),makeStat(s.sheets_pending,t("sheetsQueue"))].join("");
+  const list=$("#pendingList");
+  if(g.guests.length){
+   list.innerHTML=g.guests.map(x=>'<div class="guest"><div class="guest-top"><div><div class="guest-name">'+esc(x.full_name)+'</div><div class="guest-meta">'+esc(x.phone)+' · '+esc(x.hostel)+' / '+esc(x.room)+' · '+esc(x.food_preference||"—")+'</div></div><span class="pill">'+esc(statusLabel(x.status))+'</span></div><div class="guest-actions"><button class="btn-primary" data-decision="approve" data-id="'+esc(x.id)+'">'+esc(t("approve"))+'</button><button class="btn-danger" data-decision="reject" data-id="'+esc(x.id)+'">'+esc(t("reject"))+'</button></div></div>').join("");
+  }else list.innerHTML='<div class="empty-state">'+esc(t("noPending"))+'</div>';
+  list.querySelectorAll("[data-decision]").forEach(b=>b.onclick=async()=>{
+   b.disabled=true;
+   try{await api("/api/admin/guests/"+encodeURIComponent(b.dataset.id)+"/"+b.dataset.decision,{method:"POST"});msg(b.dataset.decision==="approve"?t("approvedMessage"):t("rejectedMessage"),"success");await loadAdmin()}catch(e){msg(e.message,"error");b.disabled=false}
+  });
+  $("#volList").innerHTML=v.volunteers.length?v.volunteers.map(x=>'<div class="volunteer-item">'+esc(x.display_name||x.vk_user_id)+' · '+esc(x.vk_user_id)+' · '+esc(x.active?t("active"):t("inactive"))+'</div>').join(""):'<div class="empty-state">'+esc(t("emptyVolunteers"))+'</div>';
+  design=d.design||{};
+  $("#designTitle").value=design.title||"";
+  $("#designSubtitle").value=design.subtitle||"";
+  $("#designBg").value=design.background||"#123d49";
+  $("#designAccent").value=design.accent||"#f3d59b";
+ }catch(e){msg(e.message,"error")}
+}
+$("#refreshAdmin").onclick=loadAdmin;
+$("#exportCsv").onclick=async()=>{
+ try{
+  const r=await fetch("/api/admin/export.csv",{headers:{"X-VK-Launch-Params":launchParams}});
+  if(!r.ok)throw Error(t("exportFailed"));
+  const blob=await r.blob(),url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="ksmu-guest-list.csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+ }catch(e){msg(e.message,"error")}
+};
+$("#volForm").onsubmit=async ev=>{
+ ev.preventDefault();
+ try{await api("/api/admin/volunteers",{method:"POST",body:JSON.stringify(Object.fromEntries(new FormData(ev.target)))});ev.target.reset();await loadAdmin();msg(t("volunteerSaved"),"success")}
+ catch(e){msg(e.message,"error")}
+};
+$("#saveDesign").onclick=async()=>{
+ const d={...design,title:$("#designTitle").value,subtitle:$("#designSubtitle").value,background:$("#designBg").value,accent:$("#designAccent").value};
+ try{await api("/api/admin/design",{method:"PUT",body:JSON.stringify({design:d})});design=d;msg(t("passSaved"),"success")}
+ catch(e){msg(e.message,"error")}
+};
+async function doScan(token){
+ if(!token){msg(t("invalidToken"),"error");return}
+ if(scanBusy)return;
+ scanBusy=true;$("#manualScan").disabled=true;$("#startCamera").disabled=true;
+ try{
+  const r=await api("/api/scan",{method:"POST",body:JSON.stringify({qr_token:token,stage:$("#stage").value})});
+  $("#scanResult").innerHTML='<div class="notice success">'+esc(t("scanRecorded"))+'<br><b>'+esc(r.guest.full_name)+'</b><br>'+esc(r.guest.hostel)+' / '+esc(r.guest.room)+'</div>';
+  $("#manualToken").value="";
+ }catch(e){$("#scanResult").innerHTML='<div class="notice error">'+esc(e.message)+'</div>'}
+ finally{scanBusy=false;$("#manualScan").disabled=false;$("#startCamera").disabled=false}
+}
+$("#manualScan").onclick=()=>doScan($("#manualToken").value.trim());
+$("#manualToken").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();doScan($("#manualToken").value.trim())}});
+$("#startCamera").onclick=async()=>{
+ try{
+  if(!("BarcodeDetector"in window))throw Error(t("cameraUnsupported"));
+  if(cameraStream)stopCamera();
+  $("#startCamera").disabled=true;$("#startCamera").textContent=t("loadingCamera");
+  cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+  $("#video").srcObject=cameraStream;await $("#video").play();
+  const detector=new BarcodeDetector({formats:["qr_code"]});
+  const tick=async()=>{
+   if(!cameraStream||scanBusy)return;
+   try{
+    const codes=await detector.detect($("#video"));
+    if(codes.length){const token=codes[0].rawValue;stopCamera();await doScan(token);return}
+   }catch(e){}
+   if(cameraStream)scanFrame=requestAnimationFrame(tick);
+  };
+  tick();
+ }catch(e){stopCamera();msg(e.message,"error")}
+ finally{$("#startCamera").disabled=false;$("#startCamera").textContent=t("startCamera")}
+};
+function stopCamera(){
+ if(scanFrame)cancelAnimationFrame(scanFrame);scanFrame=null;
+ if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null}
+ if($("#video"))$("#video").srcObject=null;
+}
+document.addEventListener("visibilitychange",()=>{if(document.hidden)stopCamera()});
+window.addEventListener("pagehide",stopCamera);
+init();
+</script>
+</body>
+</html>
