@@ -34,7 +34,7 @@
   const vkLaunchParams = location.search.replace(/^\?/, '');
   const API_BASE = location.origin.replace(/\/$/, '');
   const initialEventId = Number(params.get('event_id') || 0);
-  const state = { role:'guest', user:null, activeEvents:[], workspaces:[], eventId:initialEventId, event:null, stats:null, page:'home', guest:null, scanner:null, formSchema:[], pass:null, checkpoints:[] };
+  const state = { role:'guest', user:null, activeEvents:[], workspaces:[], eventId:initialEventId, event:null, stats:null, page:'home', previewRole:null, guest:null, scanner:null, formSchema:[], pass:null, checkpoints:[] };
   const $ = (id) => document.getElementById(id);
   const main = $('main');
   const safe = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -174,12 +174,28 @@
     const adminActions=state.role==='admin'?`<button class="btn ghost" data-copy-event-link>Copy this event's VK link</button>`:'';
     return `<section class="hero"><div class="eyebrow">${state.role==='admin'?'Event workspace':state.role==='volunteer'?'Volunteer workspace':'Event information'}</div><h1>${safe(e.name)}</h1><p>${safe(e.description||'Event details will be announced soon.')}</p><div class="meta-grid"><div class="meta"><b>Date</b><span>${safe(e.event_date||'To be announced')}</span></div><div class="meta"><b>Time</b><span>${safe(e.event_time||'To be announced')}</span></div><div class="meta"><b>Venue</b><span>${safe(e.venue||'To be announced')}</span></div></div><div class="actions">${guestActions}${adminActions}</div></section>`;
   }
+  function adminPreviewControls() {
+    return `<section class="section card"><div class="section-title"><h2>🧪 Test the app as a user</h2><span class="pill good">Admin stays signed in</span></div><p class="muted">Preview the guest or volunteer screens without changing VK accounts. Submissions and event-day actions in preview are real and will be saved under your admin VK account.</p><div class="actions"><button class="btn" data-preview-role="guest">👤 Guest view</button><button class="btn" data-preview-role="volunteer">🧑‍🤝‍🧑 Volunteer view</button></div></section>`;
+  }
+  function bindAdminPreview() {
+    document.querySelectorAll('[data-preview-role]').forEach(b=>b.addEventListener('click',()=>{
+      state.previewRole=b.dataset.previewRole;
+      renderHome();
+    }));
+  }
+  async function renderAdminPreview() {
+    const mode=state.previewRole;
+    main.innerHTML=eventHero()+`<section class="section card"><div class="row"><div><strong>Previewing ${mode==='guest'?'Guest':'Volunteer'} experience</strong><div class="sub">Signed in as Admin · VK ID ${safe(state.user?.vk_user_id||'')}</div></div><button class="btn primary small" id="exitPreview">← Back to Admin</button></div><p class="footnote">This is a role preview, not a separate account. Any submitted registration or scanner action is a real event record attributed to your admin VK account.</p></section><section class="section grid">${mode==='guest'?'<article class="card"><h3>🎟 Guest registration</h3><p>Preview the registration form and submit a real test registration.</p><button class="btn primary" data-page="register">Open registration</button></article><article class="card"><h3>🎫 My pass</h3><p>View the pass associated with your current VK account.</p><button class="btn" data-page="pass">Open my pass</button></article>':'<article class="card"><h3>📷 Volunteer QR Scanner</h3><p>Test manual pass lookup and camera scanning with admin permissions.</p><button class="btn primary" data-page="scanner">Open QR Scanner</button></article><article class="card"><h3>🎫 Staff pass</h3><p>View the staff pass associated with your current VK account.</p><button class="btn" data-page="pass">Open staff pass</button></article>'}</section><section id="workspaceContent"></section>`;
+    $('exitPreview')?.addEventListener('click',()=>{state.previewRole=null;renderHome();});
+    bindNavigation();
+  }
   async function renderHome() {
     state.page='home';
+    if(state.role==='admin' && state.previewRole){ await renderAdminPreview(); return; }
     if(state.role==='admin') {
       let stat={}; try { const r=await adminCall('stats'); stat=r.stats||{}; state.stats=stat; } catch(_){}
-      main.innerHTML=eventHero()+`<section class="section"><div class="section-title"><h2>Event overview</h2><span class="status ${safe(state.event.status||'active')}">${safe(state.event.status||'active')} · Selected event only</span></div><div class="stat-grid">${[['Approved guests','approvedGuests'],['Checked in','checkedIn'],['Meals served','mealsServed'],['Volunteers','volunteers']].map(([l,k])=>`<div class="stat"><strong>${Number(stat[k]||0)}</strong><span>${l}</span></div>`).join('')}</div></section>${workspaceNav()}<section class="section" id="workspaceContent"></section>`;
-      bindNavigation(); await renderAdminPage('overview');
+      main.innerHTML=eventHero()+adminPreviewControls()+`<section class="section"><div class="section-title"><h2>Event overview</h2><span class="status ${safe(state.event.status||'active')}">${safe(state.event.status||'active')} · Selected event only</span></div><div class="stat-grid">${[['Approved guests','approvedGuests'],['Checked in','checkedIn'],['Meals served','mealsServed'],['Volunteers','volunteers']].map(([l,k])=>`<div class="stat"><strong>${Number(stat[k]||0)}</strong><span>${l}</span></div>`).join('')}</div></section>${workspaceNav()}<section class="section" id="workspaceContent"></section>`;
+      bindNavigation(); bindAdminPreview(); await renderAdminPage('overview');
     } else if(state.role==='volunteer') {
       main.innerHTML=eventHero()+`<section class="section grid"><article class="card"><h3>📷 QR Scanner</h3><p>Scan a pass and record entry, proof storage, food collection and exit for this event only.</p><div class="actions"><button class="btn primary" data-page="scanner">Open QR Scanner</button></div></article><article class="card"><h3>🎫 Staff QR pass</h3><p>Use the same event QR pass format as guests.</p><div class="actions"><button class="btn" data-page="pass">My QR pass</button></div></article></section><section id="workspaceContent"></section>`;
       bindNavigation();
@@ -200,6 +216,7 @@
   async function openPage(page) {
     state.page=page;
     if(page!=='scanner') await stopScanner();
+    if(state.role==='admin' && state.previewRole) { const host=$('workspaceContent'); if(page==='register') await renderRegistration(host); else if(page==='pass') await renderPass(host); else if(page==='scanner' && state.previewRole==='volunteer') await renderScanner(host); return; }
     if(state.role==='admin') { await renderAdminPage(page); return; }
     const host=$('workspaceContent');
     if(page==='register') await renderRegistration(host);
