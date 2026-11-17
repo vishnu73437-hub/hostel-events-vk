@@ -26,7 +26,11 @@ function makeReceiver() {
     getNumRows() { return this.numRows; }
     getNumColumns() { return this.numCols; }
     getRow() { return this.row; }
-    createFilter() { this.sheet.filter={range:this}; return this.sheet.filter; }
+    createFilter() {
+      const range=this;
+      this.sheet.filter={range,getRange(){return this.range;},setRange(next){this.range=next;}};
+      return this.sheet.filter;
+    }
     createTextFinder(query) {
       const range=this;
       return {
