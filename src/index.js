@@ -58,19 +58,19 @@ async function requireStaff(request, env) {
   return uid;
 }
 async function activeEvent(env) {
-  await env.DB.prepare("INSERT INTO events(name,event_date,venue,food_enabled,active,created_at) SELECT ?,?,?,?,1,? WHERE NOT EXISTS (SELECT 1 FROM events WHERE active=1)")
+  await env.DB.prepare("INSERT INTO events(name,event_date,venue,food_enabled,status,active,registration_open,created_at) SELECT ?,?,?,?,'active',1,1,? WHERE NOT EXISTS (SELECT 1 FROM events WHERE active=1)")
     .bind(env.EVENT_NAME || "EventHub", env.EVENT_DATE || "Set event date", env.EVENT_VENUE || "Set event venue", asBool(env.FOOD_COLLECTION_ENABLED) ? 1 : 0, now()).run();
-  const event = await env.DB.prepare("SELECT * FROM events WHERE active=1 ORDER BY id LIMIT 1").first();
+  const event = await env.DB.prepare("SELECT * FROM events WHERE active=1 ORDER BY id DESC LIMIT 1").first();
   if (!event) throw Object.assign(new Error("No active event configured."), { status: 404 });
   return event;
 }
 async function audit(env, actor, action, type, target, details = {}) {
-  await env.DB.prepare("INSERT INTO audit_log(actor,action,target_type,target_id,details_json,created_at) VALUES(?,?,?,?,?,?)")
-    .bind(actor, action, type, String(target), JSON.stringify(details), now()).run();
+  await env.DB.prepare("INSERT INTO audit_log(event_id,actor,actor_vk_user_id,action,target_type,target_id,details_json,created_at) VALUES((SELECT id FROM events WHERE active=1 ORDER BY id DESC LIMIT 1),?,?,?,?,?,?,?)")
+    .bind(actor, actor, action, type, String(target), JSON.stringify(details), now()).run();
 }
 async function outbox(env, eventId, guestId, action, payload) {
-  await env.DB.prepare("INSERT INTO sheets_outbox(event_id,guest_id,action,payload_json,created_at) VALUES(?,?,?,?,?)")
-    .bind(eventId, guestId, action, JSON.stringify(payload), now()).run();
+  await env.DB.prepare("INSERT INTO sheets_outbox(event_id,guest_id,action,event_key,payload_json,created_at) VALUES(?,?,?,?,?,?)")
+    .bind(eventId, guestId, action, crypto.randomUUID(), JSON.stringify(payload), now()).run();
 }
 async function body(request) {
   try { return await request.json(); } catch { throw Object.assign(new Error("Invalid JSON body."), { status: 400 }); }
