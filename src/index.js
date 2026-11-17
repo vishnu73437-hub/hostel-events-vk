@@ -389,6 +389,12 @@ async function adminApi(request, env) {
   const uid=await requireAdmin(request,env), data=await body(request), action=String(data.action||"");
   const eventId=Number(data.event_id||0);
   const getEvent=async()=>env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
+  const readOnlyOrMaintenance=new Set(["events","stats","guest_search","pending_registrations","event_volunteers","checkpoint_team","checkpoints","storage_config","proof_storage_report","audit","sheets_queue_status","announcement_history","backup","sheets_sync","announcement_unsend"]);
+  if(eventId>0) {
+    const selectedEvent=await getEvent();
+    if(!selectedEvent) return fail("Event workspace not found.",404);
+    if(selectedEvent.status==="archived"&&!readOnlyOrMaintenance.has(action)) return fail("Archived events are read-only. Only review, backup and pending delivery maintenance are available.",409);
+  }
   const log=async(name,type="event",target=eventId,details={})=>audit(env,uid,name,type,target,details,eventId||null);
   if(action==="backup") {
     const event=await getEvent();
