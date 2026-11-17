@@ -34,7 +34,7 @@
   const vkLaunchParams = location.search.replace(/^\?/, '');
   const API_BASE = location.origin.replace(/\/$/, '');
   const initialEventId = Number(params.get('event_id') || 0);
-  const state = { role:'guest', user:null, activeEvents:[], workspaces:[], eventId:initialEventId, event:null, stats:null, page:'home', previewRole:null, guest:null, scanner:null, formSchema:[], pass:null, checkpoints:[] };
+  const state = { role:'guest', staffRole:'', user:null, activeEvents:[], workspaces:[], eventId:initialEventId, event:null, stats:null, page:'home', previewRole:null, guest:null, scanner:null, formSchema:[], pass:null, checkpoints:[] };
   const $ = (id) => document.getElementById(id);
   const main = $('main');
   const safe = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -106,7 +106,7 @@
   }
   async function loadRole() {
     const data=await post('/api/role', state.eventId?{event_id:state.eventId}:{});
-    state.role=data.role||'guest'; state.user=data.user||null; state.activeEvents=data.events||[]; state.workspaces=data.workspaces||[];
+    state.role=data.role||'guest'; state.staffRole=data.staff_role||''; state.user=data.user||null; state.activeEvents=data.events||[]; state.workspaces=data.workspaces||[];
     return data;
   }
   async function loadEvent() {
@@ -329,15 +329,20 @@
     const actions=[];
     const activePass=g.status==='approved';
     const proofResolved=['Stored','No proof','Returned'].includes(g.proofStatus);
-    if(activePass&&!g.exitRecorded&&!g.entryUsed)actions.push(['entry','Record entry','success']);
+    const staffRole=state.staffRole||'';
+    const canAction=action=>['admin','global','scanner','event_lead'].includes(staffRole)
+      ||(staffRole==='entry'&&['entry','proof_deposit','proof_no_proof'].includes(action))
+      ||(staffRole==='food'&&action==='food')
+      ||(staffRole==='proof'&&['proof_deposit','proof_no_proof','proof_return','exit'].includes(action));
+    if(activePass&&!g.exitRecorded&&!g.entryUsed&&canAction('entry'))actions.push(['entry','Record entry','success']);
     if(activePass&&g.entryUsed&&!g.exitRecorded&&g.proofStatus==='Not collected') {
-      actions.push(['proof_deposit','Store proof','']);
-      actions.push(['proof_no_proof','No proof provided','']);
+      if(canAction('proof_deposit'))actions.push(['proof_deposit','Store proof','']);
+      if(canAction('proof_no_proof'))actions.push(['proof_no_proof','No proof provided','']);
     }
-    if(activePass&&g.entryUsed&&!g.exitRecorded&&!g.foodUsed&&proofResolved)actions.push(['food','Record food collection','success']);
-    if(activePass&&g.entryUsed&&!g.exitRecorded&&g.proofStatus==='Stored')actions.push(['proof_return','Return stored proof','']);
-    if(activePass&&g.entryUsed&&(g.proofStatus==='Returned'||g.proofStatus==='No proof')&&!g.exitRecorded)actions.push(['exit','Record exit','']);
-    $('scanResult').innerHTML=`${message?showNotice(message,'good'):''}<div class="guest-result"><div class="row"><strong>${safe(g.name)}</strong><span class="pill ${g.status==='approved'?'good':'warn'}">${safe(g.status)}</span></div><p class="muted">${safe(g.residence)}${g.roomNumber?' · Room '+safe(g.roomNumber):''} · ${safe(g.food)}</p><div class="wrap"><span class="pill ${g.entryUsed?'good':'warn'}">Entry: ${g.entryUsed?'Recorded':'Pending'}</span><span class="pill ${g.foodUsed?'good':'warn'}">Food: ${g.foodUsed?'Collected':'Pending'}</span><span class="pill">Proof: ${safe(g.proofStatus||'Not collected')}</span><span class="pill">Exit: ${g.exitRecorded?'Recorded':'Pending'}</span></div>${g.storageLabel?`<p><strong>Storage:</strong> ${safe(g.storageLabel)}</p>`:''}${!activePass?'<div class="notice error">This pass is not active. Event-day actions are disabled.</div>':g.exitRecorded?'<div class="notice good">Exit has already been recorded. No further event-day actions are available.</div>':g.entryUsed&&!proofResolved?'<div class="notice">Next step: store the guest’s proof or confirm that no proof was provided. Food collection becomes available after this step.</div>':''}<p class="muted">Pass code: ${safe(g.passCode)}</p><div class="actions">${actions.map(([a,l,cl])=>`<button class="btn ${cl}" data-scan-action="${a}">${l}</button>`).join('')||'<span class="pill good">No further actions available</span>'}</div>${state.checkpoints.length?`<div class="section"><h3>Additional checkpoints</h3><p class="muted">Record this guest at an assigned workshop or activity checkpoint.</p><div class="actions">${state.checkpoints.map(c=>{const scanned=g.checkpointScans?.[c.id];return `<button class="btn" data-checkpoint-scan="${Number(c.id)}" ${scanned?'disabled':''}>${safe(c.name)} · ${scanned?'Recorded':'Scan checkpoint'}</button>`;}).join('')}</div></div>`:''}</div>`;
+    if(activePass&&g.entryUsed&&!g.exitRecorded&&!g.foodUsed&&proofResolved&&canAction('food'))actions.push(['food','Record food collection','success']);
+    if(activePass&&g.entryUsed&&!g.exitRecorded&&g.proofStatus==='Stored'&&canAction('proof_return'))actions.push(['proof_return','Return stored proof','']);
+    if(activePass&&g.entryUsed&&(g.proofStatus==='Returned'||g.proofStatus==='No proof')&&!g.exitRecorded&&canAction('exit'))actions.push(['exit','Record exit','']);
+    $('scanResult').innerHTML=`${message?showNotice(message,'good'):''}<div class="guest-result"><div class="row"><strong>${safe(g.name)}</strong><span class="pill ${g.status==='approved'?'good':'warn'}">${safe(g.status)}</span></div><p class="muted">${safe(g.residence)}${g.roomNumber?' · Room '+safe(g.roomNumber):''} · ${safe(g.food)}</p><div class="wrap"><span class="pill ${g.entryUsed?'good':'warn'}">Entry: ${g.entryUsed?'Recorded':'Pending'}</span><span class="pill ${g.foodUsed?'good':'warn'}">Food: ${g.foodUsed?'Collected':'Pending'}</span><span class="pill">Proof: ${safe(g.proofStatus||'Not collected')}</span><span class="pill">Exit: ${g.exitRecorded?'Recorded':'Pending'}</span></div>${g.storageLabel?`<p><strong>Storage:</strong> ${safe(g.storageLabel)}</p>`:''}${!activePass?'<div class="notice error">This pass is not active. Event-day actions are disabled.</div>':g.exitRecorded?'<div class="notice good">Exit has already been recorded. No further event-day actions are available.</div>':g.entryUsed&&!proofResolved?'<div class="notice">Next step: store the guest’s proof or confirm that no proof was provided. Food collection becomes available after this step.</div>':''}<p class="muted">Pass code: ${safe(g.passCode)}</p><div class="actions">${actions.map(([a,l,cl])=>`<button class="btn ${cl}" data-scan-action="${a}">${l}</button>`).join('')||'<span class="pill good">No further actions available</span>'}</div>${state.checkpoints.length&&g.entryUsed&&!g.exitRecorded?`<div class="section"><h3>Additional checkpoints</h3><p class="muted">Record this guest at an assigned workshop or activity checkpoint.</p><div class="actions">${state.checkpoints.map(c=>{const scanned=g.checkpointScans?.[c.id];return `<button class="btn" data-checkpoint-scan="${Number(c.id)}" ${scanned?'disabled':''}>${safe(c.name)} · ${scanned?'Recorded':'Scan checkpoint'}</button>`;}).join('')}</div></div>`:''}</div>`;
     document.querySelectorAll('[data-scan-action]').forEach(b=>b.addEventListener('click',()=>recordAction(b.dataset.scanAction,b)));
     document.querySelectorAll('[data-checkpoint-scan]').forEach(b=>b.addEventListener('click',()=>recordCheckpointScan(Number(b.dataset.checkpointScan),b)));
   }
