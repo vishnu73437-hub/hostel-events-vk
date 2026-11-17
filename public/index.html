@@ -34,12 +34,14 @@
   const vkLaunchParams = location.search.replace(/^\?/, '');
   const API_BASE = location.origin.replace(/\/$/, '');
   const initialEventId = Number(params.get('event_id') || 0);
-  const state = { role:'guest', staffRole:'', user:null, activeEvents:[], workspaces:[], eventId:initialEventId, event:null, stats:null, page:'home', previewRole:null, guest:null, scanner:null, formSchema:[], pass:null, checkpoints:[] };
+  const state = { role:'guest', staffRole:'', user:null, activeEvents:[], workspaces:[], eventId:initialEventId, event:null, stats:null, page:'home', previewRole:null, guest:null, scanner:null, formSchema:[], pass:null, checkpoints:[], pendingOfflineScanId:null };
   const $ = (id) => document.getElementById(id);
   const main = $('main');
   const safe = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const parseJSON = (v, fallback) => { try { const x = typeof v === 'string' ? JSON.parse(v || '') : v; return x ?? fallback; } catch (_) { return fallback; } };
   let toastTimer;
+  let dashboardRefreshTimer=null;
+  let dashboardRefreshBusy=false;
   function toast(message, bad=false) { const el=$('toast'); el.textContent=message; el.style.background=bad?'#ff626d':'#f8f5fb'; el.classList.remove('hidden'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.add('hidden'),3500); }
   function showNotice(message, kind='') { return `<div class="notice ${kind}">${safe(message)}</div>`; }
   function themeColour(value, fallback) { return /^#[0-9a-f]{6}$/i.test(String(value||'')) ? String(value) : fallback; }
@@ -224,11 +226,11 @@
     else if(page==='scanner' && state.role==='volunteer') await renderScanner(host);
   }
   async function renderAdminPage(page) {
-    state.page=page; if(page!=='scanner') await stopScanner(); const host=$('workspaceContent'); if(!host)return;
+    state.page=page; if(dashboardRefreshTimer){clearInterval(dashboardRefreshTimer);dashboardRefreshTimer=null;} if(page!=='scanner') await stopScanner(); const host=$('workspaceContent'); if(!host)return;
     document.querySelectorAll('[data-admin-page]').forEach(b=>b.classList.toggle('active',b.dataset.adminPage===page));
     if(page==='overview') {
       const r=await adminCall('stats').catch(()=>({stats:{}})); const s=r.stats||{};
-      host.innerHTML=`<div class="section-title"><h2>Quick status</h2><button class="btn small" id="refreshStats">Refresh</button></div><div class="grid"><div class="card"><h3>Guest registration</h3><p>${Number(s.approvedGuests||0)} approved · ${Number(s.checkedIn||0)} checked in</p></div><div class="card"><h3>Food collection</h3><p>${Number(s.mealsServed||0)} meals served</p><p>Vegetarian: ${Number(s.vegetarianServed||0)} · Non-vegetarian: ${Number(s.nonVegetarianServed||0)}</p></div><div class="card"><h3>Event capacity</h3><p>${Number(s.approvedGuests||0)} active guest passes for this event.</p></div><div class="card"><h3>Google Sheets sync</h3><p id="sheetsStatus">Sync queue status has not been checked.</p><div class="actions"><button class="btn small" id="refreshSheetsStatus">Check sync status</button></div></div></div><div class="actions"><button class="btn primary" data-admin-page="scanner">Start QR Scanner</button><button class="btn" data-admin-page="approvals">Review registrations</button><button class="btn" data-admin-page="guests">👥 Guest view</button><button class="btn" data-admin-page="staff">🧑‍🤝‍🧑 Volunteer view</button><button class="btn" data-admin-page="pass">My QR pass</button></div>`;
+      host.innerHTML=`<div class="section-title"><h2>Quick status</h2><button class="btn small" id="refreshStats">Refresh</button></div><div class="grid"><div class="card"><h3>Guest registration</h3><p><strong id="overviewApproved">${Number(s.approvedGuests||0)}</strong> approved · <strong id="overviewChecked">${Number(s.checkedIn||0)}</strong> checked in</p></div><div class="card"><h3>Food collection</h3><p><strong id="overviewMeals">${Number(s.mealsServed||0)}</strong> meals served</p><p>Vegetarian: <span id="overviewVeg">${Number(s.vegetarianServed||0)}</span> · Non-vegetarian: <span id="overviewNonveg">${Number(s.nonVegetarianServed||0)}</span></p></div><div class="card"><h3>Volunteers / proof / exit</h3><p><strong id="overviewVolunteers">${Number(s.volunteers||0)}</strong> assigned volunteers</p><p><span id="overviewProof">${Number(s.proofCurrentlyStored||0)}</span> proof stored · <span id="overviewExited">${Number(s.exited||0)}</span> exited</p></div><div class="card"><h3>Google Sheets sync</h3><p id="sheetsStatus">Sync queue status has not been checked.</p><div class="actions"><button class="btn small" id="refreshSheetsStatus">Check sync status</button></div></div></div><p class="footnote" id="overviewUpdated">Live refresh starts automatically every 15 seconds.</p><div class="actions"><button class="btn primary" data-admin-page="scanner">Start QR Scanner</button><button class="btn" data-admin-page="approvals">Review registrations</button><button class="btn" data-admin-page="guests">👥 Guest view</button><button class="btn" data-admin-page="staff">🧑‍🤝‍🧑 Volunteer view</button><button class="btn" data-admin-page="pass">My QR pass</button></div>`;
       $('refreshStats')?.addEventListener('click',()=>renderAdminPage('overview'));
       $('refreshSheetsStatus')?.addEventListener('click',async()=>{
         const target=$('sheetsStatus'); target.textContent='Checking…';
@@ -236,6 +238,16 @@
         catch(err){target.textContent=err.message;}
       });
       bindAdminNavInPanel();
+      dashboardRefreshTimer=setInterval(async()=>{
+        if(state.page!=='overview'||state.role!=='admin'||state.previewRole||dashboardRefreshBusy)return;
+        dashboardRefreshBusy=true;
+        try{
+          const fresh=await adminCall('stats');const v=fresh.stats||{};
+          const values={overviewApproved:v.approvedGuests,overviewChecked:v.checkedIn,overviewMeals:v.mealsServed,overviewVeg:v.vegetarianServed,overviewNonveg:v.nonVegetarianServed,overviewVolunteers:v.volunteers,overviewProof:v.proofCurrentlyStored,overviewExited:v.exited};
+          for(const [id,value] of Object.entries(values)){const el=$(id);if(el)el.textContent=String(Number(value||0));}
+          if($('overviewUpdated'))$('overviewUpdated').textContent='Last updated '+new Date().toLocaleTimeString()+' · Refreshes every 15 seconds';
+        }catch(_){}finally{dashboardRefreshBusy=false;}
+      },15000);
     } else if(page==='scanner') await renderScanner(host);
     else if(page==='approvals') await renderApprovals(host);
     else if(page==='guests') await renderGuests(host);
