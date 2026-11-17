@@ -68,7 +68,7 @@
       'My QR pass':'Мой QR-пропуск','My pass':'Мой пропуск','Open my pass':'Открыть мой пропуск',
       'Register now':'Зарегистрироваться','Register for this event':'Регистрация на мероприятие',
       '🎟 Registration':'🎟 Регистрация','🎟 Guest registration':'🎟 Регистрация участника',
-      'Complete this event\\'s registration form. Your pass is sent after approval.':'Заполните регистрационную форму. Пропуск будет доступен после подтверждения заявки.',
+      'Complete this event\'s registration form. Your pass is sent after approval.':'Заполните регистрационную форму. Пропуск будет доступен после подтверждения заявки.',
       'View your pass after your registration is approved.':'Ваш пропуск появится после подтверждения регистрации.',
       'Submit registration':'Отправить заявку','Registration submitted.':'Заявка отправлена.',
       'Your registration is linked only to this event. Required fields are marked with an asterisk.':'Ваша регистрация относится только к этому мероприятию. Обязательные поля отмечены звёздочкой.',
@@ -87,7 +87,7 @@
       'Open registration':'Открыть регистрацию','Try again':'Повторить','Checking this pass…':'Проверка пропуска…',
       '📷 QR Scanner':'📷 QR-сканер','Open QR Scanner':'Открыть QR-сканер',
       'Scan a pass and record entry, proof storage, food collection and exit for this event only.':'Сканируйте пропуск и отмечайте вход, сдачу вещей, получение питания и выход только для этого мероприятия.',
-      'Scan a guest\\'s event pass. You can also enter a pass code manually when a camera is unavailable.':'Отсканируйте пропуск участника. Если камера недоступна, введите код пропуска вручную.',
+      'Scan a guest\'s event pass. You can also enter a pass code manually when a camera is unavailable.':'Отсканируйте пропуск участника. Если камера недоступна, введите код пропуска вручную.',
       'Start camera':'Включить камеру','Stop camera':'Остановить камеру','Manual QR / pass code':'QR-код / код пропуска вручную',
       'Verify':'Проверить','H5-XXXXXXXX':'H5-XXXXXXXX',
       'Scanner access is restricted to event volunteers and admins.':'Доступ к сканеру разрешён только волонтёрам и администраторам.',
@@ -161,7 +161,7 @@
       'Event backup downloaded':'Резервная копия мероприятия скачана','Updated':'Обновлено',
       'The full name field is required':'Поле имени обязательно','The full_name key is required':'Требуется поле full_name',
       'VK numeric user ID':'Числовой ID пользователя VK','Copy this event’s VK link':'Скопировать ссылку VK на это мероприятие',
-      'Copy this event\\'s VK link':'Скопировать ссылку VK на это мероприятие','Event VK link copied':'Ссылка VK на мероприятие скопирована',
+      'Copy this event\'s VK link':'Скопировать ссылку VK на это мероприятие','Event VK link copied':'Ссылка VK на мероприятие скопирована',
       'e.g. 6:00 PM':'например, 18:00','e.g. Halloween Night 2027':'например, Halloween Night 2027',
       'Users who opened this event in EventHub':'Пользователи, открывшие это мероприятие в EventHub',
       'Admin stays signed in':'Администратор остаётся в системе','Admin preview':'Предпросмотр администратора',
@@ -199,7 +199,9 @@
       const translated=translateLanguageText(source);
       if(node.nodeValue!==translated) node.nodeValue=translated;
     }
-    const elements=root.querySelectorAll?root.querySelectorAll('[placeholder],[title],[aria-label],[alt]'):[];
+    const elements=[];
+    if(root.matches?.('[placeholder],[title],[aria-label],[alt]')) elements.push(root);
+    if(root.querySelectorAll) elements.push(...root.querySelectorAll('[placeholder],[title],[aria-label],[alt]'));
     for(const el of elements) {
       for(const attr of ['placeholder','title','aria-label','alt']) {
         if(!el.hasAttribute(attr)) continue;
