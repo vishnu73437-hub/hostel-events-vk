@@ -1,5 +1,3 @@
-PRAGMA foreign_keys = ON;
-
 -- One EventHub database contains multiple strictly event-scoped workspaces.
 -- BRS is not part of this schema and must use a different Worker + D1 database.
 
