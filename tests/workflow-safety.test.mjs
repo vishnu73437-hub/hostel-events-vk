@@ -17,7 +17,7 @@ test("proof return checks the conditional update result under concurrent scans",
 
 test("proof storage and checkpoint uniqueness are enforced by D1 indexes", () => {
   assert.match(schema, /CREATE UNIQUE INDEX[^;]*proof_storage[^;]*event_id[^;]*box_number[^;]*section_letter[^;]*slot_number/i);
-  assert.match(schema, /CREATE UNIQUE INDEX[^;]*event_checkpoint_scans[^;]*event_id[^;]*checkpoint_id[^;]*guest_id/i);
+  assert.match(schema, /CREATE TABLE IF NOT EXISTS event_checkpoint_scans[\\s\\S]*?UNIQUE\\(checkpoint_id,guest_id\\)/i);
 });
 
 test("exit requires proof return or a recorded no-proof decision", () => {
