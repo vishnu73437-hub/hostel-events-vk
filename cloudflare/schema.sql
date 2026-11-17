@@ -28,8 +28,7 @@ CREATE INDEX IF NOT EXISTS idx_events_active ON events(active,id);
 CREATE TABLE IF NOT EXISTS guests (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   event_id INTEGER NOT NULL REFERENCES events(id),
-  vk_user_id TEXT,
-  legacy_telegram_id TEXT,
+  vk_user_id TEXT NOT NULL,
   full_name TEXT NOT NULL,
   email TEXT,
   phone TEXT NOT NULL DEFAULT '',
@@ -52,8 +51,7 @@ CREATE TABLE IF NOT EXISTS guests (
   entry_used_at TEXT,
   food_used INTEGER NOT NULL DEFAULT 0,
   food_used_at TEXT,
-  UNIQUE(event_id,vk_user_id),
-  UNIQUE(event_id,legacy_telegram_id)
+  UNIQUE(event_id,vk_user_id)
 );
 CREATE INDEX IF NOT EXISTS idx_guests_event_status ON guests(event_id,status,registered_at);
 CREATE INDEX IF NOT EXISTS idx_guests_qr_token ON guests(qr_token);
