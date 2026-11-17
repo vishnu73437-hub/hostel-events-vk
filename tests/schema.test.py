@@ -9,10 +9,11 @@ db.executescript(schema)
 tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
 required = {
     "events", "guests", "pending_registrations", "app_users", "event_app_users", "app_admins",
-    "event_volunteers", "event_checkpoints", "event_checkpoint_assignments",
+    "event_volunteers", "event_checkpoints", "event_checkpoint_assignments", "scans",
     "event_checkpoint_scans", "event_storage_configs", "proof_storage",
-    "proof_not_collected", "event_exit_records", "sheets_outbox",
-    "event_announcements", "announcement_deliveries", "audit_log"
+    "proof_not_collected", "event_exit_records", "pass_design", "sheets_outbox",
+    "event_announcements", "announcement_deliveries", "audit_log", "event_backup_snapshots",
+    "event_app_settings"
 }
 assert required <= tables, f"Missing tables: {required - tables}"
 
