@@ -11,8 +11,7 @@ const safeEqual = (a, b) => {
   return out === 0;
 };
 
-async function authenticate(request, env) {
-  const raw = request.headers.get("X-VK-Launch-Params");
+export async function verifyLaunchParams(raw, env) {
   if (!raw) throw new Error("Open this app inside VK.");
   const params = new URLSearchParams(raw.startsWith("?") ? raw.slice(1) : raw);
   const uid = params.get("vk_user_id");
@@ -33,6 +32,9 @@ async function authenticate(request, env) {
   const ts = Number(params.get("vk_ts"));
   if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > 3600) throw new Error("VK launch parameters expired. Reopen the app.");
   return uid;
+}
+async function authenticate(request, env) {
+  return verifyLaunchParams(request.headers.get("X-VK-Launch-Params"), env);
 }
 
 function isAdmin(uid, env) {
