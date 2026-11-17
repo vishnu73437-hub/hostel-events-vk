@@ -1,9 +1,10 @@
-# EventHub checks
+# EventHub migration checks
 
-Run the dependency-free VK launch authentication tests with:
+Run:
 
 ```sh
 npm test
+python tests/schema.test.py
 ```
 
-These tests cover valid signatures, tampering, stale launch parameters, app-ID mismatch, and missing signatures. They do not replace end-to-end tests against a real VK Mini App or a provisioned D1 database.
+The Node tests cover VK launch signature verification. The Python/SQLite checks validate the D1 schema's table set, per-event registration isolation, legacy identity separation, duplicate checkpoint protection, and proof-storage slot constraints. These are local schema/unit checks, not a live Cloudflare/VK end-to-end test.
