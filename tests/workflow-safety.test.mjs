@@ -41,3 +41,9 @@ test("scanner UI filters actions by the signed-in volunteer role", () => {
   assert.match(frontend, /staffRole==='proof'.*proof_return/s);
   assert.match(frontend, /g\.entryUsed&&!g\.exitRecorded/);
 });
+
+test("registration form hides food preference when the event has food disabled", async () => {
+  const frontend = await readFile(new URL("../public/index.html", import.meta.url), "utf8");
+  assert.match(frontend, /state\.formSchema=asFoodEnabled\(state\.event\)\?configured:configured\.filter\(field=>field\.key!==\x27food_preference\x27\)/);
+  assert.match(frontend, /function asFoodEnabled\(event\)/);
+});
