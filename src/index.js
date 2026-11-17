@@ -443,12 +443,12 @@ async function adminApi(request, env) {
     if(!eventId) return fail("Event ID required.");
     if(!["all","approved","pending","rejected","revoked"].includes(status)) return fail("Invalid guest status filter.");
     const like="%"+query+"%";
-    const rows=await env.DB.prepare("SELECT id,vk_user_id,legacy_telegram_id,full_name,email,phone,residence_type,hostel_number,room_number,food_preference,pass_code,status,entry_used,food_used,registered_at FROM guests WHERE event_id=? AND (?='all' OR status=?) AND (?='' OR full_name LIKE ? OR phone LIKE ? OR pass_code LIKE ? OR vk_user_id LIKE ? OR legacy_telegram_id LIKE ?) ORDER BY id DESC LIMIT 100")
-      .bind(eventId,status,status,query,like,like,like,like,like).all();
+    const rows=await env.DB.prepare("SELECT id,vk_user_id,full_name,email,phone,residence_type,hostel_number,room_number,food_preference,pass_code,status,entry_used,food_used,registered_at FROM guests WHERE event_id=? AND (?='all' OR status=?) AND (?='' OR full_name LIKE ? OR phone LIKE ? OR pass_code LIKE ? OR vk_user_id LIKE ?) ORDER BY id DESC LIMIT 100")
+      .bind(eventId,status,status,query,like,like,like,like).all();
     return json({ok:true,guests:rows.results,limit:100});
   }
   if(action==="pending_registrations") {
-    const rows=await env.DB.prepare("SELECT id,vk_user_id,legacy_telegram_id,full_name,phone,residence_type,hostel_number,room_number,food_preference,registration_data,created_at,status FROM pending_registrations WHERE event_id=? AND status='pending' ORDER BY created_at DESC LIMIT 100").bind(eventId).all();
+    const rows=await env.DB.prepare("SELECT id,vk_user_id,full_name,phone,residence_type,hostel_number,room_number,food_preference,registration_data,created_at,status FROM pending_registrations WHERE event_id=? AND status='pending' ORDER BY created_at DESC LIMIT 100").bind(eventId).all();
     return json({ok:true,registrations:rows.results});
   }
   if(action==="registration_decision") {
@@ -463,13 +463,13 @@ async function adminApi(request, env) {
     }
     const code="EH-"+crypto.randomUUID().slice(0,8).toUpperCase();
     const token=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,"0")).join("");
-    const insert=await env.DB.prepare("INSERT INTO guests(event_id,vk_user_id,legacy_telegram_id,full_name,email,phone,residence,residence_type,hostel,hostel_number,room,room_number,food_preference,registration_data,status,pass_code,qr_token,registered_at,created_at,approved_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,'approved',?,?,?,?,?)")
-      .bind(eventId,pending.vk_user_id,pending.legacy_telegram_id,pending.full_name,pending.email,pending.phone,pending.residence_type,pending.residence_type,pending.hostel_number,pending.hostel_number,pending.room_number,pending.room_number,pending.food_preference,pending.registration_data,code,token,pending.created_at,pending.created_at,now()).run();
+    const insert=await env.DB.prepare("INSERT INTO guests(event_id,vk_user_id,full_name,email,phone,residence,residence_type,hostel,hostel_number,room,room_number,food_preference,registration_data,status,pass_code,qr_token,registered_at,created_at,approved_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,'approved',?,?,?,?,?)")
+      .bind(eventId,pending.vk_user_id,pending.full_name,pending.email,pending.phone,pending.residence_type,pending.residence_type,pending.hostel_number,pending.hostel_number,pending.room_number,pending.room_number,pending.food_preference,pending.registration_data,code,token,pending.created_at,pending.created_at,now()).run();
     const guestId=insert.meta.last_row_id;
     await env.DB.prepare("UPDATE pending_registrations SET status='approved' WHERE id=?").bind(requestId).run();
     await outbox(env,eventId,guestId,"upsert",{action:"upsert",...(await guestSheetsPayload(env,eventId,guestId))});
     await log("REGISTRATION_APPROVED","guest",guestId,{request_id:requestId});
-    return json({ok:true,decision,guest_id:guestId,passCode:code,message:pending.vk_user_id?"Registration approved. The guest can now open My Pass.":"Registration approved, but this legacy record is not linked to a VK account yet."});
+    return json({ok:true,decision,guest_id:guestId,passCode:code,message:"Registration approved. The guest can now open My Pass."});
   }
   if(action==="guest_action") {
     const guestId=Number(data.guest_id||0), operation=String(data.operation||""), target=String(data.target||"");
@@ -503,19 +503,6 @@ async function adminApi(request, env) {
     await log("GUEST_"+operation.toUpperCase(),"guest",guestId,{status:fresh.status});
     await outbox(env,eventId,guestId,"upsert",{action:"upsert",...(await guestSheetsPayload(env,eventId,guestId))});
     return json({ok:true,guest:{id:guestId,status:fresh.status,passCode:fresh.pass_code,entryUsed:!!fresh.entry_used,foodUsed:!!fresh.food_used},message:"Guest record updated. Existing attendance and proof history were preserved unless the selected status reset applied."});
-  }
-  if(action==="link_legacy_guest"||action==="link_legacy_pending") {
-    const legacyId=String(data.legacy_telegram_id||"").trim(), vkId=String(data.vk_user_id||"").trim();
-    if(!legacyId||!vkId) return fail("Both the legacy Telegram ID and verified VK user ID are required.");
-    if(action==="link_legacy_guest") {
-      const result=await env.DB.prepare("UPDATE guests SET vk_user_id=? WHERE event_id=? AND legacy_telegram_id=? AND vk_user_id IS NULL").bind(vkId,eventId,legacyId).run();
-      if(!result.meta.changes) return fail("Legacy guest not found or already linked.",409);
-    } else {
-      const result=await env.DB.prepare("UPDATE pending_registrations SET vk_user_id=? WHERE event_id=? AND legacy_telegram_id=? AND vk_user_id IS NULL").bind(vkId,eventId,legacyId).run();
-      if(!result.meta.changes) return fail("Legacy pending registration not found or already linked.",409);
-    }
-    await log("LEGACY_IDENTITY_LINKED",action==="link_legacy_guest"?"guest":"pending_registration",legacyId,{vk_user_id:vkId,verification:"admin_manual"});
-    return json({ok:true,message:"Legacy record linked to the verified VK account. The original Telegram ID remains in migration history."});
   }
   if(action==="volunteers") {
     const rows=await env.DB.prepare("SELECT * FROM global_volunteers ORDER BY added_at DESC").all();
