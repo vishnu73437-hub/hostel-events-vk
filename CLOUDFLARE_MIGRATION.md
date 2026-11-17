@@ -34,6 +34,29 @@ Legacy Telegram IDs must **never** be copied into `vk_user_id`. They are differe
 - If a free quota is reached, fail safely and notify the admin. Never silently switch to a paid service.
 - Backups should be generated as a downloadable export; do not upload them to paid object storage.
 
+## Implementation status
+
+Implemented on the migration branch:
+- VK launch signature validation with a one-hour freshness window and app-ID check.
+- Event-scoped role lookup, event selection, event details, registration and approved-pass retrieval.
+- Locally generated QR SVG pass payloads; no QR image CDN dependency.
+- Event-scoped entry, food, proof deposit, no-proof, proof return, exit, and additional checkpoint scan endpoints.
+- Configurable proof-storage capacity with active-slot uniqueness and refusal to shrink around occupied slots.
+- Event-scoped admin actions for lifecycle, approvals, guest pass actions, volunteers, checkpoint teams, reports, audit and settings.
+- VK community announcement queue with small delivery batches and unsend history.
+- D1 Sheets outbox with bounded retry/backoff and a five-minute Cron Trigger.
+- VK-native frontend auth header, same-origin API calls, native Chrome BarcodeDetector scanning and manual-code fallback.
+- Basic VK auth tests, D1 schema tests, and a GitHub Actions workflow.
+
+Still pending before production:
+- Verify the CI run and execute the schema against a local D1-compatible environment.
+- Complete full backup/export/restore and the live SQLite-to-D1 importer.
+- Add end-to-end tests for all admin and event-day workflows.
+- Confirm the existing Google Apps Script receiver includes the saved EventHub event-log merge helper.
+- Configure and test the actual VK app secret, admin VK IDs, optional VK group token and Sheets endpoint.
+- Verify scanner permissions inside the real VK Android webview and test the VK announcement permission edge cases.
+- Review every admin action against the saved EventHub source before calling feature parity complete.
+
 ## Branch and deployment state
 
 - Existing `main` branch remains untouched.
