@@ -138,13 +138,17 @@ function ehEnsureSheet_(ss,name,headers) {
     if (missing.length) sh.getRange(1,sh.getLastColumn()+1,1,missing.length).setValues([missing]);
     sh.setFrozenRows(1);
   }
+  ehEnsureFilter_(sh);
+  return sh;
+}
+
+function ehEnsureFilter_(sh) {
   const rows = Math.max(2,sh.getLastRow());
   const cols = Math.max(1,sh.getLastColumn());
   const range = sh.getRange(1,1,rows,cols);
   const filter = sh.getFilter();
   if (!filter) range.createFilter();
   else if (filter.getRange().getNumRows() < rows || filter.getRange().getNumColumns() !== cols) filter.setRange(range);
-  return sh;
 }
 
 function ehDate_(value) {
@@ -207,6 +211,7 @@ function ehUpsertRow_(ss,tabName,columns,payload) {
   allHeaders.forEach((header,i) => {
     if (/time|timestamp/i.test(header) && header !== "Time Zone") sh.getRange(rowNumber,i+1).setNumberFormat("yyyy-mm-dd hh:mm:ss");
   });
+  ehEnsureFilter_(sh);
   return {updated:true,stale:false};
 }
 
@@ -264,4 +269,5 @@ function ehHandleEventLog_(ss,eventId,p) {
   const last = sh.getLastRow();
   const timeCol = headers.indexOf("Action Time")+1;
   if (timeCol) sh.getRange(last,timeCol).setNumberFormat("yyyy-mm-dd hh:mm:ss");
+  ehEnsureFilter_(sh);
 }
