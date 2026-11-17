@@ -250,12 +250,29 @@
   async function renderRegistration(host) {
     if(!state.event) return;
     const schema=parseJSON(state.event.registration_schema,defaultSchema()); const configured=Array.isArray(schema)&&schema.length?schema:defaultSchema(); state.formSchema=asFoodEnabled(state.event)?configured:configured.filter(field=>field.key!=='food_preference');
-    host.innerHTML=`<section class="section card"><div class="section-title"><h2>Register — ${safe(state.event.name)}</h2></div><p class="muted">Your registration is linked only to this event. Required fields are marked with an asterisk.</p><form id="registrationForm">${state.formSchema.map(fieldHTML).join('')}<button class="btn primary" type="submit">Submit registration</button></form><div id="registerMessage"></div></section>`;
-    $('registrationForm').addEventListener('submit',async e=>{
+    const residenceField=field=>field.key==='hostel_number'||field.key==='room_number';
+    host.innerHTML=`<section class="section card"><div class="section-title"><h2>Register — ${safe(state.event.name)}</h2></div><p class="muted">Your registration is linked only to this event. Required fields are marked with an asterisk.</p><form id="registrationForm">${state.formSchema.map(field=>residenceField(field)?`<div data-residence-field="${safe(field.key)}" class="hidden">${fieldHTML(field)}</div>`:fieldHTML(field)).join('')}<button class="btn primary" type="submit">Submit registration</button></form><div id="registerMessage"></div></section>`;
+    const form=$('registrationForm');
+    const residence=form.elements.namedItem('residence_type');
+    const syncResidenceFields=()=>{
+      const isHostel=residence?.value==='Hostel';
+      for(const field of state.formSchema.filter(residenceField)){
+        const wrapper=form.querySelector(`[data-residence-field="${field.key}"]`);
+        const input=form.elements.namedItem(field.key);
+        wrapper?.classList.toggle('hidden',!isHostel);
+        if(input){input.required=!!field.required&&isHostel;if(!isHostel)input.value='';}
+      }
+    };
+    residence?.addEventListener('change',syncResidenceFields);
+    syncResidenceFields();
+    form.addEventListener('submit',async e=>{
       e.preventDefault();const values={};
-      for(const field of state.formSchema){const el=Array.from(e.currentTarget.elements).find(node=>node.name===field.key);if(!el)continue;values[field.key]=field.type==='checkbox'?el.checked:el.value;}
+      for(const field of state.formSchema){
+        if(residenceField(field)&&residence?.value!=='Hostel'){values[field.key]='';continue;}
+        const el=Array.from(e.currentTarget.elements).find(node=>node.name===field.key);if(!el)continue;values[field.key]=field.type==='checkbox'?el.checked:el.value;
+      }
       const button=e.currentTarget.querySelector('button[type=submit]');button.disabled=true;
-      try{const r=await post('/api/register',{event_id:state.eventId,fields:values});$('registerMessage').innerHTML=showNotice(r.message||'Registration submitted.','good');e.currentTarget.reset();}
+      try{const r=await post('/api/register',{event_id:state.eventId,fields:values});$('registerMessage').innerHTML=showNotice(r.message||'Registration submitted.','good');e.currentTarget.reset();syncResidenceFields();}
       catch(err){$('registerMessage').innerHTML=showNotice(err.message,'error');}
       finally{button.disabled=false;}
     });
