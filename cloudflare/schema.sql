@@ -88,6 +88,14 @@ CREATE TABLE IF NOT EXISTS app_users (
   display_name TEXT NOT NULL DEFAULT '',
   screen_name TEXT NOT NULL DEFAULT ''
 );
+CREATE TABLE IF NOT EXISTS event_app_users (
+  event_id INTEGER NOT NULL REFERENCES events(id),
+  vk_user_id TEXT NOT NULL,
+  first_seen_at TEXT NOT NULL,
+  last_seen_at TEXT NOT NULL,
+  PRIMARY KEY(event_id,vk_user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_event_app_users_user ON event_app_users(vk_user_id,event_id);
 CREATE TABLE IF NOT EXISTS app_admins (
   vk_user_id TEXT PRIMARY KEY,
   added_at TEXT NOT NULL,
