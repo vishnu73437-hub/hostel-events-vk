@@ -189,7 +189,7 @@ async function myPassApi(request, env) {
   const data = await body(request);
   const eventId = Number(data.event_id || 0);
   if (!Number.isSafeInteger(eventId) || eventId <= 0) return fail("A valid event ID is required.");
-  const guest = await env.DB.prepare("SELECT * FROM guests WHERE event_id=? AND vk_user_id=?").bind(eventId,uid).first();
+  let guest = await env.DB.prepare("SELECT * FROM guests WHERE event_id=? AND vk_user_id=?").bind(eventId,uid).first();
   if (!guest) {
     const pending = await env.DB.prepare("SELECT status FROM pending_registrations WHERE event_id=? AND vk_user_id=?").bind(eventId,uid).first();
     if (pending?.status === "pending") return fail("Your registration is awaiting admin approval.",404);
@@ -204,7 +204,7 @@ async function myPassApi(request, env) {
     const inserted=await env.DB.prepare("INSERT INTO guests(event_id,vk_user_id,full_name,phone,residence,residence_type,food_preference,registration_data,status,pass_code,qr_token,registered_at,created_at,approved_at) VALUES(?,?,?,'','','Apartment',?,'{}','approved',?,?,?,?,?)")
       .bind(eventId,uid,displayName,food,code,token,now(),now(),now()).run();
     await audit(env,uid,"STAFF_PASS_CREATED","guest",inserted.meta.last_row_id,{role:staffRole},eventId);
-    return myPassApi(request,env);
+    guest=await env.DB.prepare("SELECT * FROM guests WHERE id=?").bind(inserted.meta.last_row_id).first();
   }
   if (guest.status !== "approved" || guest.revoked_at) return fail("This pass is not active.",403);
   const event = await env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
