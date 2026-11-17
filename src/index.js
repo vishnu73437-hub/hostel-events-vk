@@ -181,7 +181,7 @@ async function registerApi(request, env) {
     .bind(eventId,uid,fullName,String(cleaned.phone || ""),food,String(cleaned.residence_type || "Apartment"),String(cleaned.hostel_number || ""),String(cleaned.room_number || ""),registrationData,stamp).run();
   const requestId=result.meta?.last_row_id || uid;
   await audit(env,uid,"registration_submitted","pending_registration",requestId,{event_id:eventId},eventId);
-  await outbox(env,eventId,requestId,"registration_pending",{event_id:eventId,vk_user_id:uid,full_name:fullName,phone:String(cleaned.phone||""),status:"pending"});
+  await outbox(env,eventId,requestId,"upsert",{action:"upsert",guest_id:"event:"+eventId+":vk:"+uid,serial_number:requestId,name:fullName,phone:String(cleaned.phone||""),residence:String(cleaned.residence_type||"Apartment"),hostel_number:String(cleaned.hostel_number||""),room_number:String(cleaned.room_number||""),food,registration_status:"Pending approval",pass_code:"",qr_status:"Pending",entry_status:"Not recorded",food_status:foodEnabled?"Not collected":"Not applicable",registered_at:stamp,timezone:event.timezone||"Europe/Moscow",last_updated:stamp,event_id:eventId});
   return json({ ok:true, request_id:requestId, message:"Registration submitted. Your request is awaiting admin approval." },201);
 }
 
@@ -318,7 +318,10 @@ async function actionApi(request, env) {
     catch(e) { if(String(e.message).toLowerCase().includes("unique")) return fail("Exit was already recorded.",409); throw e; }
   }
   await audit(env,uid,action.toUpperCase()+"_RECORDED","guest",guest.id,{stage:action},eventId);
-  await outbox(env,eventId,guest.id,action,{guest_id:guest.id,event_id:eventId,action,scanned_by:uid,scanned_at:stamp});
+  const snapshot=await guestSheetsPayload(env,eventId,guest.id);
+  const currentStorage=await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first();
+  const actionLog={action:"event_log",action_id:crypto.randomUUID(),guest_id:"event:"+eventId+":"+guest.id,guest_serial_number:guest.id,guest_name:guest.full_name,pass_code:guest.pass_code,action_type:action.toUpperCase(),action_time_utc:stamp,storage_number:currentStorage?String(currentStorage.box_number):"",storage_label:currentStorage?("Box "+currentStorage.box_number+" / Section "+currentStorage.section_letter+" / Slot "+String(currentStorage.slot_number||"")):"",food_preference:guest.food_preference,volunteer_name:"VK user "+uid,volunteer_id:uid,details:action.replaceAll("_"," "),timezone:event.timezone||"Europe/Moscow",guest_snapshot:snapshot};
+  await outbox(env,eventId,guest.id,"event_log",actionLog);
   const fresh=await env.DB.prepare("SELECT * FROM guests WHERE id=?").bind(guest.id).first();
   const currentProof=await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first();
   const currentNoProof=await env.DB.prepare("SELECT 1 AS ok FROM proof_not_collected WHERE guest_id=?").bind(guest.id).first();
@@ -458,7 +461,7 @@ async function adminApi(request, env) {
       .bind(eventId,pending.vk_user_id,pending.legacy_telegram_id,pending.full_name,pending.email,pending.phone,pending.residence_type,pending.residence_type,pending.hostel_number,pending.hostel_number,pending.room_number,pending.room_number,pending.food_preference,pending.registration_data,code,token,pending.created_at,pending.created_at,now()).run();
     const guestId=insert.meta.last_row_id;
     await env.DB.prepare("UPDATE pending_registrations SET status='approved' WHERE id=?").bind(requestId).run();
-    await outbox(env,eventId,guestId,"approved",{guest_id:guestId,event_id:eventId,status:"approved",pass_code:code});
+    await outbox(env,eventId,guestId,"upsert",{action:"upsert",...(await guestSheetsPayload(env,eventId,guestId))});
     await log("REGISTRATION_APPROVED","guest",guestId,{request_id:requestId});
     return json({ok:true,decision,guest_id:guestId,passCode:code,message:pending.vk_user_id?"Registration approved. The guest can now open My Pass.":"Registration approved, but this legacy record is not linked to a VK account yet."});
   }
@@ -484,7 +487,7 @@ async function adminApi(request, env) {
     } else return fail("Invalid guest action.");
     const fresh=await env.DB.prepare("SELECT * FROM guests WHERE id=?").bind(guestId).first();
     await log("GUEST_"+operation.toUpperCase(),"guest",guestId,{status:fresh.status});
-    await outbox(env,eventId,guestId,operation,{guest_id:guestId,event_id:eventId,operation,status:fresh.status,pass_code:fresh.pass_code});
+    await outbox(env,eventId,guestId,"upsert",{action:"upsert",...(await guestSheetsPayload(env,eventId,guestId))});
     return json({ok:true,guest:{id:guestId,status:fresh.status,passCode:fresh.pass_code,entryUsed:!!fresh.entry_used,foodUsed:!!fresh.food_used},message:"Guest record updated. Existing attendance and proof history were preserved unless the selected status reset applied."});
   }
   if(action==="link_legacy_guest"||action==="link_legacy_pending") {
@@ -720,6 +723,36 @@ async function adminApi(request, env) {
   return fail("Unknown admin action: "+action,404);
 }
 
+
+
+async function guestSheetsPayload(env,eventId,guestId) {
+  const [event,guest,proof,noProof,exit]=await Promise.all([
+    env.DB.prepare("SELECT timezone,food_enabled FROM events WHERE id=?").bind(eventId).first(),
+    env.DB.prepare("SELECT * FROM guests WHERE id=? AND event_id=?").bind(guestId,eventId).first(),
+    env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guestId).first(),
+    env.DB.prepare("SELECT recorded_at,recorded_by FROM proof_not_collected WHERE guest_id=?").bind(guestId).first(),
+    env.DB.prepare("SELECT exit_at,exit_by FROM event_exit_records WHERE guest_id=?").bind(guestId).first()
+  ]);
+  if(!guest||!event) throw new Error("Guest/event record missing for Sheets sync.");
+  const proofStatus=proof?.returned_at?"Returned":proof?.deposited_at?"Stored":noProof?"No proof":"Not collected";
+  const storageNumber=proof?String(proof.box_number):"";
+  const storageLabel=proof?("Box "+proof.box_number+" / Section "+proof.section_letter+" / Slot "+String(proof.slot_number||"")):"";
+  return {
+    guest_id:"event:"+eventId+":"+guest.id,serial_number:guest.id,name:guest.full_name,phone:guest.phone||"",
+    residence:guest.residence||guest.residence_type||"",hostel_number:guest.hostel_number||guest.hostel||"",
+    room_number:guest.room_number||guest.room||"",food:guest.food_preference||"Not applicable",
+    registration_status:guest.status,pass_code:guest.pass_code||"",qr_status:guest.status==="approved"&&!guest.revoked_at?"Active":"Inactive",
+    entry_status:guest.entry_used?"Recorded":"Not recorded",entry_time:guest.entry_used_at||"",
+    food_status:asBool(event.food_enabled)?(guest.food_used?"Collected":"Not collected"):"Not applicable",
+    food_collection_time:guest.food_used_at||"",timezone:event.timezone||"Europe/Moscow",last_updated:now(),event_id:eventId,
+    proof_status:proofStatus,storage_box:proof?.box_number||"",storage_section:proof?.section_letter||"",
+    storage_slot:proof?.slot_number||"",storage_number:storageNumber,storage_label:storageLabel,
+    proof_assigned_time:proof?.assigned_at||"",proof_stored_time:proof?.deposited_at||"",
+    proof_return_time:proof?.returned_at||"",proof_no_proof_time:noProof?.recorded_at||"",
+    proof_volunteer_id:proof?.deposited_by||"",proof_return_volunteer_id:proof?.returned_by||"",
+    proof_no_proof_volunteer_id:noProof?.recorded_by||"",exit_time:exit?.exit_at||"",exit_volunteer_id:exit?.exit_by||""
+  };
+}
 
 async function syncSheetsBatch(env, limit=5) {
   if(!env.SHEETS_SYNC_SECRET) return {configured:false,processed:0,synced:0,failed:0};
