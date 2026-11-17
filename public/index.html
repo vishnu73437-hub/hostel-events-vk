@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#171321">
   <title>EventHub</title>
-  <script src="https://unpkg.com/@vkontakte/vk-bridge@2.15.0/dist/browser.min.js"></script>
+  <script async id="vkBridgeScript" src="https://unpkg.com/@vkontakte/vk-bridge@2.15.0/dist/browser.min.js"></script>
   
   
   <style>
@@ -27,9 +27,14 @@
 <script>
 (() => {
   'use strict';
-  if (window.vkBridge && typeof window.vkBridge.send === 'function') {
-    window.vkBridge.send('VKWebAppInit').catch(() => {});
+  function initializeVkBridge() {
+    try {
+      const pending = window.vkBridge?.send?.('VKWebAppInit');
+      pending?.catch?.(() => {});
+    } catch (_) {}
   }
+  initializeVkBridge();
+  document.getElementById('vkBridgeScript')?.addEventListener('load', initializeVkBridge, { once:true });
   const params = new URLSearchParams(location.search);
   const vkLaunchParams = location.search.replace(/^\?/, '');
   const API_BASE = location.origin.replace(/\/$/, '');
