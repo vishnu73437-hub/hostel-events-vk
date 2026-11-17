@@ -77,12 +77,128 @@ async function body(request) {
 }
 const asGuest = row => row ? { ...row } : null;
 
+
+async function eventRole(uid, eventId, env) {
+  if (isAdmin(uid, env)) return "admin";
+  const global = await env.DB.prepare("SELECT 1 AS ok FROM global_volunteers WHERE vk_user_id=?").bind(uid).first();
+  const legacyGlobal = await env.DB.prepare("SELECT 1 AS ok FROM volunteers WHERE vk_user_id=?").bind(uid).first();
+  if (global || legacyGlobal) return "global";
+  const assigned = await env.DB.prepare("SELECT role FROM event_volunteers WHERE event_id=? AND vk_user_id=?").bind(eventId, uid).first();
+  return assigned?.role || null;
+}
+
+async function roleApi(request, env) {
+  const uid = await requireUser(request, env);
+  const data = await body(request);
+  const eventId = Number(data.event_id || 0);
+  const user = await env.DB.prepare("INSERT INTO app_users(vk_user_id,first_seen_at,last_seen_at,display_name,screen_name) VALUES(?,?,?,?,?) ON CONFLICT(vk_user_id) DO UPDATE SET last_seen_at=excluded.last_seen_at RETURNING vk_user_id")
+    .bind(uid, now(), now(), "VK user " + uid, "").first();
+  const admin = isAdmin(uid, env);
+  const global = await env.DB.prepare("SELECT 1 AS ok FROM global_volunteers WHERE vk_user_id=? UNION SELECT 1 AS ok FROM volunteers WHERE vk_user_id=? LIMIT 1").bind(uid, uid).first();
+  let events;
+  if (admin || global) {
+    events = await env.DB.prepare("SELECT id,name,description,event_date,event_time,venue,status FROM events WHERE status='active' ORDER BY id DESC").all();
+  } else {
+    events = await env.DB.prepare("SELECT e.id,e.name,e.description,e.event_date,e.event_time,e.venue,e.status FROM events e JOIN event_volunteers v ON v.event_id=e.id WHERE v.vk_user_id=? AND e.status='active' ORDER BY e.id DESC").bind(uid).all();
+    if (!events.results.length) events = await env.DB.prepare("SELECT id,name,description,event_date,event_time,venue,status FROM events WHERE status='active' ORDER BY id DESC").all();
+  }
+  const workspaces = admin ? await env.DB.prepare("SELECT id,name,description,event_date,event_time,venue,status FROM events ORDER BY id DESC").all() : { results: [] };
+  let selectedRole = admin ? "admin" : (global ? "global" : null);
+  if (eventId) {
+    const event = await env.DB.prepare("SELECT id,status FROM events WHERE id=?").bind(eventId).first();
+    if (!event || (event.status !== "active" && !admin)) throw Object.assign(new Error("This event page is not available."), { status: 404 });
+    selectedRole = await eventRole(uid, eventId, env);
+  }
+  return json({ ok: true, role: admin ? "admin" : (selectedRole ? "volunteer" : "guest"), staff_role: selectedRole || "", user: { id: uid, name: user?.display_name || ("VK user " + uid) }, events: events.results, workspaces: workspaces.results });
+}
+
+async function eventDetailsApi(request, env) {
+  const uid = await requireUser(request, env);
+  const data = await body(request);
+  const eventId = Number(data.event_id || 0);
+  if (!Number.isSafeInteger(eventId) || eventId <= 0) return fail("A valid event ID is required.");
+  const event = await env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
+  if (!event || (event.status !== "active" && !isAdmin(uid, env))) return fail("This event page is unavailable or archived.", 404);
+  const foodEnabled = asBool(event.food_enabled);
+  return json({ ok: true, event, event_id: eventId, food_collection_enabled: foodEnabled, time: event.event_time || "To be announced" });
+}
+
+async function registerApi(request, env) {
+  const uid = await requireUser(request, env);
+  const data = await body(request);
+  const eventId = Number(data.event_id || 0);
+  if (!Number.isSafeInteger(eventId) || eventId <= 0) return fail("A valid event ID is required.");
+  const event = await env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
+  if (!event || event.status !== "active" || !event.registration_open) return fail("Registration for this event is currently closed.", 409);
+  let schema;
+  try { schema = JSON.parse(event.registration_schema || "[]"); } catch { schema = []; }
+  if (!Array.isArray(schema) || schema.length < 1 || schema.length > 30) return fail("This event's registration form is not configured correctly.", 409);
+  const fields = data.fields;
+  if (!fields || typeof fields !== "object" || Array.isArray(fields)) return fail("Registration fields are missing.");
+  const foodEnabled = asBool(event.food_enabled);
+  const cleaned = {};
+  const allowed = new Set(["text","tel","email","number","date","textarea","select","checkbox"]);
+  for (const field of schema) {
+    if (!field || typeof field.key !== "string" || !/^[a-zA-Z][a-zA-Z0-9_]{0,39}$/.test(field.key) || !allowed.has(field.type || "text")) return fail("The event registration form contains an invalid field.");
+    const key = field.key, type = field.type || "text", label = String(field.label || key).slice(0,80);
+    let value = fields[key] ?? (type === "checkbox" ? false : "");
+    if (type === "checkbox") {
+      if (typeof value !== "boolean") return fail("Invalid checkbox value for " + label + ".");
+    } else {
+      value = String(value ?? "").trim().replace(/\s+/g," ").slice(0,1000);
+    }
+    const required = !!field.required && !(key === "food_preference" && !foodEnabled);
+    if (required && (value === "" || value === false)) return fail("Please complete: " + label + ".");
+    if (key === "food_preference" && !foodEnabled) value = "";
+    if (type === "select" && value && !((field.options || []).map(String).includes(value))) return fail("Choose a valid option for " + label + ".");
+    if (type === "email" && value && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) return fail("Enter a valid email address for " + label + ".");
+    if (type === "tel" && value) {
+      value = value.replace(/[\s().-]/g,"");
+      if (!/^\+?[0-9]{7,15}$/.test(value)) return fail("Enter a valid phone number for " + label + ".");
+    }
+    cleaned[key] = value;
+  }
+  const fullName = String(cleaned.full_name || "").trim();
+  if (fullName.length < 2 || fullName.length > 100) return fail("The form must include a valid full name (2–100 characters).");
+  const existing = await env.DB.prepare("SELECT status FROM guests WHERE event_id=? AND vk_user_id=?").bind(eventId,uid).first();
+  if (existing?.status === "approved") return fail("You already have an approved pass for this event. Open My Pass instead.",409);
+  if (existing?.status === "revoked") return fail("A previous pass for this event was revoked. Contact an admin.",409);
+  const registrationData = JSON.stringify(cleaned);
+  const stamp = now();
+  const food = foodEnabled ? String(cleaned.food_preference || "Not specified") : "Not applicable";
+  const result = await env.DB.prepare("INSERT INTO pending_registrations(event_id,vk_user_id,full_name,phone,food_preference,residence_type,hostel_number,room_number,registration_data,created_at,status) VALUES(?,?,?,?,?,?,?,?,?,?,'pending') ON CONFLICT(event_id,vk_user_id) DO UPDATE SET full_name=excluded.full_name,phone=excluded.phone,food_preference=excluded.food_preference,residence_type=excluded.residence_type,hostel_number=excluded.hostel_number,room_number=excluded.room_number,registration_data=excluded.registration_data,created_at=excluded.created_at,status='pending'")
+    .bind(eventId,uid,fullName,String(cleaned.phone || ""),food,String(cleaned.residence_type || "Apartment"),String(cleaned.hostel_number || ""),String(cleaned.room_number || ""),registrationData,stamp).run();
+  await audit(env,uid,"registration_submitted","pending_registration",result.meta?.last_row_id || uid,{event_id:eventId},eventId);
+  return json({ ok:true, request_id:result.meta?.last_row_id || null, message:"Registration submitted. Your request is awaiting admin approval." },201);
+}
+
+async function myPassApi(request, env) {
+  const uid = await requireUser(request, env);
+  const data = await body(request);
+  const eventId = Number(data.event_id || 0);
+  if (!Number.isSafeInteger(eventId) || eventId <= 0) return fail("A valid event ID is required.");
+  const guest = await env.DB.prepare("SELECT * FROM guests WHERE event_id=? AND vk_user_id=?").bind(eventId,uid).first();
+  if (!guest) {
+    const pending = await env.DB.prepare("SELECT status FROM pending_registrations WHERE event_id=? AND vk_user_id=?").bind(eventId,uid).first();
+    return fail(pending?.status === "pending" ? "Your registration is awaiting admin approval." : "No approved pass was found for this event.",404);
+  }
+  if (guest.status !== "approved" || guest.revoked_at) return fail("This pass is not active.",403);
+  const event = await env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
+  const design = await env.DB.prepare("SELECT design_json FROM pass_design WHERE event_id=?").bind(eventId).first();
+  const scans = await env.DB.prepare("SELECT stage,scanned_at FROM scans WHERE guest_id=?").bind(guest.id).all();
+  return json({ ok:true, pass:{ name:guest.full_name, passCode:guest.pass_code, qrToken:guest.qr_token, qrPayload:"EVENTHUB:"+eventId+":"+guest.qr_token, residence:guest.residence, roomNumber:guest.room, food:guest.food_preference, status:guest.status, entryUsed:!!guest.entry_used, foodUsed:!!guest.food_used }, event, design:design ? JSON.parse(design.design_json) : {}, scans:Object.fromEntries(scans.results.map(x=>[x.stage,x.scanned_at])) });
+}
+
 async function api(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
   const method = request.method;
 
   if (path === "/api/health" && method === "GET") return json({ ok: true, service: "vk-eventhub-cloudflare" });
+  if (path === "/api/role" && method === "POST") return roleApi(request, env);
+  if (path === "/api/event_details" && method === "POST") return eventDetailsApi(request, env);
+  if (path === "/api/register" && method === "POST") return registerApi(request, env);
+  if (path === "/api/my_pass" && method === "POST") return myPassApi(request, env);
 
   if (path === "/api/bootstrap" && method === "GET") {
     const uid = await requireUser(request, env);
