@@ -301,7 +301,8 @@ async function actionApi(request, env) {
   } else if(action==="proof_return") {
     if(!proof || !proof.deposited_at) return fail("No stored proof record found.",409);
     if(proof.returned_at) return fail("Proof return was already recorded.",409);
-    await env.DB.prepare("UPDATE proof_storage SET returned_at=?,returned_by=? WHERE guest_id=? AND returned_at IS NULL").bind(stamp,uid,guest.id).run();
+    const changed=await env.DB.prepare("UPDATE proof_storage SET returned_at=?,returned_by=? WHERE guest_id=? AND returned_at IS NULL").bind(stamp,uid,guest.id).run();
+    if(!changed.meta.changes) return fail("Proof return was already recorded by another scanner.",409);
   } else if(action==="exit") {
     if(!guest.entry_used) return fail("Guest entry has not been recorded.",409);
     if(proof && proof.deposited_at && !proof.returned_at) return fail("Return the guest's stored proof before completing exit.",409);
