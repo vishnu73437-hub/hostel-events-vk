@@ -327,6 +327,7 @@ async function checkpointsApi(request, env) {
   const uid=await requireUser(request,env), data=await body(request), eventId=Number(data.event_id||0);
   const role=await eventRole(uid,eventId,env);
   if(!role) return fail("Volunteer access required for this event.",403);
+  if(!["admin","global","scanner","event_lead","checkpoint"].includes(role)) return fail("Your volunteer role does not include checkpoint scanning.",403);
   const rows=role==="checkpoint"
     ? await env.DB.prepare("SELECT c.id,c.name,c.checkpoint_type FROM event_checkpoints c JOIN event_checkpoint_assignments a ON a.checkpoint_id=c.id AND a.event_id=c.event_id WHERE c.event_id=? AND c.enabled=1 AND a.vk_user_id=? ORDER BY c.id").bind(eventId,uid).all()
     : await env.DB.prepare("SELECT id,name,checkpoint_type FROM event_checkpoints WHERE event_id=? AND enabled=1 ORDER BY id").bind(eventId).all();
@@ -337,6 +338,7 @@ async function checkpointScanApi(request, env) {
   const eventId=Number(data.event_id||0), checkpointId=Number(data.checkpoint_id||0), value=String(data.qr||"").trim();
   const role=await eventRole(uid,eventId,env);
   if(!role) return fail("Volunteer access required for this event.",403);
+  if(!["admin","global","scanner","event_lead","checkpoint"].includes(role)) return fail("Your volunteer role does not include checkpoint scanning.",403);
   const event=await env.DB.prepare("SELECT status FROM events WHERE id=?").bind(eventId).first();
   if(!event || event.status!=="active") return fail("Checkpoint scanning is available only for active events.",409);
   if(role==="checkpoint") {
@@ -348,8 +350,11 @@ async function checkpointScanApi(request, env) {
   if(!checkpoint) return fail("Checkpoint not found or disabled.",404);
   let token=value; const colon=value.match(/^EVENTHUB:(\d+):(.+)$/); if(colon){if(Number(colon[1])!==eventId)return fail("This QR belongs to another event.",409);token=colon[2];}
   const parts=token.split("|"); if(parts.length===2)token=parts[1];
-  const guest=await env.DB.prepare("SELECT * FROM guests WHERE event_id=? AND (qr_token=? OR pass_code=?) AND status='approved'").bind(eventId,token,token).first();
+  const guest=await env.DB.prepare("SELECT * FROM guests WHERE event_id=? AND (qr_token=? OR pass_code=?) AND status='approved' AND revoked_at IS NULL").bind(eventId,token,token).first();
   if(!guest) return fail("Active guest pass not found.",404);
+  if(!guest.entry_used) return fail("Record guest entry before scanning an additional checkpoint.",409);
+  const exited=await env.DB.prepare("SELECT 1 AS ok FROM event_exit_records WHERE event_id=? AND guest_id=?").bind(eventId,guest.id).first();
+  if(exited) return fail("Guest exit is already recorded. Additional checkpoint scans are disabled.",409);
   try {
     await env.DB.prepare("INSERT INTO event_checkpoint_scans(event_id,checkpoint_id,guest_id,volunteer_vk_user_id,scanned_at) VALUES(?,?,?,?,?)").bind(eventId,checkpointId,guest.id,uid,now()).run();
   } catch(e) {
