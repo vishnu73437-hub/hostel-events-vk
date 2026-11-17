@@ -1017,21 +1017,55 @@
   function bindSchemaEditorButtons(){document.querySelectorAll('[data-remove-schema]').forEach(b=>{if(b.dataset.bound==='1')return;b.dataset.bound='1';b.addEventListener('click',()=>{const row=b.closest('[data-schema-index]');row?.remove();renumberSchema();});});}
   function renumberSchema(){document.querySelectorAll('[data-schema-index]').forEach((el,i)=>{el.dataset.schemaIndex=i;const t=el.querySelector('.row strong');if(t)t.textContent='Field '+(i+1);const b=el.querySelector('[data-remove-schema]');if(b)b.dataset.removeSchema=i;});}
   async function renderStaff(host) {
-    host.innerHTML=`<div class="section-title"><h2>Event volunteer access</h2><button class="btn small" id="refreshStaff">Refresh</button></div><section class="card"><form id="addVolunteer"><div class="inline-fields"><div class="field"><label>VK user ID</label><input id="volunteerId" inputmode="numeric" placeholder="VK numeric user ID" required></div><div class="field"><label>Event role</label><select id="volunteerRole"><option value="scanner">Scanner (all event actions)</option><option value="entry">Entry + proof intake</option><option value="food">Food collection</option><option value="proof">Proof return + exit</option><option value="checkpoint">Assigned checkpoints</option><option value="event_lead">Event lead</option></select></div></div><button class="btn primary" type="submit">Assign to this event</button></form><p class="footnote">Assignments apply only to <b>${safe(state.event?.name)}</b>. They do not grant access to other events or to BRS.</p></section><div id="volunteerList" class="list section"></div><section class="section card"><h3>Checkpoint assignments</h3><form id="checkpointAssignment"><div class="field"><label>Checkpoint</label><select id="checkpointId" required></select></div><div class="field"><label>Volunteer VK user ID</label><input id="checkpointVolunteerId" required></div><button class="btn" type="submit">Assign volunteer to checkpoint</button></form><div id="checkpointAssignments" class="list"></div></section>`;
+    host.innerHTML=`<div class="section-title"><h2>Event volunteer access</h2><button class="btn small" id="refreshStaff">Refresh</button></div><section class="card"><form id="addVolunteer"><div class="inline-fields"><div class="field"><label>VK user ID</label><input id="volunteerId" inputmode="numeric" placeholder="VK numeric user ID" required></div><div class="field"><label>Event role</label><select id="volunteerRole"><option value="scanner">Scanner (all event actions)</option><option value="entry">Entry + proof intake</option><option value="food">Food collection</option><option value="proof">Proof return + exit</option><option value="checkpoint">Assigned checkpoints</option><option value="event_lead">Event lead</option></select></div></div><button class="btn primary" type="submit">Assign to this event</button></form><p class="footnote">Assignments apply only to <b>${safe(state.event?.name)}</b>. They do not grant access to other events or to BRS.</p></section><section class="section card"><div class="section-title"><h3>Search and filter volunteers</h3><span class="muted" id="volunteerCount">0 volunteers</span></div><div class="volunteer-filters"><div class="field"><label for="volunteerSearch">Search by name or VK ID</label><input id="volunteerSearch" placeholder="Search volunteers…"></div><div class="field"><label for="volunteerRoleFilter">Filter by role</label><select id="volunteerRoleFilter"><option value="all">All roles</option><option value="scanner">Scanner</option><option value="entry">Entry</option><option value="food">Food</option><option value="proof">Proof</option><option value="checkpoint">Checkpoint</option><option value="event_lead">Event lead</option></select></div></div><div id="volunteerList" class="list"></div></section><section class="section card volunteer-activity"><div class="section-title"><h3>Recent volunteer activity</h3><span class="muted">This event only</span></div><div id="volunteerActivity" class="list"><div class="empty">Loading activity…</div></div></section><section class="section card"><h3>Checkpoint assignments</h3><form id="checkpointAssignment"><div class="field"><label>Checkpoint</label><select id="checkpointId" required></select></div><div class="field"><label>Volunteer VK user ID</label><input id="checkpointVolunteerId" required></div><button class="btn" type="submit">Assign volunteer to checkpoint</button></form><div id="checkpointAssignments" class="list"></div></section>`;
+    let volunteerRows=[];
+    const drawVolunteers=()=>{
+      const query=$('volunteerSearch').value.trim().toLocaleLowerCase();
+      const role=$('volunteerRoleFilter').value;
+      const rows=volunteerRows.filter(x=>{
+        const name=String(x.display_name||'').toLocaleLowerCase(),id=String(x.vk_user_id||'');
+        return (role==='all'||x.role===role)&&(!query||name.includes(query)||id.includes(query));
+      });
+      $('volunteerCount').textContent=rows.length+' / '+volunteerRows.length+' volunteers';
+      $('volunteerList').innerHTML=rows.map(x=>{
+        const seen=Date.parse(x.last_seen_at||''),recent=Number.isFinite(seen)&&Date.now()-seen<15*60*1000;
+        const presence=recent?'Recently seen':'Last seen';
+        const when=x.last_seen_at?new Date(x.last_seen_at).toLocaleString():'Not recorded';
+        return `<article class="list-item"><div class="row"><div><strong>${safe(x.display_name||'VK user '+x.vk_user_id)}</strong><div class="sub">VK ID: ${safe(x.vk_user_id)} · ${safe(x.role)} · Assigned ${safe(x.assigned_at||'')}</div><div class="sub">${presence}: ${safe(when)}</div></div><span class="volunteer-presence ${recent?'':'stale'}">${recent?'● Recently active':'○ Not recently seen'}</span></div><div class="actions"><button class="btn danger small" data-remove-event-vol="${safe(x.vk_user_id)}">Remove</button></div></article>`;
+      }).join('')||'<div class="empty">No volunteers match this search and role filter.</div>';
+      document.querySelectorAll('[data-remove-event-vol]').forEach(b=>b.addEventListener('click',async()=>{
+        if(!confirmLocalized('Remove this volunteer from the selected event?'))return;
+        b.disabled=true;
+        try{const r=await adminCall('remove_event_volunteer',{vk_user_id:b.dataset.removeEventVol});toast(r.message);await load();}
+        catch(e){toast(e.message,true);b.disabled=false;}
+      }));
+    };
     const load=async()=>{
-      try {
-        const [v,c]=await Promise.all([adminCall('event_volunteers'),adminCall('checkpoints')]);
-        $('volunteerList').innerHTML=(v.volunteers||[]).map(x=>`<div class="list-item row"><div><strong>${safe(x.display_name||'VK user '+x.vk_user_id)}</strong><div class="sub">VK ID: ${safe(x.vk_user_id)} · ${safe(x.role)} · Assigned ${safe(x.assigned_at||'')}</div><div class="sub">Last seen: ${safe(x.last_seen_at||'Not recorded')}</div></div><button class="btn danger small" data-remove-event-vol="${safe(x.vk_user_id)}">Remove</button></div>`).join('')||'<div class="empty">No volunteers assigned to this event.</div>';
+      try{
+        const [v,c,a]=await Promise.all([adminCall('event_volunteers'),adminCall('checkpoints'),adminCall('audit')]);
+        volunteerRows=v.volunteers||[];
+        drawVolunteers();
         $('checkpointId').innerHTML=(c.checkpoints||[]).map(x=>`<option value="${Number(x.id)}">${safe(x.name)} · ${safe(x.checkpoint_type)}</option>`).join('');
-        const a=await adminCall('checkpoint_team');
-        $('checkpointAssignments').innerHTML=(a.assignments||[]).map(x=>`<div class="list-item row"><div><strong>${safe(x.vk_user_id)}</strong><div class="sub">${safe(x.checkpoint_name)}</div></div><button class="btn danger small" data-remove-checkpoint="${Number(x.checkpoint_id)}|${safe(x.vk_user_id)}">Remove</button></div>`).join('')||'<div class="empty">No checkpoint-specific assignments.</div>';
-        document.querySelectorAll('[data-remove-event-vol]').forEach(b=>b.addEventListener('click',async()=>{if(!confirmLocalized('Remove this volunteer from the selected event?'))return;try{const r=await adminCall('remove_event_volunteer',{vk_user_id:b.dataset.removeEventVol});toast(r.message);await load();}catch(e){toast(e.message,true);}}));
-        document.querySelectorAll('[data-remove-checkpoint]').forEach(b=>b.addEventListener('click',async()=>{const [checkpoint_id,vk_user_id]=b.dataset.removeCheckpoint.split('|');try{const r=await adminCall('remove_checkpoint_volunteer',{checkpoint_id:Number(checkpoint_id),vk_user_id});toast(r.message);await load();}catch(e){toast(e.message,true);}}));
-      } catch(e) {$('volunteerList').innerHTML=showNotice(e.message,'error');}
+        const assignedIds=new Set(volunteerRows.map(x=>String(x.vk_user_id)));
+        const activity=(a.logs||[]).filter(x=>assignedIds.has(String(x.actor_id))).slice(0,20);
+        $('volunteerActivity').innerHTML=activity.map(x=>{
+          let details={};try{details=JSON.parse(x.details_json||'{}')}catch(_){}
+          return `<article class="list-item"><strong>${safe(String(x.action||'Activity').replaceAll('_',' '))}</strong><div class="sub">VK ID: ${safe(x.actor_id)} · ${safe(x.target_type||'')} ${safe(x.target_id||'')}</div><div class="sub">${safe(new Date(x.created_at).toLocaleString())}${details.checkpoint_name?' · '+safe(details.checkpoint_name):''}</div></article>`;
+        }).join('')||'<div class="empty">No recorded volunteer activity for this event yet.</div>';
+        const team=await adminCall('checkpoint_team');
+        $('checkpointAssignments').innerHTML=(team.assignments||[]).map(x=>`<div class="list-item row"><div><strong>${safe(x.vk_user_id)}</strong><div class="sub">${safe(x.checkpoint_name)}</div></div><button class="btn danger small" data-remove-checkpoint="${Number(x.checkpoint_id)}|${safe(x.vk_user_id)}">Remove</button></div>`).join('')||'<div class="empty">No checkpoint-specific assignments.</div>';
+        document.querySelectorAll('[data-remove-checkpoint]').forEach(b=>b.addEventListener('click',async()=>{
+          const [checkpoint_id,vk_user_id]=b.dataset.removeCheckpoint.split('|');
+          try{const r=await adminCall('remove_checkpoint_volunteer',{checkpoint_id:Number(checkpoint_id),vk_user_id});toast(r.message);await load();}
+          catch(e){toast(e.message,true);}
+        }));
+      }catch(e){$('volunteerList').innerHTML=showNotice(e.message,'error');$('volunteerActivity').innerHTML=showNotice(e.message,'error');}
     };
     $('refreshStaff').addEventListener('click',load);
-    $('addVolunteer').addEventListener('submit',async e=>{e.preventDefault();try{const r=await adminCall('assign_event_volunteer',{vk_user_id:$('volunteerId').value.trim(),role:$('volunteerRole').value});toast(r.message);$('volunteerId').value='';await load();}catch(err){toast(err.message,true);}});
-    $('checkpointAssignment').addEventListener('submit',async e=>{e.preventDefault();try{const r=await adminCall('assign_checkpoint_volunteer',{checkpoint_id:Number($('checkpointId').value),vk_user_id:$('checkpointVolunteerId').value.trim()});toast(r.message);$('checkpointVolunteerId').value='';await load();}catch(err){toast(err.message,true);}});
+    $('volunteerSearch').addEventListener('input',drawVolunteers);
+    $('volunteerRoleFilter').addEventListener('change',drawVolunteers);
+    $('addVolunteer').addEventListener('submit',async e=>{e.preventDefault();const submit=e.currentTarget.querySelector('button[type="submit"]');submit.disabled=true;try{const r=await adminCall('assign_event_volunteer',{vk_user_id:$('volunteerId').value.trim(),role:$('volunteerRole').value});toast(r.message);$('volunteerId').value='';await load();}catch(err){toast(err.message,true);}finally{submit.disabled=false;}});
+    $('checkpointAssignment').addEventListener('submit',async e=>{e.preventDefault();const submit=e.currentTarget.querySelector('button[type="submit"]');submit.disabled=true;try{const r=await adminCall('assign_checkpoint_volunteer',{checkpoint_id:Number($('checkpointId').value),vk_user_id:$('checkpointVolunteerId').value.trim()});toast(r.message);$('checkpointVolunteerId').value='';await load();}catch(err){toast(err.message,true);}finally{submit.disabled=false;}});
     await load();
   }
   async function refresh() { try{await stopScanner();await loadRole();if(state.eventId)await loadEvent();else renderEventList();toast('Updated');}catch(e){toast(e.message,true);} }
