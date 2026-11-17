@@ -376,6 +376,9 @@ async function adminApi(request, env) {
   if(action==="backup") {
     const event=await getEvent();
     if(!event) return fail("Event workspace not found.",404);
+    const recent=await env.DB.prepare("SELECT COUNT(*) AS n FROM event_backup_snapshots WHERE event_id=? AND created_by=? AND created_at>=?")
+      .bind(eventId,uid,new Date(Date.now()-60000).toISOString()).first();
+    if((recent?.n||0)>0) return fail("A backup was just created. Wait one minute before downloading another copy.",429);
     const queries=[
       ["events","SELECT * FROM events WHERE id=? ORDER BY id",[eventId]],
       ["app_users","SELECT * FROM app_users WHERE vk_user_id IN (SELECT vk_user_id FROM event_app_users WHERE event_id=?) ORDER BY vk_user_id",[eventId]],
@@ -401,7 +404,7 @@ async function adminApi(request, env) {
     ];
     const tables={};let totalRows=0;
     for(const [table,sql,params] of queries) {
-      const result=await env.DB.prepare(sql).bind(...params).all();
+      const result=await env.DB.prepare(sql+" LIMIT 5001").bind(...params).all();
       const rows=result.results||[];
       if(rows.length>5000) return fail("This event is too large for a single in-app backup. Use the Cloudflare D1 export procedure in the admin guide.",413);
       totalRows+=rows.length;
