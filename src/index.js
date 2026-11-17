@@ -593,6 +593,85 @@ async function adminApi(request, env) {
     const row=await env.DB.prepare("SELECT COUNT(*) pending,SUM(CASE WHEN attempts>0 THEN 1 ELSE 0 END) retrying,MIN(created_at) oldest FROM sheets_outbox WHERE event_id=? AND synced_at IS NULL").bind(eventId).first();
     return json({ok:true,configured:!!env.SHEETS_SYNC_URL&&!!env.SHEETS_SYNC_SECRET,pending:row.pending||0,retrying:row.retrying||0,oldestCreatedAt:row.oldest||""});
   }
+
+  if(action==="announcement_preview"||action==="announcement_send") {
+    const event=await getEvent(); if(!event||event.status==="archived") return fail("Choose a valid, non-archived event.",409);
+    const audience=String(data.audience||""), message=String(data.message||"").trim();
+    if(!["registered_guests","all_started"].includes(audience)) return fail("Choose approved guests or users who opened this event.");
+    if(!message||message.length>3500) return fail("Enter a message between 1 and 3500 characters.");
+    const count=audience==="registered_guests"
+      ? await env.DB.prepare("SELECT COUNT(*) n FROM guests WHERE event_id=? AND status='approved' AND vk_user_id IS NOT NULL").bind(eventId).first()
+      : await env.DB.prepare("SELECT COUNT(*) n FROM app_users").first();
+    if(action==="announcement_preview") return json({ok:true,event:{id:eventId,name:event.name},audience,recipient_count:count.n||0,message,note:"VK messages can only be delivered to users who have opened the community conversation or allowed community messages."});
+    if(!env.VK_GROUP_TOKEN) return fail("VK group messaging is not configured yet. Set VK_GROUP_TOKEN as a Worker secret before sending announcements.",409);
+    const inserted=await env.DB.prepare("INSERT INTO event_announcements(event_id,created_by,message,created_at,recipients) VALUES(?,?,?,?,?)").bind(eventId,uid,message,now(),count.n||0).run();
+    const announcementId=inserted.meta.last_row_id;
+    if(audience==="registered_guests") {
+      await env.DB.prepare("INSERT INTO announcement_deliveries(announcement_id,vk_user_id,status,error,delivered_at) SELECT ?,vk_user_id,'pending','',? FROM guests WHERE event_id=? AND status='approved' AND vk_user_id IS NOT NULL").bind(announcementId,now(),eventId).run();
+    } else {
+      await env.DB.prepare("INSERT INTO announcement_deliveries(announcement_id,vk_user_id,status,error,delivered_at) SELECT ?,vk_user_id,'pending','',? FROM app_users").bind(announcementId,now()).run();
+    }
+    await log("ANNOUNCEMENT_QUEUED","announcement",announcementId,{audience,recipients:count.n||0});
+    return json({ok:true,announcement_id:announcementId,attempted:0,sent:0,failed:0,remaining:count.n||0,message:"Announcement queued. VK delivery will run in small batches."});
+  }
+  if(action==="announcement_process") {
+    if(!env.VK_GROUP_TOKEN) return fail("VK group messaging is not configured.",409);
+    const announcementId=Number(data.announcement_id||0);
+    const announcement=await env.DB.prepare("SELECT * FROM event_announcements WHERE id=? AND event_id=?").bind(announcementId,eventId).first();
+    if(!announcement) return fail("Announcement not found.",404);
+    const pending=await env.DB.prepare("SELECT id,vk_user_id FROM announcement_deliveries WHERE announcement_id=? AND status='pending' ORDER BY id LIMIT 10").bind(announcementId).all();
+    let sent=0,failed=0;
+    for(const recipient of pending.results) {
+      try {
+        const form=new URLSearchParams({access_token:env.VK_GROUP_TOKEN,v:"5.199",peer_id:recipient.vk_user_id,random_id:String(crypto.getRandomValues(new Uint32Array(1))[0] & 0x7fffffff),message:announcement.message});
+        const response=await fetch("https://api.vk.com/method/messages.send",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:form.toString()});
+        const result=await response.json();
+        if(result.response) {
+          await env.DB.prepare("UPDATE announcement_deliveries SET status='sent',message_id=?,delivered_at=?,error='' WHERE id=?").bind(String(result.response),now(),recipient.id).run(); sent++;
+        } else {
+          const reason=String(result.error?.error_msg||"VK delivery failed").slice(0,400);
+          await env.DB.prepare("UPDATE announcement_deliveries SET status='failed',error=?,delivered_at=? WHERE id=?").bind(reason,now(),recipient.id).run(); failed++;
+        }
+      } catch(e) {
+        await env.DB.prepare("UPDATE announcement_deliveries SET status='failed',error=?,delivered_at=? WHERE id=?").bind(String(e.message||"Network error").slice(0,400),now(),recipient.id).run(); failed++;
+      }
+    }
+    const remaining=await env.DB.prepare("SELECT COUNT(*) n FROM announcement_deliveries WHERE announcement_id=? AND status='pending'").bind(announcementId).first();
+    const totals=await env.DB.prepare("SELECT SUM(CASE WHEN status='sent' THEN 1 ELSE 0 END) sent,SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) failed FROM announcement_deliveries WHERE announcement_id=?").bind(announcementId).first();
+    await env.DB.prepare("UPDATE event_announcements SET recipients=? WHERE id=?").bind(totals.sent||0,announcementId).run();
+    return json({ok:true,announcement_id:announcementId,sent,failed,remaining:remaining.n||0,total_sent:totals.sent||0,total_failed:totals.failed||0,message:"Processed "+(sent+failed)+" VK message(s). "+(remaining.n||0)+" remaining."});
+  }
+  if(action==="announcement_history") {
+    const rows=await env.DB.prepare("SELECT a.id,a.event_id,a.message,a.created_at,a.recipients,SUM(CASE WHEN d.status='failed' THEN 1 ELSE 0 END) failed,SUM(CASE WHEN d.status='pending' THEN 1 ELSE 0 END) pending FROM event_announcements a LEFT JOIN announcement_deliveries d ON d.announcement_id=a.id WHERE a.event_id=? GROUP BY a.id ORDER BY a.id DESC LIMIT 50").bind(eventId).all();
+    return json({ok:true,announcements:rows.results});
+  }
+  if(action==="announcement_unsend") {
+    if(!env.VK_GROUP_TOKEN) return fail("VK group messaging is not configured.",409);
+    const announcementId=Number(data.announcement_id||0);
+    const rows=await env.DB.prepare("SELECT id,vk_user_id,message_id FROM announcement_deliveries WHERE announcement_id=? AND status='sent' AND message_id IS NOT NULL").bind(announcementId).all();
+    let deleted=0,failed=0;
+    for(const row of rows.results) {
+      try {
+        const form=new URLSearchParams({access_token:env.VK_GROUP_TOKEN,v:"5.199",peer_id:row.vk_user_id,message_ids:String(row.message_id),delete_for_all:"1"});
+        const response=await fetch("https://api.vk.com/method/messages.delete",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:form.toString()});
+        const result=await response.json();
+        if(result.response!==undefined) { await env.DB.prepare("UPDATE announcement_deliveries SET status='deleted',error='Unsent by EventHub admin' WHERE id=?").bind(row.id).run(); deleted++; }
+        else { await env.DB.prepare("UPDATE announcement_deliveries SET error=? WHERE id=?").bind(String(result.error?.error_msg||"VK delete failed").slice(0,400),row.id).run(); failed++; }
+      } catch(e) { await env.DB.prepare("UPDATE announcement_deliveries SET error=? WHERE id=?").bind(String(e.message||"Network error").slice(0,400),row.id).run(); failed++; }
+    }
+    await log("ANNOUNCEMENT_UNSEND","announcement",announcementId,{deleted,failed});
+    return json({ok:true,deleted,failed,unavailable:0,message:"VK unsend attempt finished. Deleted: "+deleted+"; failed: "+failed+"."});
+  }
+  if(action==="announcement_delete") {
+    const announcementId=Number(data.announcement_id||0);
+    const row=await env.DB.prepare("SELECT id FROM event_announcements WHERE id=? AND event_id=?").bind(announcementId,eventId).first();
+    if(!row) return fail("Announcement not found.",404);
+    await env.DB.prepare("DELETE FROM announcement_deliveries WHERE announcement_id=?").bind(announcementId).run();
+    await env.DB.prepare("DELETE FROM event_announcements WHERE id=?").bind(announcementId).run();
+    await log("ANNOUNCEMENT_HISTORY_DELETED","announcement",announcementId,{history_only:true});
+    return json({ok:true,message:"Announcement history deleted. Messages already delivered are not removed."});
+  }
+
   if(action==="admins") {
     const rows=await env.DB.prepare("SELECT vk_user_id,added_at,added_by FROM app_admins ORDER BY added_at").all();
     return json({ok:true,admins:rows.results,configured_admin_ids:String(env.VK_ADMIN_IDS||"").split(",").map(x=>x.trim()).filter(Boolean)});
