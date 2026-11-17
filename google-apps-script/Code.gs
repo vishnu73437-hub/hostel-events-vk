@@ -157,6 +157,11 @@ function ehDate_(value) {
   return value;
 }
 
+function ehSafeCellValue_(value) {
+  if (typeof value === "string" && /^[=+\\-@]/.test(value)) return "'" + value;
+  return value;
+}
+
 function ehMillis_(value) {
   if (value instanceof Date) return value.getTime();
   if (value === null || value === undefined || value === "") return 0;
@@ -192,7 +197,7 @@ function ehUpsertRow_(ss,tabName,columns,payload) {
     if (!keyName || !Object.prototype.hasOwnProperty.call(payload,keyName)) return;
     let value = payload[keyName];
     if (/_time|_at|last_updated|^entry_time$|^exit_time$/i.test(keyName)) value = ehDate_(value);
-    row[i] = value === null || value === undefined ? "" : value;
+    row[i] = value === null || value === undefined ? "" : ehSafeCellValue_(value);
   });
   if (rowNumber) sh.getRange(rowNumber,1,1,allHeaders.length).setValues([row]);
   else {
@@ -253,7 +258,7 @@ function ehHandleEventLog_(ss,eventId,p) {
     "Time Zone":p.timezone || EH_DEFAULT_TZ,"Checkpoint ID":p.checkpoint_id || "",
     "Checkpoint Name":p.checkpoint_name || ""
   };
-  const row = headers.map(h => Object.prototype.hasOwnProperty.call(values,h) ? values[h] : "");
+  const row = headers.map(h => Object.prototype.hasOwnProperty.call(values,h) ? ehSafeCellValue_(values[h]) : "");
   sh.appendRow(row);
   props.setProperty(serialKey,String(serial));
   const last = sh.getLastRow();
