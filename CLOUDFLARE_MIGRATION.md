@@ -40,7 +40,7 @@ Implemented on the migration branch:
 - VK launch signature validation with a one-hour freshness window and app-ID check.
 - Event-scoped role lookup, event selection, event details, registration and approved-pass retrieval.
 - Locally generated QR SVG pass payloads; no QR image CDN dependency.
-- Event-scoped entry, food, proof deposit, no-proof, proof return, exit, and additional checkpoint scan endpoints.
+- Event-scoped entry, food, proof deposit, no-proof, proof return, exit, and assigned additional checkpoint scan endpoints; checkpoint scans also enter the Google Sheets event-log outbox.
 - Configurable proof-storage capacity with active-slot uniqueness and refusal to shrink around occupied slots.
 - Event-scoped admin actions for lifecycle, approvals, guest pass actions, volunteers, checkpoint teams, reports, audit and settings.
 - VK community announcement queue with small delivery batches and unsend history.
