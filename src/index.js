@@ -511,7 +511,6 @@ async function adminApi(request, env) {
     const guestId=Number(data.guest_id||0);
     const guest=await env.DB.prepare("SELECT * FROM guests WHERE id=? AND event_id=?").bind(guestId,eventId).first();
     if(!guest) return fail("Guest record not found in this event.",404);
-    if(guest.status==="revoked") return fail("Reactivate this pass before editing guest details.",409);
     const event=await getEvent();
     let schema=[];
     try { schema=JSON.parse(event?.registration_schema||"[]"); } catch { schema=[]; }
@@ -524,7 +523,7 @@ async function adminApi(request, env) {
     const allowed=new Set(["text","tel","email","number","date","textarea","select","checkbox"]);
     const cleaned={};
     for(const field of schema) {
-      if(!field||typeof field.key!=="string"||!allowed.has(field.type||"text")) return fail("The event registration form contains an invalid field.");
+      if(!field||typeof field.key!=="string"||!/^[a-zA-Z][a-zA-Z0-9_]{0,39}$/.test(field.key)||!allowed.has(field.type||"text")) return fail("The event registration form contains an invalid field.");
       const key=field.key,type=field.type||"text",label=String(field.label||key).slice(0,80);
       let value=fields[key]??(type==="checkbox"?false:"");
       if(type==="checkbox") {
