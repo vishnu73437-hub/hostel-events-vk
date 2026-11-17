@@ -24,6 +24,7 @@ test("Apps Script receiver authenticates and isolates both supported actions by 
 test("worker uses one stable VK-based guest key for pending, approved and event-log sheet rows", () => {
   assert.match(worker, /guest_id:"event:"\+eventId\+":vk:"\+guest\.vk_user_id/);
   assert.equal((worker.match(/guest_id:snapshot\.guest_id/g) || []).length, 2);
+  assert.equal(worker.split('action:"event_log",action_id:crypto.randomUUID(),event_id:eventId').length - 1, 2);
 });
 
 test("event-log retry updates live tabs but deduplicates append-only actions", () => {
