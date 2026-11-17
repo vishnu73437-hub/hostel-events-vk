@@ -440,7 +440,16 @@
       $('refreshStats')?.addEventListener('click',()=>renderAdminPage('overview'));
       $('refreshSheetsStatus')?.addEventListener('click',async()=>{
         const target=$('sheetsStatus'); target.textContent='Checking…';
-        try { const q=await adminCall('sheets_queue_status'); target.textContent=q.configured?`Configured · ${Number(q.pending||0)} queued · ${Number(q.retrying||0)} retrying · ${q.timezone||'event timezone'}`:'Not configured. Ask the admin to check SHEETS_SYNC_URL and SHEETS_SYNC_SECRET.'; if(q.lastError) target.textContent+=` · Latest error: ${q.lastError}`; }
+        try {
+          const q=await adminCall('sheets_queue_status');
+          const parts=[q.configured?'Configured':'Not configured',Number(q.pending||0)+' queued',Number(q.retrying||0)+' retrying'];
+          if(!q.endpointConfigured)parts.push('Sheets endpoint missing');
+          if(!q.secretConfigured)parts.push('sync secret missing');
+          if(q.oldestCreatedAt)parts.push('oldest queued: '+new Date(q.oldestCreatedAt).toLocaleString());
+          target.textContent=parts.join(' · ');
+          if(q.lastError)target.textContent+=' · Latest error: '+q.lastError;
+          if(!q.configured&&Number(q.pending||0)>0)target.textContent+=' · Data remains safely queued in EventHub; nothing has been discarded.';
+        }
         catch(err){target.textContent=err.message;}
       });
       bindAdminNavInPanel();
