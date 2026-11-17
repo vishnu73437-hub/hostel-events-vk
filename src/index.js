@@ -328,7 +328,7 @@ async function actionApi(request, env) {
   await audit(env,uid,action.toUpperCase()+"_RECORDED","guest",guest.id,{stage:action},eventId);
   const snapshot=await guestSheetsPayload(env,eventId,guest.id);
   const currentStorage=await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first();
-  const actionLog={action:"event_log",action_id:crypto.randomUUID(),guest_id:"event:"+eventId+":"+guest.id,guest_serial_number:guest.id,guest_name:guest.full_name,pass_code:guest.pass_code,action_type:action.toUpperCase(),action_time_utc:stamp,storage_number:currentStorage?String(currentStorage.box_number):"",storage_label:currentStorage?("Box "+currentStorage.box_number+" / Section "+currentStorage.section_letter+" / Slot "+String(currentStorage.slot_number||"")):"",food_preference:guest.food_preference,volunteer_name:"VK user "+uid,volunteer_id:uid,details:action.replaceAll("_"," "),timezone:event.timezone||"Europe/Moscow",guest_snapshot:snapshot};
+  const actionLog={action:"event_log",action_id:crypto.randomUUID(),guest_id:snapshot.guest_id,guest_serial_number:guest.id,guest_name:guest.full_name,pass_code:guest.pass_code,action_type:action.toUpperCase(),action_time_utc:stamp,storage_number:currentStorage?String(currentStorage.box_number):"",storage_label:currentStorage?("Box "+currentStorage.box_number+" / Section "+currentStorage.section_letter+" / Slot "+String(currentStorage.slot_number||"")):"",food_preference:guest.food_preference,volunteer_name:"VK user "+uid,volunteer_id:uid,details:action.replaceAll("_"," "),timezone:event.timezone||"Europe/Moscow",guest_snapshot:snapshot};
   await outbox(env,eventId,guest.id,"event_log",actionLog);
   const fresh=await env.DB.prepare("SELECT * FROM guests WHERE id=?").bind(guest.id).first();
   const currentProof=await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first();
@@ -374,7 +374,7 @@ async function checkpointScanApi(request, env) {
   await audit(env,uid,"CHECKPOINT_SCAN","guest",guest.id,{checkpoint_id:checkpointId,checkpoint_name:checkpoint.name},eventId);
   const snapshot=await guestSheetsPayload(env,eventId,guest.id);
   await outbox(env,eventId,guest.id,"event_log",{
-    action:"event_log",action_id:crypto.randomUUID(),guest_id:"event:"+eventId+":"+guest.id,
+    action:"event_log",action_id:crypto.randomUUID(),guest_id:snapshot.guest_id,
     guest_serial_number:guest.id,guest_name:guest.full_name,pass_code:guest.pass_code,
     action_type:"CHECKPOINT_SCAN",action_time_utc:now(),checkpoint_id:checkpointId,
     checkpoint_name:checkpoint.name,volunteer_name:"VK user "+uid,volunteer_id:uid,
@@ -825,7 +825,7 @@ async function guestSheetsPayload(env,eventId,guestId) {
   const storageNumber=proof?String(proof.box_number):"";
   const storageLabel=proof?("Box "+proof.box_number+" / Section "+proof.section_letter+" / Slot "+String(proof.slot_number||"")):"";
   return {
-    guest_id:"event:"+eventId+":"+guest.id,serial_number:guest.id,name:guest.full_name,email:guest.email||"",phone:guest.phone||"",
+    guest_id:"event:"+eventId+":vk:"+guest.vk_user_id,serial_number:guest.id,name:guest.full_name,email:guest.email||"",phone:guest.phone||"",
     residence:guest.residence||guest.residence_type||"",hostel_number:guest.hostel_number||guest.hostel||"",
     room_number:guest.room_number||guest.room||"",food:guest.food_preference||"Not applicable",
     registration_status:guest.status,pass_code:guest.pass_code||"",qr_status:guest.status==="approved"&&!guest.revoked_at?"Active":"Inactive",
