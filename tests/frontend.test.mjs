@@ -59,6 +59,6 @@ test("offline QR queue clearly distinguishes saved scans from attendance", () =>
 test("VK Bridge CDN cannot block the EventHub application startup", () => {
   const bridgeTag = frontend.match(/<script[^>]*id="vkBridgeScript"[^>]*>/)?.[0] || "";
   assert.ok(bridgeTag, "VK Bridge script must have a stable element ID");
-  assert.match(bridgeTag, /\\basync\\b/, "VK Bridge must load asynchronously");
+  assert.match(bridgeTag, /\basync\b/, "VK Bridge must load asynchronously");
   assert.ok(frontend.includes("addEventListener('load', initializeVkBridge"), "VK initialization must run when the async bridge becomes available");
 });
