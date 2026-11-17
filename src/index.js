@@ -24,10 +24,10 @@ async function authenticate(request, env) {
   const signedParams = [...params.entries()]
     .filter(([key]) => key.startsWith("vk_"))
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => encodeURIComponent(key) + "=" + encodeURIComponent(value))
-    .join("&");
+    .map(([key, value]) => [key, value]);
+  const signedQuery = new URLSearchParams(signedParams).toString();
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(env.VK_APP_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const digest = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signedParams)));
+  const digest = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signedQuery)));
   const expected = btoa(String.fromCharCode(...digest)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
   if (!safeEqual(expected, sign)) throw new Error("VK launch signature verification failed.");
   const ts = Number(params.get("vk_ts"));
