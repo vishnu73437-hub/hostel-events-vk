@@ -416,8 +416,6 @@ async function adminApi(request, env) {
     const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical))),b=>b.toString(16).padStart(2,"0")).join("");
     const snapshot=await env.DB.prepare("INSERT INTO event_backup_snapshots(event_id,created_by,file_name,created_at,note,sha256) VALUES(?,?,?,?,?,?)")
       .bind(eventId,uid,fileName,createdAt,"Admin downloaded full event backup",digest).run();
-    tables.event_backup_snapshots.push({id:snapshot.meta.last_row_id,event_id:eventId,created_by:uid,file_name:fileName,created_at:createdAt,note:"Admin downloaded full event backup",sha256:digest});
-    backup.row_counts.event_backup_snapshots=tables.event_backup_snapshots.length;
     backup.sha256=digest;
     await log("EVENT_BACKUP_CREATED","event",eventId,{file_name:fileName,sha256:digest,rows:totalRows+1});
     return new Response(JSON.stringify(backup),{headers:{
