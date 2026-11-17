@@ -744,11 +744,13 @@ async function adminApi(request, env) {
     return json({ok:true,logs:rows.results});
   }
   if(action==="sheets_queue_status") {
-    const [row,event]=await Promise.all([
+    const [row,event,latestError]=await Promise.all([
       env.DB.prepare("SELECT COUNT(*) pending,SUM(CASE WHEN attempts>0 THEN 1 ELSE 0 END) retrying,MIN(created_at) oldest FROM sheets_outbox WHERE event_id=? AND synced_at IS NULL").bind(eventId).first(),
-      getEvent()
+      getEvent(),
+      env.DB.prepare("SELECT last_error FROM sheets_outbox WHERE event_id=? AND synced_at IS NULL AND last_error<>'' ORDER BY id DESC LIMIT 1").bind(eventId).first()
     ]);
-    return json({ok:true,configured:!!env.SHEETS_SYNC_SECRET&&!!(event?.sheets_url||env.SHEETS_SYNC_URL),pending:row.pending||0,retrying:row.retrying||0,oldestCreatedAt:row.oldest||""});
+    const endpointConfigured=!!(event?.sheets_url||env.SHEETS_SYNC_URL),secretConfigured=!!env.SHEETS_SYNC_SECRET;
+    return json({ok:true,configured:endpointConfigured&&secretConfigured,endpointConfigured,secretConfigured,pending:row.pending||0,retrying:row.retrying||0,oldestCreatedAt:row.oldest||"",lastError:latestError?.last_error||""});
   }
   if(action==="sheets_sync") {
     if(!await getEvent()) return fail("Event workspace not found.",404);
