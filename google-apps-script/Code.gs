@@ -158,7 +158,7 @@ function ehDate_(value) {
 }
 
 function ehSafeCellValue_(value) {
-  if (typeof value === "string" && /^[=+\\-@]/.test(value)) return "'" + value;
+  if (typeof value === "string" && /^[=+\-@]/.test(value)) return "'" + value;
   return value;
 }
 
