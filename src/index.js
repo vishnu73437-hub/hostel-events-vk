@@ -41,18 +41,23 @@ function isAdmin(uid, env) {
   const ids = String(env.VK_ADMIN_IDS || "").split(",").map(x => x.trim()).filter(Boolean);
   return ids.includes(uid);
 }
+async function hasAdmin(uid, env) {
+  if (isAdmin(uid, env)) return true;
+  const row = await env.DB.prepare("SELECT 1 AS ok FROM app_admins WHERE vk_user_id=?").bind(uid).first();
+  return !!row;
+}
 async function requireUser(request, env) {
   try { return await authenticate(request, env); }
   catch (e) { throw Object.assign(new Error(e.message), { status: 401 }); }
 }
 async function requireAdmin(request, env) {
   const uid = await requireUser(request, env);
-  if (!isAdmin(uid, env)) throw Object.assign(new Error("Administrator access required."), { status: 403 });
+  if (!(await hasAdmin(uid, env))) throw Object.assign(new Error("Administrator access required."), { status: 403 });
   return uid;
 }
 async function requireStaff(request, env) {
   const uid = await requireUser(request, env);
-  if (isAdmin(uid, env)) return uid;
+  if (await hasAdmin(uid, env)) return uid;
   const row = await env.DB.prepare("SELECT active FROM volunteers WHERE vk_user_id=?").bind(uid).first();
   if (!row || !row.active) throw Object.assign(new Error("Approved volunteer access required."), { status: 403 });
   return uid;
@@ -79,7 +84,7 @@ const asGuest = row => row ? { ...row } : null;
 
 
 async function eventRole(uid, eventId, env) {
-  if (isAdmin(uid, env)) return "admin";
+  if (await hasAdmin(uid, env)) return "admin";
   const global = await env.DB.prepare("SELECT 1 AS ok FROM global_volunteers WHERE vk_user_id=?").bind(uid).first();
   const legacyGlobal = await env.DB.prepare("SELECT 1 AS ok FROM volunteers WHERE vk_user_id=?").bind(uid).first();
   if (global || legacyGlobal) return "global";
@@ -93,7 +98,7 @@ async function roleApi(request, env) {
   const eventId = Number(data.event_id || 0);
   const user = await env.DB.prepare("INSERT INTO app_users(vk_user_id,first_seen_at,last_seen_at,display_name,screen_name) VALUES(?,?,?,?,?) ON CONFLICT(vk_user_id) DO UPDATE SET last_seen_at=excluded.last_seen_at RETURNING vk_user_id")
     .bind(uid, now(), now(), "VK user " + uid, "").first();
-  const admin = isAdmin(uid, env);
+  const admin = await hasAdmin(uid, env);
   const global = await env.DB.prepare("SELECT 1 AS ok FROM global_volunteers WHERE vk_user_id=? UNION SELECT 1 AS ok FROM volunteers WHERE vk_user_id=? LIMIT 1").bind(uid, uid).first();
   let events;
   if (admin || global) {
@@ -118,7 +123,7 @@ async function eventDetailsApi(request, env) {
   const eventId = Number(data.event_id || 0);
   if (!Number.isSafeInteger(eventId) || eventId <= 0) return fail("A valid event ID is required.");
   const event = await env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
-  if (!event || (event.status !== "active" && !isAdmin(uid, env))) return fail("This event page is unavailable or archived.", 404);
+  if (!event || (event.status !== "active" && !(await hasAdmin(uid, env)))) return fail("This event page is unavailable or archived.", 404);
   const foodEnabled = asBool(event.food_enabled);
   return json({ ok: true, event, event_id: eventId, food_collection_enabled: foodEnabled, time: event.event_time || "To be announced" });
 }
@@ -339,7 +344,7 @@ async function api(request, env) {
     const volunteer = await env.DB.prepare("SELECT 1 AS ok FROM volunteers WHERE vk_user_id=? AND active=1").bind(uid).first();
     const safeEvent = { ...event, food_enabled: asBool(event.food_enabled) };
     return json({
-      user: { vk_user_id: uid, is_admin: isAdmin(uid, env), is_volunteer: isAdmin(uid, env) || !!volunteer },
+      user: { vk_user_id: uid, is_admin: await hasAdmin(uid, env), is_volunteer: (await hasAdmin(uid, env)) || !!volunteer },
       event: safeEvent, food_collection_enabled: safeEvent.food_enabled,
       registration: asGuest(guest),
       scans: Object.fromEntries((scanRows.results || []).map(x => [x.stage, x.scanned_at]))
