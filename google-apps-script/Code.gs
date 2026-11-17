@@ -17,22 +17,18 @@ const EH_VERSION = "5";
 const EH_DEFAULT_TZ = "Europe/Moscow";
 
 const EH_LIVE = [
-  ["Serial Number","serial_number"],["Guest ID","guest_id"],["Guest Name","name"],
+  ["Guest ID","guest_id"],["Serial Number","serial_number"],["Guest Name","name"],
   ["Phone","phone"],["Residence","residence"],["Hostel Number","hostel_number"],
   ["Room Number","room_number"],["Food Preference","food"],["Registration Status","registration_status"],
   ["Pass Code","pass_code"],["QR Status","qr_status"],["Entry Status","entry_status"],
-  ["Entry Time","entry_time"],["Food Status","food_status"],["Food Collection Time","food_collection_time"],
-  ["Proof Status","proof_status"],["Storage Number","storage_number"],["Storage Location","storage_label"],
-  ["Storage Box","storage_box"],["Storage Section","storage_section"],["Storage Slot","storage_slot"],
-  ["Proof Assigned Time","proof_assigned_time"],["Proof Stored Time","proof_stored_time"],
-  ["Proof Return Time","proof_return_time"],["No-Proof Confirmation Time","proof_no_proof_time"],
-  ["Exit Time","exit_time"],["Time Zone","timezone"],["Last Updated","last_updated"],
-  ["Last Action","last_action_type"],["Last Action Time","last_action_time"],
-  ["Last Volunteer Name","last_volunteer_name"],["Last Volunteer ID","last_volunteer_id"],
-  ["Entry Volunteer Name","entry_volunteer_name"],["Food Volunteer Name","food_volunteer_name"],
-  ["Proof Volunteer Name","proof_volunteer_name"],["Proof Return Volunteer Name","proof_return_volunteer_name"],
-  ["No-Proof Volunteer Name","proof_no_proof_volunteer_name"],["Exit Volunteer Name","exit_volunteer_name"],
-  ["Registration Time","registered_at"]
+  ["Food Collection Status","food_status"],["Registered At","registered_at"],["Entry Time","entry_time"],
+  ["Food Collection Time","food_collection_time"],["Timezone","timezone"],["Last Updated","last_updated"],
+  ["Event ID","event_id"],["Proof Status","proof_status"],["Storage Box","storage_box"],
+  ["Storage Section","storage_section"],["Storage Slot","storage_slot"],["Storage Number","storage_number"],
+  ["Storage Label","storage_label"],["Proof Assigned Time","proof_assigned_time"],["Proof Stored Time","proof_stored_time"],
+  ["Proof Return Time","proof_return_time"],["Proof No-Proof Time","proof_no_proof_time"],
+  ["Proof Volunteer ID","proof_volunteer_id"],["Proof Return Volunteer ID","proof_return_volunteer_id"],
+  ["Proof No-Proof Volunteer ID","proof_no_proof_volunteer_id"],["Exit Time","exit_time"],["Exit Volunteer ID","exit_volunteer_id"]
 ];
 
 const EH_FOOD = [
