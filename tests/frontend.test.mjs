@@ -62,3 +62,26 @@ test("VK Bridge CDN cannot block the EventHub application startup", () => {
   assert.match(bridgeTag, /\basync\b/, "VK Bridge must load asynchronously");
   assert.ok(frontend.includes("addEventListener('load', initializeVkBridge"), "VK initialization must run when the async bridge becomes available");
 });
+test("Russian translations cover dashboard, admin, volunteer, scanner and storage screens", () => {
+  for (const [source, translated] of [
+    ["Event overview", "Обзор мероприятия"],
+    ["Google Sheets sync", "Синхронизация с Google Таблицами"],
+    ["Registration form builder", "Конструктор регистрационной формы"],
+    ["Event volunteer access", "Доступ волонтёров к мероприятию"],
+    ["Proof storage", "Хранение вещей"],
+    ["Announcement history", "История объявлений"],
+    ["Automatic database recovery", "Автоматическое восстановление базы данных"],
+    ["The server took too long to respond. Check the connection and try again.", "Сервер слишком долго не отвечает."],
+    ["Could not reach EventHub. Check your internet connection and Cloudflare API address.", "Не удалось подключиться к EventHub."]
+  ]) {
+    assert.ok(frontend.includes(source), `missing English UI phrase: ${source}`);
+    assert.ok(frontend.includes(translated), `missing Russian translation: ${translated}`);
+  }
+});
+
+test("toast messages and native confirmation dialogs use the selected language", () => {
+  assert.ok(frontend.includes("translateLanguageText(el.__eventHubToastSource)"));
+  assert.ok(frontend.includes("function confirmLocalized(message)"));
+  assert.ok(frontend.includes("function promptLocalized(message"));
+  assert.ok(frontend.includes("confirmLocalized("));
+});
