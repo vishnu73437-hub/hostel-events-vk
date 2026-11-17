@@ -372,6 +372,15 @@ async function checkpointScanApi(request, env) {
     throw e;
   }
   await audit(env,uid,"CHECKPOINT_SCAN","guest",guest.id,{checkpoint_id:checkpointId,checkpoint_name:checkpoint.name},eventId);
+  const snapshot=await guestSheetsPayload(env,eventId,guest.id);
+  await outbox(env,eventId,guest.id,"event_log",{
+    action:"event_log",action_id:crypto.randomUUID(),guest_id:"event:"+eventId+":"+guest.id,
+    guest_serial_number:guest.id,guest_name:guest.full_name,pass_code:guest.pass_code,
+    action_type:"CHECKPOINT_SCAN",action_time_utc:now(),checkpoint_id:checkpointId,
+    checkpoint_name:checkpoint.name,volunteer_name:"VK user "+uid,volunteer_id:uid,
+    details:"Additional checkpoint: "+checkpoint.name,timezone:(await env.DB.prepare("SELECT timezone FROM events WHERE id=?").bind(eventId).first())?.timezone||"Europe/Moscow",
+    guest_snapshot:snapshot
+  });
   return json({ok:true,message:checkpoint.name+" recorded for "+guest.full_name,guest:{id:guest.id,name:guest.full_name}});
 }
 
