@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS events (
   theme_json TEXT NOT NULL DEFAULT '{}',
   registration_schema TEXT NOT NULL DEFAULT '[]',
   status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','active','archived')),
+  active INTEGER NOT NULL DEFAULT 0,
   registration_open INTEGER NOT NULL DEFAULT 1,
   food_enabled INTEGER NOT NULL DEFAULT 1,
   timezone TEXT NOT NULL DEFAULT 'Europe/Moscow',
@@ -22,6 +23,7 @@ CREATE TABLE IF NOT EXISTS events (
   archived_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_events_status ON events(status,id);
+CREATE INDEX IF NOT EXISTS idx_events_active ON events(active,id);
 
 CREATE TABLE IF NOT EXISTS guests (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,6 +93,12 @@ CREATE TABLE IF NOT EXISTS app_admins (
   added_at TEXT NOT NULL,
   added_by TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS volunteers (
+  vk_user_id TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL DEFAULT '',
+  added_at TEXT NOT NULL,
+  added_by TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS global_volunteers (
   vk_user_id TEXT PRIMARY KEY,
   display_name TEXT NOT NULL DEFAULT '',
@@ -123,6 +131,14 @@ CREATE TABLE IF NOT EXISTS event_checkpoint_assignments (
   assigned_by TEXT NOT NULL,
   assigned_at TEXT NOT NULL,
   PRIMARY KEY(event_id,checkpoint_id,vk_user_id)
+);
+CREATE TABLE IF NOT EXISTS scans (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guest_id INTEGER NOT NULL REFERENCES guests(id),
+  stage TEXT NOT NULL,
+  scanned_by TEXT NOT NULL,
+  scanned_at TEXT NOT NULL,
+  UNIQUE(guest_id,stage)
 );
 CREATE TABLE IF NOT EXISTS event_checkpoint_scans (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -198,6 +214,8 @@ CREATE TABLE IF NOT EXISTS staff_passes (
 CREATE TABLE IF NOT EXISTS sheets_outbox (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   event_id INTEGER NOT NULL REFERENCES events(id),
+  guest_id INTEGER NOT NULL DEFAULT 0,
+  action TEXT NOT NULL DEFAULT '',
   event_key TEXT NOT NULL UNIQUE,
   payload_json TEXT NOT NULL,
   attempts INTEGER NOT NULL DEFAULT 0,
@@ -233,7 +251,8 @@ CREATE TABLE IF NOT EXISTS announcement_deliveries (
 CREATE TABLE IF NOT EXISTS audit_log (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   event_id INTEGER REFERENCES events(id),
-  actor_vk_user_id TEXT NOT NULL,
+  actor TEXT NOT NULL DEFAULT '',
+  actor_vk_user_id TEXT NOT NULL DEFAULT '',
   action TEXT NOT NULL,
   target_type TEXT NOT NULL DEFAULT '',
   target_id TEXT NOT NULL DEFAULT '',
