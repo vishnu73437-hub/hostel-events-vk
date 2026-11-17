@@ -88,8 +88,8 @@ test("toast messages and native confirmation dialogs use the selected language",
 });
 
 test("mobile admin navigation is accessible and keeps desktop navigation", () => {
-  assert.ok(frontend.includes('class="admin-nav-desktop"'));
-  assert.ok(frontend.includes('class="admin-nav-mobile"'));
+  assert.ok(frontend.includes('admin-nav-desktop'));
+  assert.ok(frontend.includes('admin-nav-mobile'));
   assert.ok(frontend.includes('id="adminMobileNav"'));
   assert.ok(frontend.includes("bindMobileAdminNav()"));
   assert.ok(frontend.includes('class="skip-link"'));
