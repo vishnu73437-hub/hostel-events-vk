@@ -126,7 +126,7 @@ test("guest profile timeline is loaded through an event-scoped read-only admin a
   assert.ok(frontend.includes("adminCall('guest_profile'"));
   assert.ok(frontend.includes("Attendance timeline"));
   assert.ok(backend.includes('if(action==="guest_profile")'));
-  assert.ok(backend.includes("WHERE id=? AND event_id=?").includes("true"));
+  assert.ok(backend.includes("WHERE id=? AND event_id=?"));
   assert.ok(backend.includes("target_type='guest' AND target_id=?"));
   assert.ok(backend.includes("return json({ok:true,guest,proof:proof||null,noProof:!!noProof,exitRecorded:!!exitRow,timeline:timeline.slice(0,100)})"));
 });
