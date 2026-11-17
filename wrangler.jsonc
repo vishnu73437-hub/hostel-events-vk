@@ -13,12 +13,12 @@
     {
       "binding": "DB",
       "database_name": "eventhub-db",
-      "database_id": "REPLACE_WITH_EVENTHUB_D1_DATABASE_ID"
+      "database_id": "87928d1e-9bf6-49ee-9082-0631f9933333"
     }
   ],
   "vars": {
-    "VK_APP_ID": "SET_IN_CLOUDFLARE_DASHBOARD",
-    "VK_ADMIN_IDS": "SET_COMMA_SEPARATED_VK_IDS",
+    "VK_APP_ID": "54902627",
+    "VK_ADMIN_IDS": "716722419",
     "EVENT_NAME": "EventHub",
     "EVENT_DATE": "Set event date",
     "EVENT_VENUE": "Set event venue",
