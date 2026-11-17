@@ -13,7 +13,7 @@ For each event ID it creates deterministic tabs:
 
 Existing `Sheet1`, legacy `Event Log`, and other tabs are not cleared, renamed, or deleted. A retry with the same `action_id` does not append a duplicate event-log row. Older guest snapshots cannot overwrite a newer `Last Updated` record.
 
-The guest row uses a stable event-scoped VK identity (`event:<event_id>:vk:<vk_user_id>`) so a pending registration is updated in place when it is approved and receives a numeric guest serial number.
+The guest register preserves the existing exact 34-column header order (from Guest ID through Exit Volunteer ID). The guest row uses a stable event-scoped VK identity (`event:<event_id>:vk:<vk_user_id>`) so a pending registration is updated in place when it is approved and receives a numeric guest serial number.
 
 ## Install / deploy
 
