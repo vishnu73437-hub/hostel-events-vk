@@ -377,11 +377,11 @@ async function adminApi(request, env) {
     const name=String(data.name||"").trim().slice(0,120);
     if(name.length<3) return fail("Enter an event name (at least 3 characters).");
     const description=String(data.description||"").slice(0,1000), eventDate=String(data.event_date||"").slice(0,20), eventTime=String(data.event_time||"").slice(0,40), venue=String(data.venue||"").slice(0,200);
-    const schema=Array.isArray(data.registration_schema)&&data.registration_schema.length?data.registration_schema:[{key:"full_name",label:"Full name",type:"text",required:true},{key:"phone",label:"Phone",type:"tel",required:true}];
+    const schema=Array.isArray(data.registration_schema)&&data.registration_schema.length?data.registration_schema:[{key:"full_name",label:"Full name",type:"text",required:true},{key:"phone",label:"Phone",type:"tel",required:true},{key:"residence_type",label:"Residence",type:"select",options:["Hostel","Apartment"],required:true},{key:"hostel_number",label:"Hostel number",type:"text",required:true},{key:"room_number",label:"Room number",type:"text",required:true},{key:"food_preference",label:"Food preference",type:"select",options:["Vegetarian","Non-vegetarian"],required:true}];
     const theme=data.theme&&typeof data.theme==="object"?data.theme:{primary:"#25113b",accent:"#ff7518",background:"#171321",gold:"#ffd166"};
     const foodEnabled=data.food_enabled===undefined?true:asBool(data.food_enabled);
-    const result=await env.DB.prepare("INSERT INTO events(name,description,event_date,event_time,venue,theme_json,registration_schema,status,active,registration_open,food_enabled,created_by,created_at) VALUES(?,?,?,?,?,?,?,'draft',0,1,?,?,?)")
-      .bind(name,description,eventDate,eventTime,venue,JSON.stringify(theme),JSON.stringify(schema),foodEnabled?1:0,uid,now()).run();
+    const result=await env.DB.prepare("INSERT INTO events(name,description,event_date,event_time,venue,theme_json,registration_schema,status,active,registration_open,food_enabled,sheets_url,created_by,created_at) VALUES(?,?,?,?,?,?,?,'draft',0,1,?,?,?,?)")
+      .bind(name,description,eventDate,eventTime,venue,JSON.stringify(theme),JSON.stringify(schema),foodEnabled?1:0,String(data.sheets_url||"").slice(0,500),uid,now()).run();
     const id=result.meta.last_row_id;
     await env.DB.prepare("INSERT INTO event_checkpoints(event_id,name,checkpoint_type,created_at) VALUES(?,?,?,?)").bind(id,"Main Entry","entry",now()).run();
     await env.DB.prepare("INSERT INTO event_storage_configs(event_id,updated_at,updated_by) VALUES(?,?,?)").bind(id,now(),uid).run();
@@ -397,8 +397,8 @@ async function adminApi(request, env) {
     if(name.length<3) return fail("Event name must contain at least 3 characters.");
     const theme=data.theme&&typeof data.theme==="object"?JSON.stringify(data.theme):event.theme_json;
     const schema=Array.isArray(data.registration_schema)?JSON.stringify(data.registration_schema):event.registration_schema;
-    await env.DB.prepare("UPDATE events SET name=?,description=?,event_date=?,event_time=?,venue=?,theme_json=?,registration_schema=?,food_enabled=? WHERE id=?")
-      .bind(name,String(data.description??event.description).slice(0,1000),String(data.event_date??event.event_date).slice(0,20),String(data.event_time??event.event_time).slice(0,40),String(data.venue??event.venue).slice(0,200),theme,schema,data.food_enabled===undefined?event.food_enabled:(asBool(data.food_enabled)?1:0),eventId).run();
+    await env.DB.prepare("UPDATE events SET name=?,description=?,event_date=?,event_time=?,venue=?,theme_json=?,registration_schema=?,food_enabled=?,sheets_url=? WHERE id=?")
+      .bind(name,String(data.description??event.description).slice(0,1000),String(data.event_date??event.event_date).slice(0,20),String(data.event_time??event.event_time).slice(0,40),String(data.venue??event.venue).slice(0,200),theme,schema,data.food_enabled===undefined?event.food_enabled:(asBool(data.food_enabled)?1:0),String(data.sheets_url??event.sheets_url).slice(0,500),eventId).run();
     await log("EVENT_UPDATED","event",eventId,{name});
     return json({ok:true,event_id:eventId,message:"Event details and registration form saved."});
   }
@@ -422,15 +422,17 @@ async function adminApi(request, env) {
   }
   if(action==="stats") {
     const event=await getEvent(); if(!event) return fail("Event not found.",404);
-    const [total,entered,meals,volunteers,proof,exits]=await Promise.all([
+    const [total,entered,meals,volunteers,proof,exits,veg,nonveg]=await Promise.all([
       env.DB.prepare("SELECT COUNT(*) n FROM guests WHERE event_id=? AND status='approved'").bind(eventId).first(),
       env.DB.prepare("SELECT COUNT(*) n FROM guests WHERE event_id=? AND status='approved' AND entry_used=1").bind(eventId).first(),
       env.DB.prepare("SELECT COUNT(*) n FROM guests WHERE event_id=? AND status='approved' AND food_used=1").bind(eventId).first(),
       env.DB.prepare("SELECT COUNT(*) n FROM event_volunteers WHERE event_id=?").bind(eventId).first(),
       env.DB.prepare("SELECT COUNT(*) n FROM proof_storage WHERE event_id=? AND deposited_at IS NOT NULL AND returned_at IS NULL").bind(eventId).first(),
-      env.DB.prepare("SELECT COUNT(*) n FROM event_exit_records WHERE event_id=?").bind(eventId).first()
+      env.DB.prepare("SELECT COUNT(*) n FROM event_exit_records WHERE event_id=?").bind(eventId).first(),
+      env.DB.prepare("SELECT COUNT(*) n FROM guests WHERE event_id=? AND status='approved' AND food_used=1 AND food_preference='Vegetarian'").bind(eventId).first(),
+      env.DB.prepare("SELECT COUNT(*) n FROM guests WHERE event_id=? AND status='approved' AND food_used=1 AND food_preference='Non-vegetarian'").bind(eventId).first()
     ]);
-    return json({ok:true,stats:{approvedGuests:total.n,checkedIn:entered.n,mealsServed:meals.n,volunteers:volunteers.n,proofCurrentlyStored:proof.n,exited:exits.n}});
+    return json({ok:true,stats:{approvedGuests:total.n,checkedIn:entered.n,mealsServed:meals.n,vegetarians:veg.n,nonVegetarians:nonveg.n,vegetarianServed:veg.n,nonVegetarianServed:nonveg.n,volunteers:volunteers.n,proofCurrentlyStored:proof.n,exited:exits.n}});
   }
   if(action==="guest_search") {
     const query=String(data.query||"").trim().slice(0,120), status=String(data.status||"all");
@@ -478,10 +480,18 @@ async function adminApi(request, env) {
       const code="EH-"+crypto.randomUUID().slice(0,8).toUpperCase();
       const token=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,"0")).join("");
       await env.DB.prepare("UPDATE guests SET pass_code=?,qr_token=?,status='approved',revoked_at=NULL WHERE id=?").bind(code,token,guestId).run();
+    } else if(operation==="reset_entry_and_storage") {
+      const proof=await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guestId).first();
+      if(proof&&proof.deposited_at&&!proof.returned_at) return fail("Proof is still recorded as stored at Box "+proof.box_number+" / Section "+proof.section_letter+". Physically return it first; storage tracking was not changed.",409);
+      await env.DB.prepare("UPDATE guests SET entry_used=0,entry_used_at=NULL WHERE id=?").bind(guestId).run();
+      await env.DB.prepare("DELETE FROM proof_storage WHERE guest_id=?").bind(guestId).run();
+      await env.DB.prepare("DELETE FROM proof_not_collected WHERE guest_id=?").bind(guestId).run();
+      await env.DB.prepare("DELETE FROM event_exit_records WHERE guest_id=?").bind(guestId).run();
+      await log("ENTRY_AND_STORAGE_RESET","guest",guestId,{previous_storage:proof?("box="+proof.box_number+"; section="+proof.section_letter+"; slot="+proof.slot_number):"no_storage_assignment"});
     } else if(operation==="reset_status") {
       if(!["entry","food","both"].includes(target)) return fail("Choose entry, food, or both.");
       const proof=await env.DB.prepare("SELECT 1 AS ok FROM proof_storage WHERE guest_id=? AND deposited_at IS NOT NULL AND returned_at IS NULL").bind(guestId).first();
-      if(proof&&target==="entry"||proof&&target==="both") return fail("Cannot reset entry while the guest's proof is still stored. Return the proof first.",409);
+      if(proof&&(target==="entry"||target==="both")) return fail("Cannot reset entry while the guest's proof is still stored. Return the proof first.",409);
       if(target==="entry"||target==="both") await env.DB.prepare("UPDATE guests SET entry_used=0,entry_used_at=NULL WHERE id=?").bind(guestId).run();
       if(target==="food"||target==="both") await env.DB.prepare("UPDATE guests SET food_used=0,food_used_at=NULL WHERE id=?").bind(guestId).run();
     } else return fail("Invalid guest action.");
@@ -613,8 +623,11 @@ async function adminApi(request, env) {
     return json({ok:true,logs:rows.results});
   }
   if(action==="sheets_queue_status") {
-    const row=await env.DB.prepare("SELECT COUNT(*) pending,SUM(CASE WHEN attempts>0 THEN 1 ELSE 0 END) retrying,MIN(created_at) oldest FROM sheets_outbox WHERE event_id=? AND synced_at IS NULL").bind(eventId).first();
-    return json({ok:true,configured:!!env.SHEETS_SYNC_SECRET&&(!!env.SHEETS_SYNC_URL),pending:row.pending||0,retrying:row.retrying||0,oldestCreatedAt:row.oldest||""});
+    const [row,event]=await Promise.all([
+      env.DB.prepare("SELECT COUNT(*) pending,SUM(CASE WHEN attempts>0 THEN 1 ELSE 0 END) retrying,MIN(created_at) oldest FROM sheets_outbox WHERE event_id=? AND synced_at IS NULL").bind(eventId).first(),
+      getEvent()
+    ]);
+    return json({ok:true,configured:!!env.SHEETS_SYNC_SECRET&&!!(event?.sheets_url||env.SHEETS_SYNC_URL),pending:row.pending||0,retrying:row.retrying||0,oldestCreatedAt:row.oldest||""});
   }
   if(action==="sheets_sync") {
     const result=await syncSheetsBatch(env,5);
