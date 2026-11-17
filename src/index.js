@@ -165,6 +165,11 @@ async function registerApi(request, env) {
   }
   const fullName = String(cleaned.full_name || "").trim();
   if (fullName.length < 2 || fullName.length > 100) return fail("The form must include a valid full name (2–100 characters).");
+  const residence = String(cleaned.residence_type || "Apartment");
+  if (residence === "Apartment") {
+    if ("hostel_number" in cleaned) cleaned.hostel_number = "";
+    if ("room_number" in cleaned) cleaned.room_number = "";
+  }
   const existing = await env.DB.prepare("SELECT status FROM guests WHERE event_id=? AND vk_user_id=?").bind(eventId,uid).first();
   if (existing?.status === "approved") return fail("You already have an approved pass for this event. Open My Pass instead.",409);
   if (existing?.status === "revoked") return fail("A previous pass for this event was revoked. Contact an admin.",409);
@@ -173,8 +178,10 @@ async function registerApi(request, env) {
   const food = foodEnabled ? String(cleaned.food_preference || "Not specified") : "Not applicable";
   const result = await env.DB.prepare("INSERT INTO pending_registrations(event_id,vk_user_id,full_name,phone,food_preference,residence_type,hostel_number,room_number,registration_data,created_at,status) VALUES(?,?,?,?,?,?,?,?,?,?,'pending') ON CONFLICT(event_id,vk_user_id) DO UPDATE SET full_name=excluded.full_name,phone=excluded.phone,food_preference=excluded.food_preference,residence_type=excluded.residence_type,hostel_number=excluded.hostel_number,room_number=excluded.room_number,registration_data=excluded.registration_data,created_at=excluded.created_at,status='pending'")
     .bind(eventId,uid,fullName,String(cleaned.phone || ""),food,String(cleaned.residence_type || "Apartment"),String(cleaned.hostel_number || ""),String(cleaned.room_number || ""),registrationData,stamp).run();
-  await audit(env,uid,"registration_submitted","pending_registration",result.meta?.last_row_id || uid,{event_id:eventId},eventId);
-  return json({ ok:true, request_id:result.meta?.last_row_id || null, message:"Registration submitted. Your request is awaiting admin approval." },201);
+  const requestId=result.meta?.last_row_id || uid;
+  await audit(env,uid,"registration_submitted","pending_registration",requestId,{event_id:eventId},eventId);
+  await outbox(env,eventId,requestId,"registration_pending",{event_id:eventId,vk_user_id:uid,full_name:fullName,phone:String(cleaned.phone||""),status:"pending"});
+  return json({ ok:true, request_id:requestId, message:"Registration submitted. Your request is awaiting admin approval." },201);
 }
 
 async function myPassApi(request, env) {
@@ -185,7 +192,19 @@ async function myPassApi(request, env) {
   const guest = await env.DB.prepare("SELECT * FROM guests WHERE event_id=? AND vk_user_id=?").bind(eventId,uid).first();
   if (!guest) {
     const pending = await env.DB.prepare("SELECT status FROM pending_registrations WHERE event_id=? AND vk_user_id=?").bind(eventId,uid).first();
-    return fail(pending?.status === "pending" ? "Your registration is awaiting admin approval." : "No approved pass was found for this event.",404);
+    if (pending?.status === "pending") return fail("Your registration is awaiting admin approval.",404);
+    const staffRole=await eventRole(uid,eventId,env);
+    if (!staffRole) return fail("No approved pass was found for this event.",404);
+    const event=await env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
+    const food=asBool(event.food_enabled)?String(data.food_preference||""):"Not applicable";
+    if(asBool(event.food_enabled)&&!["Vegetarian","Non-vegetarian"].includes(food)) return fail("Choose a food preference to create your staff pass.");
+    const code="EH-"+crypto.randomUUID().slice(0,8).toUpperCase();
+    const token=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,"0")).join("");
+    const displayName=String(data.display_name||("Event "+(staffRole==="admin"?"Admin":"Staff"))).slice(0,100);
+    const inserted=await env.DB.prepare("INSERT INTO guests(event_id,vk_user_id,full_name,phone,residence,residence_type,food_preference,registration_data,status,pass_code,qr_token,registered_at,created_at,approved_at) VALUES(?,?,?,'','','Apartment',?,'{}','approved',?,?,?,?,?)")
+      .bind(eventId,uid,displayName,food,code,token,now(),now(),now()).run();
+    await audit(env,uid,"STAFF_PASS_CREATED","guest",inserted.meta.last_row_id,{role:staffRole},eventId);
+    return myPassApi(request,env);
   }
   if (guest.status !== "approved" || guest.revoked_at) return fail("This pass is not active.",403);
   const event = await env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
@@ -244,12 +263,14 @@ async function actionApi(request, env) {
   if(exited) return fail("Exit is already recorded. No further event-day actions are allowed.",409);
   if(action==="entry") {
     if(guest.entry_used) return fail("Entry already recorded for this pass.",409);
-    await env.DB.prepare("UPDATE guests SET entry_used=1,entry_used_at=? WHERE id=? AND entry_used=0 AND status='approved'").bind(stamp,guest.id).run();
+    const changed=await env.DB.prepare("UPDATE guests SET entry_used=1,entry_used_at=? WHERE id=? AND entry_used=0 AND status='approved'").bind(stamp,guest.id).run();
+    if(!changed.meta.changes) return fail("Entry was already recorded by another scanner.",409);
   } else if(action==="food") {
     if(!guest.entry_used) return fail("Entry must be recorded before food collection.",409);
     if(guest.food_used) return fail("Food collection already recorded for this pass.",409);
     if(!((proof && proof.deposited_at && !proof.returned_at) || noProof)) return fail("Record proof storage or confirm no proof was provided before food collection.",409);
-    await env.DB.prepare("UPDATE guests SET food_used=1,food_used_at=? WHERE id=? AND food_used=0 AND entry_used=1 AND status='approved'").bind(stamp,guest.id).run();
+    const changed=await env.DB.prepare("UPDATE guests SET food_used=1,food_used_at=? WHERE id=? AND food_used=0 AND entry_used=1 AND status='approved'").bind(stamp,guest.id).run();
+    if(!changed.meta.changes) return fail("Food collection was already recorded by another scanner.",409);
   } else if(action==="proof_deposit") {
     if(!guest.entry_used) return fail("Record entry before storing proof.",409);
     if(noProof) return fail("No-proof status is already recorded for this guest.",409);
@@ -265,14 +286,20 @@ async function actionApi(request, env) {
       if(!used.has(box+":"+section+":"+n)){slot={box,section,n};break;}
     }
     if(!slot) return fail("Proof storage is full. Ask an admin to review capacity.",409);
-    await env.DB.prepare("INSERT INTO proof_storage(event_id,guest_id,box_number,section_letter,slot_number,assigned_at,assigned_by,deposited_at,deposited_by) VALUES(?,?,?,?,?,?,?,?,?)")
-      .bind(eventId,guest.id,slot.box,slot.section,slot.n,stamp,uid,stamp,uid).run();
+    try {
+      await env.DB.prepare("INSERT INTO proof_storage(event_id,guest_id,box_number,section_letter,slot_number,assigned_at,assigned_by,deposited_at,deposited_by) VALUES(?,?,?,?,?,?,?,?,?)")
+        .bind(eventId,guest.id,slot.box,slot.section,slot.n,stamp,uid,stamp,uid).run();
+    } catch(e) {
+      if(String(e.message).toLowerCase().includes("unique")) return fail("Another scanner assigned that storage slot first. Scan again.",409);
+      throw e;
+    }
     await env.DB.prepare("DELETE FROM proof_not_collected WHERE guest_id=?").bind(guest.id).run();
   } else if(action==="proof_no_proof") {
     if(!guest.entry_used) return fail("Record entry before accepting a guest without proof.",409);
     if(proof && proof.deposited_at && !proof.returned_at) return fail("This guest already has proof stored.",409);
     if(noProof) return fail("No-proof confirmation was already recorded.",409);
-    await env.DB.prepare("INSERT INTO proof_not_collected(event_id,guest_id,recorded_at,recorded_by) VALUES(?,?,?,?)").bind(eventId,guest.id,stamp,uid).run();
+    try { await env.DB.prepare("INSERT INTO proof_not_collected(event_id,guest_id,recorded_at,recorded_by) VALUES(?,?,?,?)").bind(eventId,guest.id,stamp,uid).run(); }
+    catch(e) { if(String(e.message).toLowerCase().includes("unique")) return fail("No-proof confirmation was already recorded.",409); throw e; }
   } else if(action==="proof_return") {
     if(!proof || !proof.deposited_at) return fail("No stored proof record found.",409);
     if(proof.returned_at) return fail("Proof return was already recorded.",409);
@@ -280,7 +307,8 @@ async function actionApi(request, env) {
   } else if(action==="exit") {
     if(!guest.entry_used) return fail("Guest entry has not been recorded.",409);
     if(proof && proof.deposited_at && !proof.returned_at) return fail("Return the guest's stored proof before completing exit.",409);
-    await env.DB.prepare("INSERT INTO event_exit_records(event_id,guest_id,exit_at,exit_by) VALUES(?,?,?,?)").bind(eventId,guest.id,stamp,uid).run();
+    try { await env.DB.prepare("INSERT INTO event_exit_records(event_id,guest_id,exit_at,exit_by) VALUES(?,?,?,?)").bind(eventId,guest.id,stamp,uid).run(); }
+    catch(e) { if(String(e.message).toLowerCase().includes("unique")) return fail("Exit was already recorded.",409); throw e; }
   }
   await audit(env,uid,action.toUpperCase()+"_RECORDED","guest",guest.id,{stage:action},eventId);
   await outbox(env,eventId,guest.id,action,{guest_id:guest.id,event_id:eventId,action,scanned_by:uid,scanned_at:stamp});
@@ -304,6 +332,10 @@ async function checkpointScanApi(request, env) {
   const eventId=Number(data.event_id||0), checkpointId=Number(data.checkpoint_id||0), value=String(data.qr||"").trim();
   const role=await eventRole(uid,eventId,env);
   if(!role) return fail("Volunteer access required for this event.",403);
+  if(role==="checkpoint") {
+    const assignment=await env.DB.prepare("SELECT 1 AS ok FROM event_checkpoint_assignments WHERE event_id=? AND checkpoint_id=? AND vk_user_id=?").bind(eventId,checkpointId,uid).first();
+    if(!assignment) return fail("You are not assigned to this checkpoint.",403);
+  }
   if(!eventId||!checkpointId||!value) return fail("A guest QR and enabled checkpoint are required.");
   const checkpoint=await env.DB.prepare("SELECT * FROM event_checkpoints WHERE id=? AND event_id=? AND enabled=1").bind(checkpointId,eventId).first();
   if(!checkpoint) return fail("Checkpoint not found or disabled.",404);
