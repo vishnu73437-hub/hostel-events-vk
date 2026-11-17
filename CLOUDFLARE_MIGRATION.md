@@ -50,7 +50,7 @@ Implemented on the migration branch:
 
 Still pending before production:
 - Verify the CI run and execute the schema against a local D1-compatible environment.
-- Add a tested downloadable backup/export and restore workflow for new EventHub data.
+- Run the new backup/export and offline restore tests on the latest commit.
 - Add end-to-end tests for all admin and event-day workflows.
 - Confirm the existing Google Apps Script receiver includes the saved EventHub event-log merge helper.
 - Configure and test the actual VK app secret, admin VK IDs, optional VK group token and Sheets endpoint.
@@ -63,6 +63,30 @@ Still pending before production:
 - Work is isolated on `cloudflare-migration`.
 - No production Worker, D1 database, secrets, or VK app settings have been created or modified.
 - The current Worker/frontend scaffold is not production-ready yet; it must be brought to feature parity and tested before deployment.
+
+## Event data backup and restore
+
+An EventHub administrator can open an event's **Settings → Event data backup → Download full event backup**. This downloads a versioned JSON file containing that event's event settings, registrations and pending applications, VK event-user references, event volunteer/checkpoint assignments, QR/pass tokens, attendance scans, proof-storage assignments and return history, exit records, pass design, Sheets outbox, announcements and delivery history, audit log, backup history, and event app settings.
+
+The backup endpoint is admin-authenticated, event-scoped, size-bounded (5,000 rows per table and 25,000 rows total), sends no-store headers, and records the download in the event backup history. The JSON includes a SHA-256 checksum. It contains personal information and QR tokens and must be stored privately. VK app secrets, VK group tokens, Worker environment variables, global admin allowlists, and global volunteer/staff accounts are intentionally not included; reconfigure those separately.
+
+To prepare a restore SQL file locally (Python 3, no paid service or third-party package required):
+
+```bash
+python scripts/restore_event_backup.py eventhub-your-event-1-YYYY-MM-DD.json
+```
+
+The script verifies the checksum, validates every row against the repository D1 schema and foreign-key relationships in an in-memory SQLite database, then writes a `.restore.sql` file. It does not connect to Cloudflare and does not change any database.
+
+Restore only into a newly-created, EMPTY EventHub D1 database after applying the schema. Confirm the target has zero events before importing. Then run:
+
+```bash
+npx wrangler d1 execute eventhub-db --remote --file=cloudflare/schema.sql
+npx wrangler d1 execute eventhub-db --remote --command="SELECT COUNT(*) AS event_count FROM events"
+npx wrangler d1 execute eventhub-db --remote --file=eventhub-your-event-1-YYYY-MM-DD.restore.sql
+```
+
+The event count must be zero before the restore file is applied. Do not run a restore file against a database that already contains live data. For disaster recovery of a large database that exceeds the in-app export size limit, use Cloudflare's native D1 export procedure and retain the export privately.
 
 ## Migration sequence
 
