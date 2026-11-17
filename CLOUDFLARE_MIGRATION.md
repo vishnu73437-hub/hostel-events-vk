@@ -2,7 +2,7 @@
 
 ## Source of truth and scope
 
-The migration is based on the fuller saved EventHub backend candidate dated 2026-11-05, not only the smaller VK prototype currently on `main`. Preserve its event-scoped workflows and records while replacing Telegram identity and delivery with VK identity and VK-native delivery.
+The new VK EventHub is a clean-slate deployment. No Telegram/Botkeep registrations, attendance, QR passes, volunteer records, or historical data will be imported. New records will be collected after launch. The migration reuses the desired EventHub workflows while using VK identity and VK-native delivery.
 
 EventHub and BRS are separate products:
 - EventHub: this repository, its own Worker, static site, and one dedicated D1 database.
@@ -22,9 +22,9 @@ The D1 schema is being expanded to retain:
 - Durable Google Sheets outbox with retry metadata; scanner actions must not wait for Sheets network delivery.
 - Event announcements and delivery reports will be adapted to VK messaging, not Telegram messaging.
 
-## Identity migration rule (important)
+## Identity rule
 
-Legacy Telegram IDs must **never** be copied into `vk_user_id`. They are different identity systems. Imported rows retain the old value in `legacy_telegram_id` and remain unlinked until an administrator verifies and links the correct VK account. Existing pass codes, QR tokens, approvals, event assignments, proof-storage locations, scans, exit history, audit records, and Sheets outbox history must be preserved in the migration backup.
+This is a fresh VK-only database. Every registration is tied to the VK user ID verified from the signed VK Mini App launch parameters. There are no Telegram identity columns or legacy-account linking tools.
 
 ## Cost guardrails
 
@@ -50,7 +50,7 @@ Implemented on the migration branch:
 
 Still pending before production:
 - Verify the CI run and execute the schema against a local D1-compatible environment.
-- Complete full backup/export/restore and the live SQLite-to-D1 importer.
+- Add a tested downloadable backup/export and restore workflow for new EventHub data.
 - Add end-to-end tests for all admin and event-day workflows.
 - Confirm the existing Google Apps Script receiver includes the saved EventHub event-log merge helper.
 - Configure and test the actual VK app secret, admin VK IDs, optional VK group token and Sheets endpoint.
@@ -69,11 +69,10 @@ Still pending before production:
 1. Complete the D1 schema and Worker API for the full feature set above.
 2. Adapt the EventHub frontend to VK Mini Apps launch parameters and same-origin Worker API calls.
 3. Add automated tests for VK signature validation, event isolation, registration, role checks, duplicate scans, proof storage capacity, proof return, and exit gating.
-4. Export the live Botkeep SQLite database and verify its schema/row counts. Do not use a stale code snapshot as a substitute for the live database.
-5. Create a backup and run a dry-run import into a dedicated EventHub D1 database. Reconcile every table and preserve history.
-6. Configure VK app ID, VK secret, VK admin IDs, optional VK group messaging token, and optional Google Sheets endpoint as secrets/vars.
-7. Test with designated test accounts and test guests. Only then update the VK Mini App URL.
-8. Keep Telegram/Botkeep intact until the VK cutover is explicitly confirmed and the imported data is reconciled.
+4. Create a fresh, empty EventHub D1 database. Do not import Telegram/Botkeep data.
+5. Configure VK app ID, VK secret, VK admin IDs, optional VK group messaging token, and optional Google Sheets endpoint as secrets/vars.
+6. Test with designated VK accounts and test guests. Only then update the VK Mini App URL.
+7. After VK EventHub is verified, decide separately whether the old Telegram/Botkeep service should be shut down.
 
 ## Current D1 design
 
