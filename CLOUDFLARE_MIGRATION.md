@@ -44,15 +44,15 @@ Implemented on the migration branch:
 - Configurable proof-storage capacity with active-slot uniqueness and refusal to shrink around occupied slots.
 - Event-scoped admin actions for lifecycle, approvals, guest pass actions, volunteers, checkpoint teams, reports, audit and settings.
 - VK community announcement queue with small delivery batches and unsend history.
-- D1 Sheets outbox with bounded retry/backoff and a five-minute Cron Trigger.
+- D1 Sheets outbox with bounded retry/backoff, event-scoped manual sync, and a five-minute Cron Trigger. The matching Apps Script v5 receiver is in `google-apps-script/Code.gs` and creates isolated guest/food/storage/event-log tabs per event ID.
 - VK-native frontend auth header, same-origin API calls, native Chrome BarcodeDetector scanning and manual-code fallback.
 - Basic VK auth tests, D1 schema tests, and a GitHub Actions workflow.
 
 Still pending before production:
 - Verify the CI run and execute the schema against a local D1-compatible environment.
-- Run the new backup/export and offline restore tests on the latest commit.
+- Run the backup/export, offline restore, and Google Apps Script contract tests on the latest commit.
 - Add end-to-end tests for all admin and event-day workflows.
-- Confirm the existing Google Apps Script receiver includes the saved EventHub event-log merge helper.
+- Deploy the repository's complete Google Apps Script v5 receiver to the existing spreadsheet-bound project and verify the GET health response plus one live upsert and event-log delivery.
 - Configure and test the actual VK app secret, admin VK IDs, optional VK group token and Sheets endpoint.
 - Verify scanner permissions inside the real VK Android webview and test the VK announcement permission edge cases.
 - Review every admin action against the saved EventHub source before calling feature parity complete.
