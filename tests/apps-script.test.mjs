@@ -42,7 +42,7 @@ test("obsolete unscoped legacy API routes and implicit event creation are remove
 });
 
 test("guest register keeps the existing exact 34-column header order", () => {
-  const block = receiver.match(/const EH_LIVE = \[([\\s\\S]*?)\n\];/);
+  const block = receiver.match(/const EH_LIVE = \[([\s\S]*?)\n\];/);
   assert.ok(block, "EH_LIVE mapping must exist");
   const headers = [...block[1].matchAll(/\["([^"]+)","[^"]+"\]/g)].map(match => match[1]);
   assert.deepEqual(headers, [
