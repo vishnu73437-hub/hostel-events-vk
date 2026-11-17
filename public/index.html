@@ -1,34 +1,395 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#171021"><title>EventHub</title>
-<style>
-:root{color-scheme:dark;--bg:#100c18;--panel:#1d1728;--panel2:#292137;--gold:#f4ce82;--muted:#b9adc8;--blue:#3988ed;--line:#40344f;--green:#48c78e;--red:#ff7373}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#fff;font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}header{padding:22px 18px 18px;background:linear-gradient(140deg,#291a3e,#171021 70%);border-bottom:1px solid var(--line)}.eyebrow{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:2px}h1{font-size:24px;margin:7px 0 5px}.muted{color:var(--muted)}main{max-width:760px;margin:auto;padding:16px 14px 90px}.tabs{display:flex;gap:7px;overflow:auto;padding:12px 14px;background:#17121f;position:sticky;top:0;z-index:3}.tabs button{white-space:nowrap;width:auto;margin:0;padding:9px 13px;background:var(--panel2);color:#ddd;border:1px solid var(--line)}button{border:0;border-radius:11px;padding:13px 15px;font-weight:700;font-size:14px;background:var(--blue);color:white;cursor:pointer}button.secondary{background:var(--panel2);border:1px solid var(--line)}button.danger{background:#8e343d}button:disabled{opacity:.45}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat{background:var(--panel2);padding:14px;border-radius:12px}.stat b{display:block;font-size:25px;color:var(--gold)}label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,select{width:100%;background:#120e19;border:1px solid var(--line);border-radius:10px;padding:13px;color:#fff;font-size:15px}button.full{width:100%;margin-top:14px}.hidden{display:none!important}.pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#3a2d4c;color:var(--gold);font-size:11px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.row button{width:auto;margin:0;padding:9px 11px}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1;min-width:100px}.notice{padding:12px;border-radius:10px;background:#2a2135;color:var(--muted);margin:12px 0}.success{color:var(--green)}.error{color:var(--red)}#qr{background:white;display:inline-block;padding:12px;border-radius:12px;margin:12px 0}small{color:var(--muted)}.guest{border-top:1px solid var(--line);padding:13px 0}.guest:first-child{border:0}.stage{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)}@media(min-width:650px){main{padding-top:22px}.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-</style>
-<script src="https://unpkg.com/@vkontakte/vk-bridge@2.14.2/dist/browser.min.js" async></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-</head><body><header><div class="eyebrow">VK MINI APP · EVENTHUB</div><h1>EventHub</h1><div class="muted" id="eventMeta">Loading event details…</div></header>
-<nav class="tabs" id="tabs"><button data-tab="home">Home</button><button data-tab="register">Register</button><button data-tab="pass">My Pass</button><button data-tab="admin" class="hidden" id="adminTab">Admin</button><button data-tab="scan" class="hidden" id="scanTab">Scanner</button></nav>
-<main><div id="status" class="notice">Connecting securely to EventHub…</div>
-<section id="home" class="view"><div class="card"><h2>Welcome to EventHub</h2><p class="muted">Register once, receive your personal QR pass after approval, and use it at event checkpoints.</p><div id="homeState"></div></div><div class="card"><h3>Event information</h3><div id="eventInfo" class="muted"></div></div></section>
-<section id="register" class="view hidden"><div class="card"><h2>Guest registration</h2><p class="muted">Your registration is sent to the event administrators for approval.</p><form id="regForm"><label>Full name *</label><input name="full_name" required minlength="2" maxlength="120" autocomplete="name"><label>Phone number *</label><input name="phone" required minlength="5" maxlength="30" type="tel"><label>Residence / address *</label><input name="residence" required minlength="2"><label>Hostel / building *</label><input name="hostel" required><label>Room number *</label><input name="room" required><div id="foodField"><label>Food preference *</label><select name="food_preference"><option value="">Choose preference</option><option>Vegetarian</option><option>Non-vegetarian</option></select></div><button class="full" type="submit">Submit registration</button></form></div></section>
-<section id="pass" class="view hidden"><div class="card"><h2>My event pass</h2><div id="passContent" class="muted">Your approved pass will appear here.</div></div></section>
-<section id="admin" class="view hidden"><div class="card"><h2>Admin dashboard</h2><div class="grid" id="stats"></div><div class="actions"><button id="refreshAdmin" class="secondary">Refresh</button><button id="exportCsv" class="secondary">Export CSV</button></div></div><div class="card"><h3>Pending registrations</h3><div id="pendingList">Loading…</div></div><div class="card"><h3>Volunteer access</h3><form id="volForm"><label>VK user ID</label><input name="vk_user_id" required><label>Display name</label><input name="display_name"><button class="full">Add / restore volunteer</button></form><div id="volList"></div></div><div class="card"><h3>Pass design settings</h3><p class="muted">This central design applies to passes without changing existing pass codes, QR tokens or checkpoint history.</p><label>Pass title</label><input id="designTitle"><label>Subtitle</label><input id="designSubtitle"><label>Background color</label><input id="designBg" type="color" value="#21113d"><label>Accent color</label><input id="designAccent" type="color" value="#f8d68a"><button id="saveDesign" class="full">Save pass design</button></div></section>
-<section id="scan" class="view hidden"><div class="card"><h2>Checkpoint scanner</h2><p class="muted">Scan an approved guest QR. Each checkpoint can be recorded only once per guest.</p><label>Checkpoint</label><select id="stage"><option value="entry">Entry</option><option value="proof_storage">Proof storage</option><option value="food">Food collection</option><option value="exit">Exit</option><option value="proof_return">Proof return</option></select><video id="video" playsinline style="width:100%;border-radius:12px;background:#000"></video><button id="startCamera" class="full">Start camera scanner</button><label>Or enter QR token manually</label><input id="manualToken" placeholder="Paste QR token"><button id="manualScan" class="full">Verify pass</button><div id="scanResult"></div></div></section>
-</main>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#171321">
+  <title>EventHub</title>
+  
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    :root{--bg:#171321;--panel:#211c2d;--panel2:#2b2438;--text:#f8f5fb;--muted:#bcb4c9;--accent:#ff7518;--gold:#ffd166;--line:#ffffff18;--danger:#ff626d;--ok:#47cf91;--radius:20px;--shadow:0 16px 40px #0005}
+    *{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;background:radial-gradient(ellipse at 80% -10%,color-mix(in srgb,var(--accent) 24%,transparent),transparent 42%),var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.shell{width:min(100%,980px);margin:auto;padding:16px 16px 34px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}.brand-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--gold));color:#1a1420;font-size:21px;box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 30%,transparent)}.brand small{display:block;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase}.top-actions{display:flex;gap:8px;align-items:center}.hero{background:linear-gradient(140deg,color-mix(in srgb,var(--accent) 26%,var(--panel)),var(--panel) 64%);border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));border-radius:26px;padding:24px;box-shadow:var(--shadow);position:relative;overflow:hidden}.hero:after{content:"✦";position:absolute;right:20px;top:10px;font-size:80px;color:color-mix(in srgb,var(--gold) 18%,transparent);pointer-events:none}.eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:800}.hero h1{font-size:clamp(28px,6vw,44px);line-height:1.06;margin:9px 0 12px;max-width:720px;overflow-wrap:anywhere}.hero p{color:#e0d9e8;max-width:680px;margin:0;white-space:pre-wrap}.meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:20px}.meta{background:#100d1b66;border:1px solid #ffffff17;border-radius:15px;padding:12px;min-width:0}.meta b{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}.meta span{display:block;font-weight:700;overflow-wrap:anywhere}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}.btn{border:1px solid var(--line);border-radius:13px;padding:11px 15px;background:var(--panel2);color:var(--text);font-weight:750;min-height:43px;transition:transform .12s,filter .12s}.btn:active{transform:scale(.98)}.btn.primary{border-color:transparent;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 75%,var(--gold)));color:#170f18}.btn.ghost{background:transparent}.btn.danger{background:#4a202b;border-color:#ff626d55}.btn.success{background:#123b32;border-color:#47cf9155}.btn.small{padding:7px 10px;min-height:34px;font-size:13px}.muted{color:var(--muted)}.section{margin-top:18px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}.section-title h2{margin:0;font-size:18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{background:linear-gradient(180deg,var(--panel),color-mix(in srgb,var(--panel) 78%,#100d18));border:1px solid var(--line);border-radius:var(--radius);padding:16px;min-width:0;box-shadow:0 8px 24px #0002}.card h3{margin:0 0 7px;font-size:16px}.card p{color:var(--muted);margin:6px 0 0;overflow-wrap:anywhere}.event-card{display:flex;flex-direction:column;gap:10px;min-height:150px}.event-card .actions{margin-top:auto}.status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;border:1px solid var(--line);padding:5px 8px;border-radius:30px;color:var(--muted);width:max-content}.status.active{color:var(--ok);border-color:#47cf9144}.status.draft{color:var(--gold)}.status.archived{color:#f49aa2}.tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;margin:14px 0 4px;scrollbar-width:thin}.tab{white-space:nowrap;background:transparent;border:1px solid var(--line);border-radius:30px;padding:9px 13px;color:var(--muted);font-weight:750}.tab.active{color:#1a1420;background:var(--gold);border-color:var(--gold)}.field{display:flex;flex-direction:column;gap:6px;margin:10px 0}.field label{font-size:12px;font-weight:750;color:#ddd5e6}.field input,.field textarea,.field select,.input{width:100%;background:#100d1b;border:1px solid #ffffff26;border-radius:12px;color:var(--text);padding:12px;outline:none;min-height:44px}.field textarea{min-height:100px;resize:vertical}.field input:focus,.field textarea:focus,.field select:focus,.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}.field input[type=color]{padding:4px;height:45px}.inline-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stat{padding:14px;border-radius:16px;background:var(--panel);border:1px solid var(--line)}.stat strong{font-size:25px;display:block;line-height:1.2}.stat span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.8px;margin-top:5px}.notice{border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));background:color-mix(in srgb,var(--accent) 12%,var(--panel));padding:12px 14px;border-radius:14px;color:#f3e9fa;margin:12px 0}.notice.error{border-color:#ff626d55;background:#4a202b}.notice.good{border-color:#47cf9155;background:#123b32}.hidden{display:none!important}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.wrap{display:flex;gap:8px;flex-wrap:wrap}.list{display:flex;flex-direction:column;gap:9px}.list-item{background:#181422;border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}.list-item strong{display:block;overflow-wrap:anywhere}.list-item .sub{font-size:12px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}.list-item .actions{margin-top:10px}.scanner-box{background:#100d1b;border:1px dashed #ffffff3b;border-radius:18px;padding:12px;min-height:220px}.scanner-box #reader{width:100%;max-width:560px;margin:auto}.guest-result{border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));background:linear-gradient(180deg,var(--panel),#171321);border-radius:18px;padding:16px;margin-top:14px}.pill{display:inline-block;border-radius:24px;padding:4px 8px;background:#ffffff12;color:var(--muted);font-size:11px;font-weight:800;margin:2px}.pill.good{background:#47cf9122;color:#7ce4b3}.pill.warn{background:#ffd16622;color:#ffd166}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:540px;font-size:13px}td,th{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}.pass-image{width:min(100%,360px);display:block;border-radius:16px;border:1px solid var(--line);margin:12px auto;box-shadow:var(--shadow)}.empty{padding:24px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:18px}.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#f8f5fb;color:#171321;border-radius:12px;padding:11px 16px;z-index:50;max-width:min(90vw,480px);box-shadow:var(--shadow);font-weight:750}.loading{opacity:.65;pointer-events:none}.schema-field{border:1px solid var(--line);padding:12px;border-radius:14px;margin:8px 0;background:#171321}.schema-field .inline-fields{align-items:end}.footnote{font-size:12px;color:var(--muted);margin-top:12px}.divider{height:1px;background:var(--line);margin:15px 0}
+    @media(max-width:650px){.shell{padding:12px 12px 28px}.hero{padding:18px}.meta-grid{grid-template-columns:1fr;gap:8px}.grid{grid-template-columns:1fr}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.inline-fields{grid-template-columns:1fr}.topbar{align-items:flex-start}.top-actions{flex-wrap:wrap;justify-content:flex-end}.hero h1{font-size:32px}.card{padding:14px}}
+    @media(min-width:800px){.shell{padding-top:24px}.hero{padding:30px}.grid.cols3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  </style>
+</head>
+<body>
+<div class="shell" id="app">
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">✦</div><div>EventHub<small>One event at a time</small></div></div>
+    <div class="top-actions"><button class="btn ghost small hidden" id="backBtn" type="button">← All events</button><button class="btn ghost small" id="refreshBtn" type="button">↻ Refresh</button></div>
+  </header>
+  <main id="main"><div class="empty">Loading EventHub…</div></main>
+</div>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 <script>
-const $=s=>document.querySelector(s);let launchParams=location.search.slice(1),state=null,design={};let cameraStream=null,scanFrame=null;
-function msg(t,type=""){const el=$("#status");el.textContent=t;el.className="notice "+type}
-async function api(path,opts={}){const headers={"Content-Type":"application/json","X-VK-Launch-Params":launchParams,...(opts.headers||{})};const r=await fetch(path,{...opts,headers});let data={};try{data=await r.json()}catch{}if(!r.ok)throw Error(data.detail||data.message||"Request failed");return data}
-function showTab(name){document.querySelectorAll(".view").forEach(x=>x.classList.add("hidden"));$("#"+name).classList.remove("hidden");document.querySelectorAll("[data-tab]").forEach(b=>b.style.background=b.dataset.tab===name?"#514064":"");if(name==="admin")loadAdmin();if(name==="pass")loadPass()}
-document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
-async function init(){try{if(window.vkBridge?.send)await window.vkBridge.send("VKWebAppInit");state=await api("/api/bootstrap");const e=state.event;document.title='EventHub · '+e.name;$("h1").textContent=e.name;$("#eventMeta").textContent=e.event_date+" · "+e.venue;$("#eventInfo").textContent=e.name+" · "+e.event_date+" · "+e.venue;$("#foodField").classList.toggle("hidden",!e.food_enabled);$("#homeState").innerHTML=state.registration?'<p>Registration status: <b>'+state.registration.status+'</b></p>':'<p>You have not registered yet.</p>';if(state.user.is_admin){$("#adminTab").classList.remove("hidden");$("#scanTab").classList.remove("hidden")}else if(state.user.is_volunteer)$("#scanTab").classList.remove("hidden");msg("Connected to EventHub as VK user "+state.user.vk_user_id,"success");}catch(e){msg(e.message,"error")}}
-$("#regForm").onsubmit=async ev=>{ev.preventDefault();const d=Object.fromEntries(new FormData(ev.target));if(!state.event.food_enabled)delete d.food_preference;try{const r=await api("/api/register",{method:"POST",body:JSON.stringify(d)});msg(r.message,"success");state.registration=r.registration;$("#homeState").textContent="Registration status: "+r.registration.status;showTab("home")}catch(e){msg(e.message,"error")}};
-async function loadPass(){try{const d=await api("/api/my-pass");const g=d.guest,ds=d.design||{};$("#passContent").innerHTML='<div style="background:'+(ds.background||"#21113d")+';border:1px solid #72548a;border-radius:16px;padding:18px;text-align:center"><div style="color:'+(ds.accent||"#f8d68a")+';font-weight:800">'+(ds.title||d.event.name)+'</div><p>'+g.full_name+'</p><div id="qr"></div><b style="color:'+(ds.accent||"#f8d68a")+'">'+g.pass_code+'</b><p>'+g.hostel+' · Room '+g.room+'</p><p>'+g.residence+'</p>'+(g.food_preference?'<p>'+g.food_preference+'</p>':'')+'</div><h3>Checkpoint history</h3>'+["entry","proof_storage","food","exit","proof_return"].map(s=>'<div class="stage"><span>'+s.replace("_"," ")+'</span><b>'+(d.scans[s]?"✓":"—")+'</b></div>').join("");if(window.QRCode)new QRCode($("#qr"),{text:g.qr_token,width:220,height:220});else $("#qr").textContent="QR library unavailable; pass code: "+g.pass_code;}catch(e){$("#passContent").textContent=e.message}}
-async function loadAdmin(){try{const [s,g,v,d]=await Promise.all([api("/api/admin/stats"),api("/api/admin/guests?status=pending"),api("/api/admin/volunteers"),api("/api/admin/design")]);$("#stats").innerHTML=[["Registrations",s.total],["Approved",s.approved],["Pending",s.pending],["Sheets queue",s.sheets_pending]].map(x=>'<div class="stat"><b>'+x[1]+'</b><small>'+x[0]+'</small></div>').join("");$("#pendingList").innerHTML=g.guests.length?g.guests.map(x=>'<div class="guest"><b>'+esc(x.full_name)+'</b><div class="muted">'+esc(x.phone)+' · '+esc(x.hostel)+' / '+esc(x.room)+' · '+esc(x.food_preference||"No food data")+'</div><div class="actions"><button data-decision="approve" data-id="'+x.id+'">Approve</button><button class="danger" data-decision="reject" data-id="'+x.id+'">Reject</button></div></div>').join(""):"No pending registrations.";$("#volList").innerHTML=v.volunteers.map(x=>'<div class="guest">'+esc(x.display_name||x.vk_user_id)+' · '+x.vk_user_id+' · '+(x.active?"Active":"Inactive")+'</div>').join("");design=d.design;$("#designTitle").value=design.title||"";$("#designSubtitle").value=design.subtitle||"";$("#designBg").value=design.background||"#21113d";$("#designAccent").value=design.accent||"#f8d68a";$("#pendingList").querySelectorAll("[data-decision]").forEach(b=>b.onclick=async()=>{try{await api("/api/admin/guests/"+b.dataset.id+"/"+b.dataset.decision,{method:"POST"});msg("Registration "+b.dataset.decision+"d.","success");loadAdmin()}catch(e){msg(e.message,"error")}})}catch(e){msg(e.message,"error")}}
-function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-$("#refreshAdmin").onclick=loadAdmin;$("#exportCsv").onclick=async()=>{try{const r=await fetch("/api/admin/export.csv",{headers:{"X-VK-Launch-Params":launchParams}});if(!r.ok)throw Error("Export failed");const blob=await r.blob(),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="event-guests.csv";a.click();URL.revokeObjectURL(url)}catch(e){msg(e.message,"error")}};$("#volForm").onsubmit=async e=>{e.preventDefault();try{await api("/api/admin/volunteers",{method:"POST",body:JSON.stringify(Object.fromEntries(new FormData(e.target)))});e.target.reset();loadAdmin();msg("Volunteer access saved.","success")}catch(x){msg(x.message,"error")}};
-$("#saveDesign").onclick=async()=>{const d={...design,title:$("#designTitle").value,subtitle:$("#designSubtitle").value,background:$("#designBg").value,accent:$("#designAccent").value};try{await api("/api/admin/design",{method:"PUT",body:JSON.stringify({design:d})});msg("Design saved. QR identities and scan history are unchanged.","success")}catch(e){msg(e.message,"error")}};
-async function doScan(token){try{const r=await api("/api/scan",{method:"POST",body:JSON.stringify({qr_token:token,stage:$("#stage").value})});$("#scanResult").innerHTML='<div class="notice success">✓ '+esc(r.stage)+' recorded<br>'+esc(r.guest.full_name)+'<br>'+esc(r.guest.hostel)+' / '+esc(r.guest.room)+'</div>';$("#manualToken").value=""}catch(e){$("#scanResult").innerHTML='<div class="notice error">'+esc(e.message)+'</div>'}}
-$("#manualScan").onclick=()=>doScan($("#manualToken").value.trim());$("#startCamera").onclick=async()=>{try{if(!("BarcodeDetector"in window))throw Error("Camera QR detection is not supported in this VK browser. Use manual token entry or a supported device.");cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});$("#video").srcObject=cameraStream;await $("#video").play();const detector=new BarcodeDetector({formats:["qr_code"]});const tick=async()=>{if(!cameraStream)return;try{const codes=await detector.detect($("#video"));if(codes.length){stopCamera();await doScan(codes[0].rawValue);return}}catch{}scanFrame=requestAnimationFrame(tick)};tick()}catch(e){msg(e.message,"error")}};
-function stopCamera(){if(scanFrame)cancelAnimationFrame(scanFrame);cameraStream?.getTracks().forEach(t=>t.stop());cameraStream=null}
-window.addEventListener("pagehide",stopCamera);init();
-</script></body></html>
+(() => {
+  'use strict';
+  const params = new URLSearchParams(location.search);
+  const vkLaunchParams = location.search.replace(/^\?/, '');
+  const API_BASE = (params.get('api_base') || window.EVENTHUB_API_BASE || location.origin).replace(/\/$/, '');
+  const initialEventId = Number(params.get('event_id') || 0);
+  const state = { role:'guest', user:null, activeEvents:[], workspaces:[], eventId:initialEventId, event:null, stats:null, page:'home', guest:null, scanner:null, formSchema:[], pass:null };
+  const $ = (id) => document.getElementById(id);
+  const main = $('main');
+  const safe = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const parseJSON = (v, fallback) => { try { const x = typeof v === 'string' ? JSON.parse(v || '') : v; return x ?? fallback; } catch (_) { return fallback; } };
+  let toastTimer;
+  function toast(message, bad=false) { const el=$('toast'); el.textContent=message; el.style.background=bad?'#ff626d':'#f8f5fb'; el.classList.remove('hidden'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.add('hidden'),3500); }
+  function showNotice(message, kind='') { return `<div class="notice ${kind}">${safe(message)}</div>`; }
+  function themeColour(value, fallback) { return /^#[0-9a-f]{6}$/i.test(String(value||'')) ? String(value) : fallback; }
+  function eventTheme(ev) {
+    const t=parseJSON(ev?.theme_json,{});
+    const primary=themeColour(t.primary,'#25113b');
+    const background=themeColour(t.background,ev?shade(primary,-.50):'#171321');
+    const accent=themeColour(t.accent,'#ff7518');
+    const gold=themeColour(t.gold,'#ffd166');
+    const root=document.documentElement;
+    root.style.setProperty('--bg',background);
+    root.style.setProperty('--panel',themeColour(t.panel,primary));
+    root.style.setProperty('--panel2',themeColour(t.panel2,shade(primary,.10)));
+    root.style.setProperty('--accent',accent);
+    root.style.setProperty('--gold',gold);
+    document.querySelector('meta[name="theme-color"]').content=background;
+  }
+  function shade(hex, amount) {
+    if(!/^#[0-9a-f]{6}$/i.test(hex)) return hex;
+    const n=parseInt(hex.slice(1),16), r=Math.max(0,Math.min(255,(n>>16)+Math.round(255*amount))),g=Math.max(0,Math.min(255,((n>>8)&255)+Math.round(255*amount))),b=Math.max(0,Math.min(255,(n&255)+Math.round(255*amount)));
+    return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+  }
+  async function post(path, payload={}) {
+    if(!API_BASE) throw new Error('API address is not configured. Ask the EventHub admin to configure the Cloudflare API URL.');
+    if(!vkLaunchParams) throw new Error('Open this app from VK so VK can authenticate you.');
+    const controller=typeof AbortController!=='undefined'?new AbortController():null;
+    const timer=controller?setTimeout(()=>controller.abort(),20000):null;
+    let res;
+    try {
+      res=await fetch(API_BASE+path,{method:'POST',headers:{'Content-Type':'application/json','X-VK-Launch-Params':vkLaunchParams},body:JSON.stringify(payload),signal:controller?.signal});
+    } catch(err) {
+      if(err?.name==='AbortError') throw new Error('The server took too long to respond. Check the connection and try again.');
+      throw new Error('Could not reach EventHub. Check your internet connection and Cloudflare API address.');
+    } finally { if(timer) clearTimeout(timer); }
+    let data;
+    try { data=await res.json(); }
+    catch(_) { throw new Error('The server returned an unreadable response. Check the Cloudflare service logs.'); }
+    if(!data || typeof data!=='object') throw new Error('The server returned an unexpected response.');
+    if(!res.ok || data.ok===false) throw new Error(data.error || `Request failed (${res.status}).`);
+    return data;
+  }
+  const adminCall = (action, extra={}) => post('/api/admin',{action,event_id:state.eventId,...extra});
+  function updateUrl(eid, push=false) {
+    const u=new URL(location.href);
+    if(eid) u.searchParams.set('event_id',String(eid)); else u.searchParams.delete('event_id');
+    if(API_BASE) u.searchParams.set('api_base',API_BASE);
+    const next=u.pathname+u.search+u.hash;
+    if(push) history.pushState({event_id:Number(eid)||0},'',next);
+    else history.replaceState({event_id:Number(eid)||0},'',next);
+  }
+  async function setEvent(id) {
+    const eid=Number(id);
+    if(!Number.isSafeInteger(eid)||eid<=0) throw new Error('Invalid event selection. Refresh the event list and try again.');
+    await stopScanner();
+    state.eventId=eid; state.event=null; state.guest=null; state.pass=null; state.page='home'; updateUrl(eid,true);
+    main.innerHTML='<div class="empty">Opening this event…</div>';
+    try { await loadEvent(); }
+    catch(err) { main.innerHTML=showNotice(err.message,'error')+'<div class="actions"><button class="btn" id="returnEvents">← All events</button></div>'; $('returnEvents')?.addEventListener('click',clearEvent); throw err; }
+  }
+  async function clearEvent() {
+    await stopScanner(); state.eventId=0; state.event=null; state.guest=null; state.pass=null; state.page='events'; updateUrl(0,true); eventTheme(null); document.title='EventHub';
+    try { await loadRole(); } catch(err) { toast(err.message,true); }
+    renderEventList(); $('backBtn').classList.add('hidden');
+  }
+  async function loadRole() {
+    const data=await post('/api/role', state.eventId?{event_id:state.eventId}:{});
+    state.role=data.role||'guest'; state.user=data.user||null; state.activeEvents=data.events||[]; state.workspaces=data.workspaces||[];
+    return data;
+  }
+  async function loadEvent() {
+    if(!state.eventId) { renderEventList(); return; }
+    const requestedId=state.eventId;
+    const data=await post('/api/event_details',{event_id:requestedId});
+    if(!data.event || Number(data.event.id)!==requestedId) throw new Error('EventHub returned a different event than the one selected. No event details were displayed.');
+    state.event=data.event; eventTheme(state.event); document.title=`${state.event.name} | EventHub`; $('backBtn').classList.remove('hidden');
+    await renderHome();
+  }
+  async function boot() {
+    if(!vkLaunchParams) { main.innerHTML=showNotice('Open EventHub using the button in your VK bot. This page requires VK sign-in.','error'); return; }
+    try {
+      await loadRole();
+      if(state.eventId) {
+        const permitted=(state.role==='admin'?state.workspaces:state.activeEvents).some(e=>Number(e.id)===state.eventId);
+        if(!permitted) { state.eventId=0; updateUrl(0); }
+      }
+      if(state.eventId) await loadEvent(); else renderEventList();
+    } catch(e) { main.innerHTML=showNotice(e.message,'error')+`<div class="actions"><button class="btn" onclick="location.reload()">Try again</button></div>`; }
+  }
+  function renderEventList() {
+    stopScanner(); $('backBtn').classList.add('hidden');
+    const events=state.role==='admin'?state.workspaces:state.activeEvents;
+    const list=(events||[]).filter(e=>state.role==='admin'||e.status==='active');
+    main.innerHTML=`<section class="hero"><div class="eyebrow">Your event workspaces</div><h1>Choose one event</h1><p>Select an event to open its dedicated page. Only the selected event’s details, registrations, passes and scanner records will appear inside it.</p>${state.role==='admin'?`<div class="actions"><button class="btn primary" id="createEventOpen">＋ Create new event</button></div>`:''}</section>
+      <section class="section"><div class="section-title"><h2>${state.role==='admin'?'All workspaces':'Active events'}</h2><span class="muted">${list.length} event${list.length===1?'':'s'}</span></div><div class="grid">${list.map(e=>`<article class="card event-card"><div class="row"><span class="status ${safe(e.status)}">${safe(e.status)}</span><span class="muted">#${Number(e.id)}</span></div><div><h3>${safe(e.name)}</h3><p class="muted">Open this event's dedicated page and tools.</p></div><div class="actions"><button class="btn primary" data-open-event="${Number(e.id)}">Open this event →</button></div></article>`).join('')||'<div class="empty">No events are available yet.</div>'}</div></section>
+      ${state.role==='admin'?createEventForm():''}`;
+    $('createEventOpen')?.addEventListener('click',()=>document.getElementById('createEventForm')?.scrollIntoView({behavior:'smooth',block:'center'}));
+    document.querySelectorAll('[data-open-event]').forEach(b=>b.addEventListener('click',()=>setEvent(b.dataset.openEvent).catch(e=>toast(e.message,true))));
+    bindCreateEvent();
+  }
+  function defaultSchema() {
+    return [
+      {key:'full_name',label:'Full name',type:'text',required:true},
+      {key:'phone',label:'Phone number',type:'tel',required:true},
+      {key:'residence_type',label:'Residence',type:'select',options:['Hostel','Apartment'],required:true},
+      {key:'hostel_number',label:'Hostel number',type:'text',required:false},
+      {key:'room_number',label:'Room number',type:'text',required:false},
+      {key:'food_preference',label:'Food preference',type:'select',options:['Vegetarian','Non-vegetarian'],required:true}
+    ];
+  }
+  function createEventForm() {
+    return `<section class="section card" id="createEventForm"><div class="section-title"><h2>Create an event</h2><span class="status active">No code changes needed</span></div><form id="newEventForm"><div class="field"><label>Event name *</label><input name="name" required maxlength="120" placeholder="e.g. Halloween Night 2027"></div><div class="field"><label>Description</label><textarea name="description" maxlength="1000" placeholder="Describe this event"></textarea></div><div class="inline-fields"><div class="field"><label>Date</label><input name="event_date" type="date"></div><div class="field"><label>Time</label><input name="event_time" placeholder="e.g. 6:00 PM"></div></div><div class="field"><label>Venue</label><input name="venue" maxlength="200" placeholder="Event venue"></div><div class="inline-fields"><div class="field"><label>Primary colour</label><input name="primary" type="color" value="#25113b"></div><div class="field"><label>Accent colour</label><input name="accent" type="color" value="#ff7518"></div></div><div class="inline-fields"><div class="field"><label>Background colour</label><input name="background" type="color" value="#171321"></div><div class="field"><label>Gold / highlight</label><input name="gold" type="color" value="#ffd166"></div></div><p class="footnote">A separate event workspace and QR prefix are created automatically. You can edit the form fields after creation.</p><button class="btn primary" type="submit">Create event workspace</button></form></section>`;
+  }
+  function bindCreateEvent() {
+    $('newEventForm')?.addEventListener('submit',async e=>{
+      e.preventDefault();
+      const form=e.currentTarget, submit=form.querySelector('button[type="submit"]');
+      const f=new FormData(form); const name=String(f.get('name')||'').trim();
+      if(name.length<3){toast('Event name must contain at least 3 characters.',true);return;}
+      const theme={primary:f.get('primary'),accent:f.get('accent'),background:f.get('background'),gold:f.get('gold')};
+      submit.disabled=true; submit.textContent='Creating event…';
+      try {
+        const r=await post('/api/admin',{action:'create_event',name,description:f.get('description'),event_date:f.get('event_date'),event_time:f.get('event_time'),venue:f.get('venue'),theme,registration_schema:defaultSchema()});
+        const newId=Number(r.event_id);
+        if(!Number.isSafeInteger(newId)||newId<=0) throw new Error('The server did not return a valid event ID. Refresh the workspace list before trying again.');
+        toast(r.message||'Event created'); await loadRole(); await setEvent(newId);
+      } catch(err){toast(err.message,true);submit.disabled=false;submit.textContent='Create event workspace';}
+    });
+  }
+  function eventHero() {
+    const e=state.event||{};
+    const guestActions=state.role==='guest'?`<button class="btn primary" data-page="register">Register for this event</button><button class="btn" data-page="pass">My QR pass</button>`:'';
+    const adminActions=state.role==='admin'?`<button class="btn ghost" data-copy-event-link>Copy this event's VK link</button>`:'';
+    return `<section class="hero"><div class="eyebrow">${state.role==='admin'?'Event workspace':state.role==='volunteer'?'Volunteer workspace':'Event information'}</div><h1>${safe(e.name)}</h1><p>${safe(e.description||'Event details will be announced soon.')}</p><div class="meta-grid"><div class="meta"><b>Date</b><span>${safe(e.event_date||'To be announced')}</span></div><div class="meta"><b>Time</b><span>${safe(e.event_time||'To be announced')}</span></div><div class="meta"><b>Venue</b><span>${safe(e.venue||'To be announced')}</span></div></div><div class="actions">${guestActions}${adminActions}</div></section>`;
+  }
+  async function renderHome() {
+    state.page='home';
+    if(state.role==='admin') {
+      let stat={}; try { const r=await adminCall('stats'); stat=r.stats||{}; state.stats=stat; } catch(_){}
+      main.innerHTML=eventHero()+`<section class="section"><div class="section-title"><h2>Event overview</h2><span class="status ${safe(state.event.status||'active')}">${safe(state.event.status||'active')} · Selected event only</span></div><div class="stat-grid">${[['Approved guests','approvedGuests'],['Checked in','checkedIn'],['Meals served','mealsServed'],['Volunteers','volunteers']].map(([l,k])=>`<div class="stat"><strong>${Number(stat[k]||0)}</strong><span>${l}</span></div>`).join('')}</div></section>${workspaceNav()}<section class="section" id="workspaceContent"></section>`;
+      bindNavigation(); await renderAdminPage('overview');
+    } else if(state.role==='volunteer') {
+      main.innerHTML=eventHero()+`<section class="section grid"><article class="card"><h3>📷 QR Scanner</h3><p>Scan a pass and record entry, proof storage, food collection and exit for this event only.</p><div class="actions"><button class="btn primary" data-page="scanner">Open QR Scanner</button></div></article><article class="card"><h3>🎫 Staff QR pass</h3><p>Use the same event QR pass format as guests.</p><div class="actions"><button class="btn" data-page="pass">My QR pass</button></div></article></section><section id="workspaceContent"></section>`;
+      bindNavigation();
+    } else {
+      main.innerHTML=eventHero()+`<section class="section grid"><article class="card"><h3>🎟 Registration</h3><p>Complete this event's registration form. Your pass is sent after approval.</p><div class="actions"><button class="btn primary" data-page="register">Register now</button></div></article><article class="card"><h3>🎫 My QR pass</h3><p>View your pass after your registration is approved.</p><div class="actions"><button class="btn" data-page="pass">Open my pass</button></div></article></section><section id="workspaceContent"></section>`;
+      bindNavigation();
+    }
+  }
+  function workspaceNav() {
+    const tabs=[['overview','Overview'],['scanner','QR Scanner'],['approvals','Approvals'],['guests','Guests'],['storage','Proof storage'],['announcements','Announcements'],['settings','Event settings'],['staff','Volunteers'],['pass','My QR pass']];
+    return `<nav class="tabs" aria-label="Event workspace">${tabs.map(([k,l])=>`<button class="tab ${state.page===k?'active':''}" data-admin-page="${k}">${l}</button>`).join('')}</nav>`;
+  }
+  function bindNavigation() {
+    document.querySelectorAll('[data-page]').forEach(b=>{if(!b.dataset.pageBound){b.dataset.pageBound='1';b.addEventListener('click',()=>openPage(b.dataset.page));}});
+    document.querySelectorAll('[data-copy-event-link]').forEach(b=>{if(!b.dataset.bound){b.dataset.bound='1';b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(location.href);toast('Event VK link copied');}catch(_){window.prompt('Copy this event VK link:',location.href);}});}});
+    hostButtons('[data-admin-page]');
+  }
+  async function openPage(page) {
+    state.page=page;
+    if(page!=='scanner') await stopScanner();
+    if(state.role==='admin') { await renderAdminPage(page); return; }
+    const host=$('workspaceContent');
+    if(page==='register') await renderRegistration(host);
+    else if(page==='pass') await renderPass(host);
+    else if(page==='scanner' && state.role==='volunteer') await renderScanner(host);
+  }
+  async function renderAdminPage(page) {
+    state.page=page; if(page!=='scanner') await stopScanner(); const host=$('workspaceContent'); if(!host)return;
+    document.querySelectorAll('[data-admin-page]').forEach(b=>b.classList.toggle('active',b.dataset.adminPage===page));
+    if(page==='overview') {
+      const r=await adminCall('stats').catch(()=>({stats:{}})); const s=r.stats||{};
+      host.innerHTML=`<div class="section-title"><h2>Quick status</h2><button class="btn small" id="refreshStats">Refresh</button></div><div class="grid"><div class="card"><h3>Guest registration</h3><p>${Number(s.approvedGuests||0)} approved · ${Number(s.checkedIn||0)} checked in</p></div><div class="card"><h3>Food collection</h3><p>${Number(s.mealsServed||0)} meals served</p><p>Vegetarian: ${Number(s.vegetarianServed||0)} · Non-vegetarian: ${Number(s.nonVegetarianServed||0)}</p></div><div class="card"><h3>Event capacity</h3><p>${Number(s.approvedGuests||0)} active guest passes for this event.</p></div><div class="card"><h3>Google Sheets sync</h3><p id="sheetsStatus">Sync queue status has not been checked.</p><div class="actions"><button class="btn small" id="refreshSheetsStatus">Check sync status</button></div></div></div><div class="actions"><button class="btn primary" data-admin-page="scanner">Start QR Scanner</button><button class="btn" data-admin-page="approvals">Review registrations</button><button class="btn" data-admin-page="guests">Manage guests</button><button class="btn" data-admin-page="pass">My QR pass</button></div>`;
+      $('refreshStats')?.addEventListener('click',()=>renderAdminPage('overview'));
+      $('refreshSheetsStatus')?.addEventListener('click',async()=>{
+        const target=$('sheetsStatus'); target.textContent='Checking…';
+        try { const q=await adminCall('sheets_queue_status'); target.textContent=q.configured?`Configured · ${Number(q.pending||0)} queued · ${Number(q.retrying||0)} retrying · ${q.timezone||'event timezone'}`:'Not configured. Ask the admin to check SHEETS_SYNC_URL and SHEETS_SYNC_SECRET.'; if(q.lastError) target.textContent+=` · Latest error: ${q.lastError}`; }
+        catch(err){target.textContent=err.message;}
+      });
+      bindAdminNavInPanel();
+    } else if(page==='scanner') await renderScanner(host);
+    else if(page==='approvals') await renderApprovals(host);
+    else if(page==='guests') await renderGuests(host);
+    else if(page==='storage') await renderStorage(host);
+    else if(page==='announcements') await renderAnnouncements(host);
+    else if(page==='settings') await renderSettings(host);
+    else if(page==='staff') await renderStaff(host);
+    else if(page==='pass') await renderPass(host);
+  }
+  function bindAdminNavInPanel(){hostButtons('[data-admin-page]');}
+  function hostButtons(selector){document.querySelectorAll(selector).forEach(b=>{if(!b.dataset.bound){b.dataset.bound='1';b.addEventListener('click',()=>renderAdminPage(b.dataset.adminPage));}});}
+  async function renderRegistration(host) {
+    if(!state.event) return;
+    const schema=parseJSON(state.event.registration_schema,defaultSchema()); state.formSchema=Array.isArray(schema)&&schema.length?schema:defaultSchema();
+    host.innerHTML=`<section class="section card"><div class="section-title"><h2>Register — ${safe(state.event.name)}</h2></div><p class="muted">Your registration is linked only to this event. Required fields are marked with an asterisk.</p><form id="registrationForm">${state.formSchema.map(fieldHTML).join('')}<button class="btn primary" type="submit">Submit registration</button></form><div id="registerMessage"></div></section>`;
+    $('registrationForm').addEventListener('submit',async e=>{
+      e.preventDefault();const values={};
+      for(const field of state.formSchema){const el=Array.from(e.currentTarget.elements).find(node=>node.name===field.key);if(!el)continue;values[field.key]=field.type==='checkbox'?el.checked:el.value;}
+      const button=e.currentTarget.querySelector('button[type=submit]');button.disabled=true;
+      try{const r=await post('/api/register',{event_id:state.eventId,fields:values});$('registerMessage').innerHTML=showNotice(r.message||'Registration submitted.','good');e.currentTarget.reset();}
+      catch(err){$('registerMessage').innerHTML=showNotice(err.message,'error');}
+      finally{button.disabled=false;}
+    });
+  }
+  function fieldHTML(f) {
+    const key=String(f.key||''), id='registration-'+key, label=safe(f.label||key), type=f.type||'text', required=f.required?'required':'';
+    if(type==='select') return `<div class="field"><label for="${safe(id)}">${label}${f.required?' *':''}</label><select id="${safe(id)}" name="${safe(key)}" ${required}><option value="">Choose…</option>${(Array.isArray(f.options)?f.options:[]).map(x=>`<option value="${safe(x)}">${safe(x)}</option>`).join('')}</select></div>`;
+    if(type==='textarea') return `<div class="field"><label for="${safe(id)}">${label}${f.required?' *':''}</label><textarea id="${safe(id)}" name="${safe(key)}" ${required} maxlength="1000"></textarea></div>`;
+    if(type==='checkbox') return `<div class="field"><label><input id="${safe(id)}" type="checkbox" name="${safe(key)}" ${required} style="width:auto;min-height:0"> ${label}${f.required?' *':''}</label></div>`;
+    return `<div class="field"><label for="${safe(id)}">${label}${f.required?' *':''}</label><input id="${safe(id)}" name="${safe(key)}" type="${['text','tel','email','number','date'].includes(type)?type:'text'}" ${required} maxlength="1000"></div>`;
+  }
+  async function renderPass(host) {
+    host.innerHTML=`<section class="section card"><h2>My QR pass</h2><p class="muted">This pass is valid only for ${safe(state.event.name)}.</p><div id="passArea">Loading pass…</div></section>`;
+    try {
+      let food='';
+      let r;
+      try{r=await post('/api/my_pass',{event_id:state.eventId});}
+      catch(err){
+        if((state.role==='admin'||state.role==='volunteer') && /Choose Vegetarian/.test(err.message)) {
+          $('passArea').innerHTML=`<div class="field"><label>Food preference for your staff pass</label><select id="staffFood"><option value="">Choose…</option><option>Vegetarian</option><option>Non-vegetarian</option></select></div><button class="btn primary" id="createStaffPass">Create my staff pass</button>`;
+          $('createStaffPass').addEventListener('click',async()=>{const choice=$('staffFood').value;if(!choice){toast('Choose a food preference first.',true);return;}const btn=$('createStaffPass');btn.disabled=true;try{const rr=await post('/api/my_pass',{event_id:state.eventId,food_preference:choice});showPass(rr.pass);}catch(e){toast(e.message,true);btn.disabled=false;}}); return;
+        }
+        throw err;
+      }
+      showPass(r.pass);
+    } catch(e) { $('passArea').innerHTML=showNotice(e.message,'error')+(state.role==='guest'?`<button class="btn" id="goRegister">Open registration</button>`:'<button class="btn" id="retryPass">Try again</button>'); $('goRegister')?.addEventListener('click',()=>renderRegistration(host)); $('retryPass')?.addEventListener('click',()=>renderPass(host)); }
+    function showPass(pass){
+      state.pass=pass; $('passArea').innerHTML=`<div class="guest-result"><div class="row"><strong>${safe(pass.name)}</strong><span class="pill good">${safe(pass.passRole||'Guest')}</span></div><img class="pass-image" alt="${safe(state.event.name)} QR pass" src="data:image/svg+xml;base64,${pass.image}"><div class="row"><span class="muted">Pass code</span><strong>${safe(pass.passCode)}</strong></div><p class="muted">${safe(pass.food)} · ${safe(pass.residence)} ${pass.roomNumber?`· Room ${safe(pass.roomNumber)}`:''}</p><div class="actions"><button class="btn primary" id="sendPass">Download / share pass</button></div></div>`;
+      $('sendPass').addEventListener('click',async()=>{try{const url='data:image/svg+xml;base64,'+pass.image;const blob=await (await fetch(url)).blob();const file=new File([blob],(pass.passCode||'EventHub-pass')+'.svg',{type:'image/svg+xml'});if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:state.event.name+' pass'});toast('Pass shared');}else{const a=document.createElement('a');a.href=url;a.download=(pass.passCode||'EventHub-pass')+'.svg';a.click();toast('Pass downloaded. You can share it from your device.');}}catch(e){toast(e.message||'Could not share pass.',true);}});
+    }
+  }
+  async function renderScanner(host) {
+    if(state.role!=='admin'&&state.role!=='volunteer'){host.innerHTML=showNotice('Scanner access is restricted to event volunteers and admins.','error');return;}
+    if(state.event?.status!=='active'){stopScanner();host.innerHTML=showNotice('This event is not active. Its records are available for review, but QR scanning and event-day actions are disabled.','error');return;}
+    stopScanner();
+    host.innerHTML=`<section class="section card"><div class="section-title"><h2>📷 QR Scanner</h2><span class="status active">${safe(state.event.name)}</span></div><p class="muted">Scan a guest's event pass. You can also enter a pass code manually when a camera is unavailable.</p><div class="scanner-box"><div id="reader"></div></div><div class="actions"><button class="btn primary" id="startCamera">Start camera</button><button class="btn" id="stopCamera" disabled>Stop camera</button></div><div class="field"><label>Manual QR / pass code</label><div class="row"><input id="manualQr" class="input" autocomplete="off" placeholder="H5-XXXXXXXX" style="flex:1;min-width:0"><button class="btn" id="lookupManual">Verify</button></div></div><div id="scanResult"></div></section>`;
+    $('startCamera').addEventListener('click',startScanner);$('stopCamera').addEventListener('click',stopScanner);$('lookupManual').addEventListener('click',()=>lookupGuest($('manualQr').value));$('manualQr').addEventListener('keydown',e=>{if(e.key==='Enter')lookupGuest(e.currentTarget.value);});
+  }
+  async function startScanner() {
+    if(!window.Html5Qrcode){toast('QR camera library did not load. Use manual pass verification.',true);return;}
+    try {
+      if(!state.scanner) state.scanner=new Html5Qrcode('reader');
+      $('startCamera').disabled=true; $('stopCamera').disabled=false;
+      await state.scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:250,height:250},aspectRatio:1.0},async text=>{await stopScanner();await lookupGuest(text);},()=>{});
+    } catch(e){$('startCamera').disabled=false;$('stopCamera').disabled=true;toast('Camera could not start. Allow camera permission or use manual verification.',true);}
+  }
+  async function stopScanner() {
+    if(state.scanner){try{if(state.scanner.isScanning)await state.scanner.stop();}catch(_){}try{await state.scanner.clear();}catch(_){}state.scanner=null;}
+    if($('startCamera'))$('startCamera').disabled=false;if($('stopCamera'))$('stopCamera').disabled=true;
+  }
+  async function lookupGuest(qr) {
+    const value=String(qr||'').trim(); if(!value){toast('Enter or scan a pass first.',true);return;}
+    $('scanResult').innerHTML='<div class="notice">Checking this pass…</div>';
+    try {const r=await post('/api/guest',{event_id:state.eventId,qr:value});state.guest=r.guest;renderScannedGuest();}
+    catch(e){$('scanResult').innerHTML=showNotice(e.message,'error');}
+  }
+  function renderScannedGuest(message='') {
+    const g=state.guest;if(!g)return;
+    const actions=[];
+    const activePass=g.status==='approved';
+    const proofResolved=['Stored','No proof','Returned'].includes(g.proofStatus);
+    if(activePass&&!g.exitRecorded&&!g.entryUsed)actions.push(['entry','Record entry','success']);
+    if(activePass&&g.entryUsed&&!g.exitRecorded&&g.proofStatus==='Not collected') {
+      actions.push(['proof_deposit','Store proof','']);
+      actions.push(['proof_no_proof','No proof provided','']);
+    }
+    if(activePass&&g.entryUsed&&!g.exitRecorded&&!g.foodUsed&&proofResolved)actions.push(['food','Record food collection','success']);
+    if(activePass&&g.entryUsed&&!g.exitRecorded&&g.proofStatus==='Stored')actions.push(['proof_return','Return stored proof','']);
+    if(activePass&&g.entryUsed&&(g.proofStatus==='Returned'||g.proofStatus==='No proof')&&!g.exitRecorded)actions.push(['exit','Record exit','']);
+    $('scanResult').innerHTML=`${message?showNotice(message,'good'):''}<div class="guest-result"><div class="row"><strong>${safe(g.name)}</strong><span class="pill ${g.status==='approved'?'good':'warn'}">${safe(g.status)}</span></div><p class="muted">${safe(g.residence)}${g.roomNumber?' · Room '+safe(g.roomNumber):''} · ${safe(g.food)}</p><div class="wrap"><span class="pill ${g.entryUsed?'good':'warn'}">Entry: ${g.entryUsed?'Recorded':'Pending'}</span><span class="pill ${g.foodUsed?'good':'warn'}">Food: ${g.foodUsed?'Collected':'Pending'}</span><span class="pill">Proof: ${safe(g.proofStatus||'Not collected')}</span><span class="pill">Exit: ${g.exitRecorded?'Recorded':'Pending'}</span></div>${g.storageLabel?`<p><strong>Storage:</strong> ${safe(g.storageLabel)}</p>`:''}${!activePass?'<div class="notice error">This pass is not active. Event-day actions are disabled.</div>':g.exitRecorded?'<div class="notice good">Exit has already been recorded. No further event-day actions are available.</div>':g.entryUsed&&!proofResolved?'<div class="notice">Next step: store the guest’s proof or confirm that no proof was provided. Food collection becomes available after this step.</div>':''}<p class="muted">Pass code: ${safe(g.passCode)}</p><div class="actions">${actions.map(([a,l,cl])=>`<button class="btn ${cl}" data-scan-action="${a}">${l}</button>`).join('')||'<span class="pill good">No further actions available</span>'}</div></div>`;
+    document.querySelectorAll('[data-scan-action]').forEach(b=>b.addEventListener('click',()=>recordAction(b.dataset.scanAction,b)));
+  }
+  async function recordAction(action,button) {
+    if(!state.guest || state.guest.status!=='approved' || state.guest.exitRecorded) { toast('This pass is no longer eligible for event-day actions.',true); return; }
+    button.disabled=true;
+    try{const r=await post('/api/action',{event_id:state.eventId,action,qr:state.guest.passCode});const g=r.guest||{};await lookupGuest(state.guest.passCode);toast(r.message||`${action.replaceAll('_',' ')} recorded`);}
+    catch(e){toast(e.message,true);button.disabled=false;}
+  }
+  async function renderApprovals(host) {
+    const readOnly=state.event?.status==='archived';
+    host.innerHTML=`${readOnly?showNotice('Archived events are read-only. Pending requests can be reviewed but not approved or rejected.','error'):''}<div class="section-title"><h2>Pending registrations</h2><button class="btn small" id="refreshPending">↻ Refresh</button></div><div id="pendingList" class="list"><div class="empty">Loading…</div></div>`;
+    const load=async()=>{const r=await adminCall('pending_registrations');$('pendingList').innerHTML=(r.registrations||[]).map(x=>{
+      const extra=parseJSON(x.registration_data,{});const summary=Object.entries(extra).filter(([k,v])=>!['full_name','phone'].includes(k)&&v!==''&&v!==false).map(([k,v])=>`${safe(k.replaceAll('_',' '))}: ${safe(v)}`).join(' · ');
+      return `<article class="list-item"><div class="row"><strong>${safe(x.full_name)}</strong><span class="pill warn">Pending</span></div><div class="sub">${safe(x.phone||'No phone')} · ${safe(x.residence_type||'')} · ${safe(x.food_preference||'')}</div>${summary?`<div class="sub">${summary}</div>`:''}${readOnly?'<p class="footnote">Read-only archived request.</p>':`<div class="actions"><button class="btn success small" data-decision="approve" data-id="${x.id}">Approve & send QR</button><button class="btn danger small" data-decision="reject" data-id="${x.id}">Reject</button></div>`}</article>`;
+    }).join('')||'<div class="empty">No pending registrations for this event.</div>';
+      if(!readOnly) document.querySelectorAll('[data-decision]').forEach(b=>b.addEventListener('click',async()=>{b.disabled=true;try{const r=await adminCall('registration_decision',{request_id:Number(b.dataset.id),decision:b.dataset.decision});toast(r.message||'Decision saved');await load();}catch(e){toast(e.message,true);b.disabled=false;}}));};
+    $('refreshPending').addEventListener('click',load);await load();
+  }
+  async function renderGuests(host) {
+    const readOnly=state.event?.status==='archived';
+    host.innerHTML=`${readOnly?showNotice('Archived events are read-only. The guest register remains available for review.','error'):''}<div class="section-title"><h2>Guest register</h2><span class="muted">Search this event only</span></div><div class="inline-fields"><div class="field"><label>Search name, phone or pass code</label><input id="guestQuery" placeholder="Search guests…"></div><div class="field"><label>Status</label><select id="guestStatus"><option value="all">All</option><option value="approved">Approved</option><option value="revoked">Revoked</option></select></div></div><div class="actions"><button class="btn primary" id="searchGuests">Search</button></div>${readOnly?'':'<p class="footnote">Reset entry + proof storage is blocked while an item is still recorded as stored. Physically return the item first. Food collection status can be reset separately.</p>'}<div id="guestList" class="list"></div>`;
+    const search=async()=>{try{const r=await adminCall('guest_search',{query:$('guestQuery').value,status:$('guestStatus').value});$('guestList').innerHTML=(r.guests||[]).map(g=>`<article class="list-item"><div class="row"><strong>${safe(g.full_name)}</strong><span class="pill ${g.status==='approved'?'good':'warn'}">${safe(g.status)}</span></div><div class="sub">${safe(g.phone||'')} · ${safe(g.pass_code)} · ${safe(g.food_preference)}</div><div class="sub">Entry ${g.entry_used?'✓':'—'} · Food ${g.food_used?'✓':'—'}</div>${readOnly?'':`<div class="actions">${g.status==='approved'?`<button class="btn small" data-guest-op="reissue_pass" data-id="${g.id}">Reissue QR</button><button class="btn danger small" data-guest-op="revoke_pass" data-id="${g.id}">Revoke</button>`:`<button class="btn success small" data-guest-op="reactivate_pass" data-id="${g.id}">Reactivate</button>`}<button class="btn small" data-guest-op="reset_entry_and_storage" data-id="${g.id}" data-confirm="Reset entry and proof-storage tracking? Any physical proof must already be returned. Food status will stay unchanged.">Reset entry + proof storage</button><button class="btn small" data-guest-op="reset_status" data-target="food" data-id="${g.id}" data-confirm="Reset this guest’s food collection status?">Reset food status</button></div>`}</article>`).join('')||'<div class="empty">No matching guests.</div>';
+      if(!readOnly) document.querySelectorAll('[data-guest-op]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm(b.dataset.confirm||`Confirm ${b.dataset.guestOp.replaceAll('_',' ')} for this guest?`))return;b.disabled=true;try{const r=await adminCall('guest_action',{guest_id:Number(b.dataset.id),operation:b.dataset.guestOp,target:b.dataset.target||''});toast(r.message||'Guest action saved');await search();}catch(e){toast(e.message,true);b.disabled=false;}}));
+    }catch(e){$('guestList').innerHTML=showNotice(e.message,'error');}};
+    $('searchGuests').addEventListener('click',search);$('guestQuery').addEventListener('keydown',e=>{if(e.key==='Enter')search();});await search();
+  }
+  async function renderStorage(host) {
+    host.innerHTML=`<div class="section-title"><h2>Proof storage</h2><button class="btn small" id="refreshStorage">↻ Refresh</button></div><div class="card"><h3>Storage layout</h3><p class="muted">Each event has a separate box/section/slot map.</p><form id="storageForm"><div class="inline-fields"><div class="field"><label>Boxes / units</label><input id="units" type="number" min="1" max="100" value="5"></div><div class="field"><label>Sections per box</label><input id="sections" type="number" min="1" max="26" value="4"></div><div class="field"><label>Slots per section</label><input id="capacity" type="number" min="1" max="500" value="10"></div><div class="field"><label>Box label</label><input id="unitPrefix" value="Box" maxlength="30"></div><div class="field"><label>Section label</label><input id="sectionPrefix" value="Section" maxlength="30"></div></div><button class="btn primary" type="submit">Save layout</button></form><div id="storageMessage"></div></div><div class="section"><div class="stat-grid" id="storageStats"></div><div class="list" id="storageRecords"></div></div>`;
+    const refresh=async()=>{try{const [c,r]=await Promise.all([state.event?.status==='archived'?Promise.resolve({config:{}}):adminCall('storage_config'),adminCall('proof_storage_report')]);const x=c.config||{};$('units').value=x.unit_count||5;$('sections').value=x.sections_per_unit||4;$('capacity').value=x.capacity_per_section||10;$('unitPrefix').value=x.unit_prefix||'Box';$('sectionPrefix').value=x.section_prefix||'Section';if(state.event?.status==='archived')$('storageForm').querySelectorAll('input,button').forEach(el=>el.disabled=true);const z=r.summary||{};$('storageStats').innerHTML=[['Tracked',z.tracked],['Currently stored',z.currentlyStored],['Returned',z.returned],['Total capacity',z.capacity]].map(([l,v])=>`<div class="stat"><strong>${Number(v||0)}</strong><span>${l}</span></div>`).join('');if(state.event?.status==='archived')$('storageMessage').innerHTML=showNotice('Archived event: storage settings are read-only. Historical proof records remain visible.');$('storageRecords').innerHTML=(r.records||[]).map(a=>`<div class="list-item"><strong>${safe(a.full_name||'Guest not found')}</strong><div class="sub">${safe(a.pass_code||'')} · Box ${safe(a.box_number)} / Section ${safe(a.section_letter)} / Slot ${safe(a.slot_number||'—')}</div><div class="sub">Stored: ${safe(a.deposited_at||'Not stored')} · Returned: ${safe(a.returned_at||'Pending')}</div></div>`).join('')||'<div class="empty">No proof records for this event.</div>';}catch(e){$('storageMessage').innerHTML=showNotice(e.message,'error');}};
+    $('refreshStorage').addEventListener('click',refresh);$('storageForm').addEventListener('submit',async e=>{e.preventDefault();try{const r=await adminCall('save_storage_config',{unit_count:Number($('units').value),sections_per_unit:Number($('sections').value),capacity_per_section:Number($('capacity').value),unit_prefix:$('unitPrefix').value,section_prefix:$('sectionPrefix').value});$('storageMessage').innerHTML=showNotice(r.message,'good');await refresh();}catch(err){$('storageMessage').innerHTML=showNotice(err.message,'error');}});await refresh();
+  }
+  async function renderAnnouncements(host) {
+    const archived=state.event?.status==='archived';
+    host.innerHTML=`${archived?showNotice('This event is archived. Announcement history is available, but new announcements are disabled.','error'):''}<section class="card"><h2>Event announcement</h2><p class="muted">Send only to users who started this event, or approved guests of this event.</p><form id="announceForm"><div class="field"><label>Audience</label><select id="announceAudience" ${archived?'disabled':''}><option value="registered_guests">Approved guests for this event</option><option value="all_started">Users who opened this event in EventHub</option></select></div><div class="field"><label>Message</label><textarea id="announceText" maxlength="3500" required placeholder="Write your event announcement…" ${archived?'disabled':''}></textarea></div><div class="actions"><button class="btn" type="button" id="previewAnnouncement" ${archived?'disabled':''}>Preview recipients</button><button class="btn primary" type="submit" ${archived?'disabled':''}>Send announcement</button></div></form><div id="announceMessage"></div></section><section class="section"><div class="section-title"><h2>Announcement history</h2><button class="btn small" id="refreshAnn">Refresh</button></div><div id="announceHistory" class="list"></div></section>`;
+    const preview=async()=>{const r=await adminCall('announcement_preview',{audience:$('announceAudience').value,message:$('announceText').value});$('announceMessage').innerHTML=showNotice(`${r.recipient_count} recipient(s) will receive this announcement for ${r.event.name}.`,'good');};
+    $('previewAnnouncement').addEventListener('click',()=>preview().catch(e=>toast(e.message,true)));
+    $('announceForm').addEventListener('submit',async e=>{e.preventDefault();if(!confirm('Send this announcement to the selected audience for this event?'))return;try{const r=await adminCall('announcement_send',{audience:$('announceAudience').value,message:$('announceText').value});$('announceMessage').innerHTML=showNotice(r.message,'good');$('announceText').value='';await historyLoad();}catch(err){$('announceMessage').innerHTML=showNotice(err.message,'error');}});
+    const historyLoad=async()=>{try{const r=await adminCall('announcement_history');$('announceHistory').innerHTML=(r.announcements||[]).map(a=>`<article class="list-item"><strong>Announcement #${a.id}</strong><div class="sub">${safe(a.created_at)} · ${Number(a.recipients||0)} recipients · ${Number(a.failed||0)} failed</div><p>${safe(a.message||'[Attachment]')}</p><div class="actions"><button class="btn small" data-unsend="${a.id}" ${archived?'disabled':''}>Try unsend</button><button class="btn danger small" data-delete-ann="${a.id}" ${archived?'disabled':''}>Delete history</button></div></article>`).join('')||'<div class="empty">No announcements for this event.</div>';document.querySelectorAll('[data-unsend]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Attempt to delete this delivered message from recipients’ VK chats?'))return;try{const r=await adminCall('announcement_unsend',{announcement_id:Number(b.dataset.unsend)});toast(r.message);await historyLoad();}catch(e){toast(e.message,true);}}));document.querySelectorAll('[data-delete-ann]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Delete this local announcement history? Sent messages will not be removed.'))return;try{const r=await adminCall('announcement_delete',{announcement_id:Number(b.dataset.deleteAnn)});toast(r.message);await historyLoad();}catch(e){toast(e.message,true);}}));}catch(e){$('announceHistory').innerHTML=showNotice(e.message,'error');}};
+    $('refreshAnn').addEventListener('click',historyLoad);await historyLoad();
+  }
+  function schemaEditor(schema) {
+    return `<div id="schemaBuilder"><div id="schemaEditor">${schema.map((f,i)=>schemaFieldEditor(f,i)).join('')}</div><div class="actions"><button class="btn small" type="button" id="addSchemaField">＋ Add form field</button></div><p class="footnote">Use unique field keys. Keep <b>full_name</b> required. Supported types: text, tel, email, number, date, textarea, select, checkbox.</p></div>`;
+  }
+  function schemaFieldEditor(f,i) {
+    return `<div class="schema-field" data-schema-index="${i}"><div class="row"><strong>Field ${i+1}</strong><button type="button" class="btn danger small" data-remove-schema="${i}" ${f.key==='full_name'?'disabled title="The full name field is required"':''}>Remove</button></div><div class="inline-fields"><div class="field"><label>Key (unique)</label><input data-schema-key value="${safe(f.key||'field_'+(i+1))}" maxlength="40" ${f.key==='full_name'?'disabled title="The full_name key is required"':''}></div><div class="field"><label>Label</label><input data-schema-label value="${safe(f.label||'')}" maxlength="80"></div><div class="field"><label>Type</label><select data-schema-type ${f.key==='full_name'?'disabled':''}>${(f.key==='full_name'?['text','textarea']:['text','tel','email','number','date','textarea','select','checkbox']).map(t=>`<option ${f.type===t?'selected':''}>${t}</option>`).join('')}</select></div><div class="field"><label>Required</label><select data-schema-required ${f.key==='full_name'?'disabled':''}><option value="false" ${!f.required?'selected':''}>No</option><option value="true" ${f.required?'selected':''}>Yes</option></select></div></div><div class="field"><label>Options (for select, comma separated)</label><input data-schema-options value="${safe((Array.isArray(f.options)?f.options:[]).join(', '))}"></div></div>`;
+  }
+  function readSchemaEditor() {
+    const fields=[...document.querySelectorAll('[data-schema-index]')].map(el=>({
+      key:el.querySelector('[data-schema-key]').value.trim(),label:el.querySelector('[data-schema-label]').value.trim(),type:el.querySelector('[data-schema-type]').value,required:el.querySelector('[data-schema-required]').value==='true',options:el.querySelector('[data-schema-options]').value.split(',').map(x=>x.trim()).filter(Boolean)
+    }));
+    if(fields.length<1||fields.length>30)throw new Error('A registration form must contain between 1 and 30 fields.');
+    const keys=new Set();for(const f of fields){if(!/^[a-zA-Z][a-zA-Z0-9_]{0,39}$/.test(f.key))throw new Error('Each field needs a valid key beginning with a letter.');if(keys.has(f.key))throw new Error(`Duplicate field key: ${f.key}`);keys.add(f.key);if(!f.label)throw new Error('Every form field needs a label.');if(f.type==='select'&&f.options.length===0)throw new Error(`Add at least one option for ${f.label}.`);}
+    const full=fields.find(f=>f.key==='full_name');if(!full)throw new Error('The registration form must contain a full_name field.');if(!['text','textarea'].includes(full.type))throw new Error('The full_name field must use text or textarea.');full.required=true;return fields;
+  }
+  async function renderSettings(host) {
+    const ev=state.event||{};const theme=parseJSON(ev.theme_json,{});const schema=parseJSON(ev.registration_schema,defaultSchema());
+    if(ev.status==='archived') {
+      host.innerHTML=`<section class="card"><div class="section-title"><h2>Archived event settings</h2><span class="status archived">Read only</span></div><p>This event is archived. Its details and registration form are preserved, but editing and new event operations are disabled.</p><h3>${safe(ev.name)}</h3><p>${safe(ev.description||'')}</p><p class="muted">${safe(ev.event_date||'Date not set')} · ${safe(ev.event_time||'Time not set')} · ${safe(ev.venue||'Venue not set')}</p><div class="actions"><button class="btn" id="backToEvents">Back to all events</button></div></section>`;
+      $('backToEvents').addEventListener('click',clearEvent); return;
+    }
+    host.innerHTML=`<section class="card"><div class="section-title"><h2>Event details and branding</h2><span class="status ${safe(ev.status||'active')}">${safe(ev.status||'active')} · Event #${state.eventId}</span></div><form id="settingsForm"><div class="field"><label>Event name</label><input id="editName" required maxlength="120" value="${safe(ev.name)}"></div><div class="field"><label>Description</label><textarea id="editDescription" maxlength="1000">${safe(ev.description||'')}</textarea></div><div class="inline-fields"><div class="field"><label>Date</label><input id="editDate" type="date" value="${safe((ev.event_date||'').slice(0,10))}"></div><div class="field"><label>Time</label><input id="editTime" value="${safe(ev.event_time||'')}"></div></div><div class="field"><label>Venue</label><input id="editVenue" maxlength="200" value="${safe(ev.venue||'')}"></div><div class="inline-fields"><div class="field"><label>Primary colour</label><input id="editPrimary" type="color" value="${safe(theme.primary||'#25113b')}"></div><div class="field"><label>Accent colour</label><input id="editAccent" type="color" value="${safe(theme.accent||'#ff7518')}"></div><div class="field"><label>Background colour</label><input id="editBackground" type="color" value="${safe(theme.background||'#171321')}"></div><div class="field"><label>Gold / highlight</label><input id="editGold" type="color" value="${safe(theme.gold||'#ffd166')}"></div></div><button class="btn primary" type="submit">Save event settings</button></form><div id="settingsMessage"></div></section><section class="section card"><h2>Registration form builder</h2><p class="muted">This form belongs to this event only. Future events can use a different form without editing bot.py.</p>${schemaEditor(Array.isArray(schema)&&schema.length?schema:defaultSchema())}<div class="actions"><button class="btn primary" id="saveSchema">Save registration form</button></div><div id="schemaMessage"></div></section><section class="section card"><h2>Event lifecycle</h2><p class="muted">Draft events are private to admins until activated. Activating makes the event available to guests and enables registration and scanning. Archiving closes an active event while retaining its history.</p><div class="actions">${ev.status==='draft'?'<button class="btn success" id="activateEvent">Activate event</button>':''}${ev.status==='active'?'<button class="btn danger" id="archiveEvent">Archive this event</button>':''}<button class="btn" id="backToEvents">Back to all events</button></div><div id="archiveMessage"></div></section>`;
+    $('settingsForm').addEventListener('submit',async e=>{e.preventDefault();try{const r=await adminCall('update_event',{name:$('editName').value,description:$('editDescription').value,event_date:$('editDate').value,event_time:$('editTime').value,venue:$('editVenue').value,theme:{primary:$('editPrimary').value,accent:$('editAccent').value,background:$('editBackground').value,gold:$('editGold').value},registration_schema:Array.isArray(schema)?schema:defaultSchema()});$('settingsMessage').innerHTML=showNotice(r.message,'good');const d=await post('/api/event_details',{event_id:state.eventId});state.event=d.event;eventTheme(state.event);document.title=`${state.event.name} | EventHub`;const oldHero=main.querySelector('.hero');if(oldHero){oldHero.outerHTML=eventHero();}toast('Event settings saved');}catch(err){$('settingsMessage').innerHTML=showNotice(err.message,'error');}});
+    if(host.dataset.schemaAddBound!=='1'){host.dataset.schemaAddBound='1';host.addEventListener('click',e=>{if(!e.target.closest('#addSchemaField'))return;try{const arr=readSchemaEditor();if(arr.length>=30)throw new Error('A registration form can have at most 30 fields.');arr.push({key:'custom_'+(arr.length+1),label:'New field',type:'text',required:false,options:[]});$('schemaBuilder').outerHTML=schemaEditor(arr);bindSchemaEditorButtons();}catch(err){toast(err.message,true);}});}
+    bindSchemaEditorButtons();
+    $('saveSchema').addEventListener('click',async()=>{try{const arr=readSchemaEditor();const r=await adminCall('update_event',{name:ev.name,description:ev.description||'',event_date:ev.event_date||'',event_time:ev.event_time||'',venue:ev.venue||'',theme,registration_schema:arr});$('schemaMessage').innerHTML=showNotice(r.message,'good');const d=await post('/api/event_details',{event_id:state.eventId});state.event=d.event;toast('Registration form saved');}catch(e){$('schemaMessage').innerHTML=showNotice(e.message,'error');}});
+    $('activateEvent')?.addEventListener('click',async()=>{if(!confirm(`Activate ${ev.name}? It will become visible to guests and registration/scanning will open.`))return;const btn=$('activateEvent');btn.disabled=true;try{const r=await adminCall('activate_event');$('archiveMessage').innerHTML=showNotice(r.message||'Event activated.','good');await loadRole();await loadEvent();toast('Event activated');}catch(e){$('archiveMessage').innerHTML=showNotice(e.message,'error');btn.disabled=false;}});
+    $('archiveEvent')?.addEventListener('click',async()=>{if(!confirm(`Archive ${ev.name}? New registrations and scans will stop.`))return;const btn=$('archiveEvent');btn.disabled=true;try{const r=await post('/api/admin',{action:'archive_event',event_id:state.eventId});$('archiveMessage').innerHTML=showNotice(r.message,'good');await loadRole();setTimeout(clearEvent,800);}catch(e){$('archiveMessage').innerHTML=showNotice(e.message,'error');btn.disabled=false;}});
+    $('backToEvents').addEventListener('click',clearEvent);
+  }
+  function bindSchemaEditorButtons(){document.querySelectorAll('[data-remove-schema]').forEach(b=>{if(b.dataset.bound==='1')return;b.dataset.bound='1';b.addEventListener('click',()=>{const row=b.closest('[data-schema-index]');row?.remove();renumberSchema();});});}
+  function renumberSchema(){document.querySelectorAll('[data-schema-index]').forEach((el,i)=>{el.dataset.schemaIndex=i;const t=el.querySelector('.row strong');if(t)t.textContent='Field '+(i+1);const b=el.querySelector('[data-remove-schema]');if(b)b.dataset.removeSchema=i;});}
+  async function renderStaff(host) {
+    host.innerHTML=`<div class="section-title"><h2>Volunteer access</h2><button class="btn small" id="refreshStaff">Refresh</button></div><section class="card"><form id="addVolunteer"><div class="field"><label>VK user ID</label><input id="volunteerId" inputmode="numeric" placeholder="123456789" required></div><button class="btn primary" type="submit">Add volunteer</button></form><p class="footnote">Volunteer accounts are shared across EventHub. Their event data and QR scans remain separate for each selected event.</p></section><div id="volunteerList" class="list section"></div>`;
+    const load=async()=>{try{const r=await adminCall('volunteers');$('volunteerList').innerHTML=(r.volunteers||[]).map(v=>`<div class="list-item row"><div><strong>${v.vk_user_id}</strong><div class="sub">Added ${safe(v.added_at||'')}</div></div><button class="btn danger small" data-remove-vol="${v.VK_id}">Remove</button></div>`).join('')||'<div class="empty">No volunteers assigned.</div>';document.querySelectorAll('[data-remove-vol]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Remove volunteer scanner access?'))return;try{const r=await adminCall('remove_volunteer',{vk_user_id:String(b.dataset.removeVol)});toast(r.message);load();}catch(e){toast(e.message,true);}}));}catch(e){$('volunteerList').innerHTML=showNotice(e.message,'error');}};
+    $('refreshStaff').addEventListener('click',load);$('addVolunteer').addEventListener('submit',async e=>{e.preventDefault();try{const r=await adminCall('add_volunteer',{vk_user_id:String($('volunteerId').value).trim()});toast(r.message);$('volunteerId').value='';load();}catch(err){toast(err.message,true);}});await load();
+  }
+  async function refresh() { try{await stopScanner();await loadRole();if(state.eventId)await loadEvent();else renderEventList();toast('Updated');}catch(e){toast(e.message,true);} }
+  $('refreshBtn').addEventListener('click',refresh);$('backBtn').addEventListener('click',clearEvent);
+  window.addEventListener('popstate',async()=>{
+    const nextId=Number(new URLSearchParams(location.search).get('event_id')||0);
+    await stopScanner(); state.eventId=Number.isSafeInteger(nextId)&&nextId>0?nextId:0; state.event=null; state.guest=null; state.pass=null;
+    try { await loadRole(); if(state.eventId){const permitted=(state.role==='admin'?state.workspaces:state.activeEvents).some(e=>Number(e.id)===state.eventId); if(permitted) await loadEvent(); else {state.eventId=0;eventTheme(null);renderEventList();}} else {eventTheme(null);renderEventList();} } catch(err){main.innerHTML=showNotice(err.message,'error');}
+  });
+  boot();
+})();
+</script>
+</body>
+</html>
