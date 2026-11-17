@@ -173,7 +173,6 @@ def main() -> None:
         f"-- Rows: {total}\n"
         "-- IMPORTANT: Apply only to a newly-created, EMPTY EventHub D1 database.\n"
         "-- This file does not create the schema or restore Worker secrets/admin allowlists.\n"
-        "PRAGMA foreign_keys = ON;\n"
     )
     try:
         output.write_text(header + "\n".join(statements) + "\n", encoding="utf-8")
