@@ -697,13 +697,29 @@
       $('sendPass').addEventListener('click',async()=>{try{const url='data:image/svg+xml;base64,'+pass.image;const blob=await (await fetch(url)).blob();const file=new File([blob],(pass.passCode||'EventHub-pass')+'.svg',{type:'image/svg+xml'});if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:state.event.name+' pass'});toast('Pass shared');}else{const a=document.createElement('a');a.href=url;a.download=(pass.passCode||'EventHub-pass')+'.svg';a.click();toast('Pass downloaded. You can share it from your device.');}}catch(e){toast(e.message||'Could not share pass.',true);}});
     }
   }
+  function setScannerStatus(message,kind='') {
+    const el=$('scannerStatus');if(!el)return;
+    el.className='notice scanner-status'+(kind?' '+kind:'');
+    el.textContent=message;
+  }
+  function addRecentScannerActivity(label,guest=null,detail='',kind='good') {
+    const item={id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),label,guestName:guest?.name||guest?.full_name||'',passCode:guest?.passCode||guest?.pass_code||'',detail,kind,at:new Date().toISOString()};
+    state.recentScannerActivity=[item,...(state.recentScannerActivity||[])].slice(0,8);
+    renderScannerRecent();
+  }
+  function renderScannerRecent() {
+    const host=$('scannerRecent');if(!host)return;
+    const rows=state.recentScannerActivity||[];
+    host.innerHTML=rows.length?rows.map(x=>`<article class="list-item"><div><strong>${safe(x.label)}</strong>${x.guestName?`<div class="sub">${safe(x.guestName)} · ${safe(x.passCode)}</div>`:''}${x.detail?`<div class="sub">${safe(x.detail)}</div>`:''}</div><time class="activity-time">${safe(new Date(x.at).toLocaleTimeString())}</time></article>`).join(''):'<div class="empty">No scans in this session yet.</div>';
+  }
   async function renderScanner(host) {
     if(state.role!=='admin'&&state.role!=='volunteer'){host.innerHTML=showNotice('Scanner access is restricted to event volunteers and admins.','error');return;}
     if(state.event?.status!=='active'){stopScanner();host.innerHTML=showNotice('This event is not active. Its records are available for review, but QR scanning and event-day actions are disabled.','error');return;}
     stopScanner();
-    host.innerHTML=`<section class="section card"><div class="section-title"><h2>📷 QR Scanner</h2><span class="status active">${safe(state.event.name)}</span></div><p class="muted">Scan a guest's event pass. You can also enter a pass code manually when a camera is unavailable.</p><div class="scanner-box"><div id="reader"></div></div><div class="actions"><button class="btn primary" id="startCamera">Start camera</button><button class="btn" id="stopCamera" disabled>Stop camera</button></div><div class="field"><label>Manual QR / pass code</label><div class="row"><input id="manualQr" class="input" autocomplete="off" placeholder="H5-XXXXXXXX" style="flex:1;min-width:0"><button class="btn" id="lookupManual">Verify</button></div></div><div id="offlineQueue" class="section"></div><div id="scanResult"></div></section>`;
-    renderOfflineQueue();
+    host.innerHTML=`<section class="section card"><div class="section-title"><h2>📷 QR Scanner</h2><span class="status active">${safe(state.event.name)}</span></div><p class="muted">Scan a guest's event pass. You can also enter a pass code manually when a camera is unavailable.</p><div class="scanner-box"><div id="reader"></div></div><div class="actions"><button class="btn primary" id="startCamera">Start camera</button><button class="btn" id="stopCamera" disabled>Stop camera</button></div><div id="scannerStatus" class="notice scanner-status" role="status" aria-live="polite" aria-atomic="true">Ready. Start the camera or enter a pass code manually.</div><div class="field"><label for="manualQr">Manual QR / pass code</label><div class="row"><input id="manualQr" class="input" autocomplete="off" placeholder="H5-XXXXXXXX" aria-label="Manual QR or pass code" style="flex:1;min-width:0"><button class="btn" id="lookupManual">Verify</button></div></div><div id="offlineQueue" class="section"></div><div id="scanResult" role="status" aria-live="polite"></div><section class="section card scanner-recent"><div class="section-title"><h3>Recent scanner activity</h3><button class="btn small" id="clearScannerRecent" type="button">Clear</button></div><p class="footnote">This list is only for this open app session. A scan is attendance only after the server confirms the action.</p><div id="scannerRecent" class="list"></div></section></section>`;
+    renderOfflineQueue();renderScannerRecent();
     $('startCamera').addEventListener('click',startScanner);$('stopCamera').addEventListener('click',stopScanner);$('lookupManual').addEventListener('click',()=>lookupGuest($('manualQr').value));$('manualQr').addEventListener('keydown',e=>{if(e.key==='Enter')lookupGuest(e.currentTarget.value);});
+    $('clearScannerRecent').addEventListener('click',()=>{state.recentScannerActivity=[];renderScannerRecent();});
     try { const c=await post('/api/checkpoints',{event_id:state.eventId});state.checkpoints=c.checkpoints||[]; } catch(e) { state.checkpoints=[];toast(e.message,true); }
   }
   let scannerStartGeneration=0;
@@ -737,9 +753,10 @@
         if(scanner.active&&state.scanner===scanner)scanner.frame=requestAnimationFrame(scanFrame);
       };
       scanner.frame=requestAnimationFrame(scanFrame);
+      setScannerStatus('Camera ready. Point it at a guest QR pass.','good');
     } catch(e) {
       for(const track of stream?.getTracks?.()||[])track.stop();
-      if(generation===scannerStartGeneration){await stopScanner();toast('Camera could not start. Allow camera permission or use manual verification.',true);}
+      if(generation===scannerStartGeneration){await stopScanner();setScannerStatus('Camera could not start. Allow camera permission or use manual verification.','error');toast('Camera could not start. Allow camera permission or use manual verification.',true);}
     }
   }
   async function stopScanner() {
@@ -748,6 +765,7 @@
     if(state.scanner){state.scanner.active=false;if(state.scanner.frame)cancelAnimationFrame(state.scanner.frame);for(const track of state.scanner.stream?.getTracks?.()||[])track.stop();state.scanner.video?.pause?.();state.scanner=null;}
     if($('reader'))$('reader').replaceChildren();
     if($('startCamera'))$('startCamera').disabled=false;if($('stopCamera'))$('stopCamera').disabled=true;
+    if($('scannerStatus'))setScannerStatus('Camera stopped. Manual pass verification is still available.');
   }
   const offlineScanKey=()=> 'eventhub-offline-scans-v1:'+state.eventId;
   function readOfflineScans(){
@@ -772,16 +790,23 @@
     host.querySelectorAll('[data-offline-verify]').forEach(b=>b.addEventListener('click',()=>{const item=readOfflineScans().find(x=>x.id===b.dataset.offlineVerify);if(item)lookupGuest(item.qr,item.id);}));
     host.querySelectorAll('[data-offline-remove]').forEach(b=>b.addEventListener('click',()=>{if(confirmLocalized('Remove this locally saved QR from the offline queue?'))removeOfflineScan(b.dataset.offlineRemove);}));
   }
-  async function lookupGuest(qr,offlineId=null) {
+  async function lookupGuest(qr,offlineId=null,trackActivity=true) {
     const value=String(qr||'').trim(); if(!value){toast('Enter or scan a pass first.',true);return;}
     state.pendingOfflineScanId=offlineId;
-    $('scanResult').innerHTML='<div class="notice">Checking this pass…</div>';
-    try {const r=await post('/api/guest',{event_id:state.eventId,qr:value});state.guest=r.guest;renderScannedGuest(offlineId?'Offline QR verified. Select and record the correct action below.':'');}
+    $('scanResult').innerHTML='<div class="notice">Checking this pass…</div>';setScannerStatus('Checking pass with EventHub…');
+    try {
+      const r=await post('/api/guest',{event_id:state.eventId,qr:value});state.guest=r.guest;
+      renderScannedGuest(offlineId?'Offline QR verified. Select and record the correct action below.':'');
+      setScannerStatus('Pass verified. Review the guest and choose the correct action.','good');
+      if(trackActivity)addRecentScannerActivity('Pass verified',r.guest,'Verification only — no attendance action was recorded yet.');
+    }
     catch(e){
       if(!navigator.onLine||/Could not reach EventHub|server took too long/i.test(e.message||'')){
         const item=queueOfflineScan(value);
-        $('scanResult').innerHTML=showNotice(item?'Connection unavailable. QR saved locally; it has not been recorded as attendance. Reconnect and tap Verify when online.':'Connection unavailable and the scan could not be saved locally. Please rescan when connected.','error');
-      }else $('scanResult').innerHTML=showNotice(e.message,'error');
+        const message=item?'Connection unavailable. QR saved locally; it has not been recorded as attendance. Reconnect and tap Verify when online.':'Connection unavailable and the scan could not be saved locally. Please rescan when connected.';
+        $('scanResult').innerHTML=showNotice(message,'error');setScannerStatus(item?'Offline QR saved on this device only — not recorded as attendance.':'Offline scan could not be saved. Reconnect and rescan.','error');
+        if(trackActivity&&item)addRecentScannerActivity('Saved to offline queue',null,'Not verified and not counted as attendance.','warn');
+      }else {$('scanResult').innerHTML=showNotice(e.message,'error');setScannerStatus(e.message,'error');if(trackActivity)addRecentScannerActivity('Pass verification failed',null,e.message,'error');}
     }
   }
   function renderScannedGuest(message='') {
@@ -809,14 +834,22 @@
   async function recordCheckpointScan(checkpointId,button) {
     if(!state.guest||state.guest.status!=='approved'||state.guest.exitRecorded)return;
     button.disabled=true;
-    try { const r=await post('/api/checkpoint_scan',{event_id:state.eventId,checkpoint_id:checkpointId,qr:state.guest.qrToken||state.guest.passCode});if(state.pendingOfflineScanId){removeOfflineScan(state.pendingOfflineScanId);state.pendingOfflineScanId=null;}await lookupGuest(state.guest.passCode);toast(r.message||'Checkpoint recorded'); }
-    catch(e){toast(e.message,true);button.disabled=false;}
+    const guestBefore=state.guest;
+    try { const r=await post('/api/checkpoint_scan',{event_id:state.eventId,checkpoint_id:checkpointId,qr:state.guest.qrToken||state.guest.passCode});if(state.pendingOfflineScanId){removeOfflineScan(state.pendingOfflineScanId);state.pendingOfflineScanId=null;}addRecentScannerActivity('Checkpoint recorded',guestBefore,r.message||'Checkpoint scan recorded.','good');setScannerStatus(r.message||'Checkpoint recorded.','good');await lookupGuest(guestBefore.passCode,null,false);toast(r.message||'Checkpoint recorded'); }
+    catch(e){setScannerStatus(e.message,'error');toast(e.message,true);button.disabled=false;}
   }
   async function recordAction(action,button) {
     if(!state.guest || state.guest.status!=='approved' || state.guest.exitRecorded) { toast('This pass is no longer eligible for event-day actions.',true); return; }
     button.disabled=true;
-    try{const r=await post('/api/action',{event_id:state.eventId,action,qr:state.guest.passCode});if(state.pendingOfflineScanId){removeOfflineScan(state.pendingOfflineScanId);state.pendingOfflineScanId=null;}await lookupGuest(state.guest.passCode);toast(r.message||`${action.replaceAll('_',' ')} recorded`);}
-    catch(e){toast(e.message,true);button.disabled=false;}
+    const guestBefore=state.guest;
+    try{
+      const r=await post('/api/action',{event_id:state.eventId,action,qr:state.guest.passCode});
+      if(state.pendingOfflineScanId){removeOfflineScan(state.pendingOfflineScanId);state.pendingOfflineScanId=null;}
+      const labels={entry:'Entry recorded',food:'Food collection recorded',proof_deposit:'Items stored',proof_no_proof:'No items declared',proof_return:'Stored items returned',exit:'Exit recorded'};
+      addRecentScannerActivity(labels[action]||'Event action recorded',guestBefore,r.message||'Server confirmed the action.','good');
+      setScannerStatus(r.message||'Action recorded successfully.','good');
+      await lookupGuest(guestBefore.passCode,null,false);toast(r.message||`${action.replaceAll('_',' ')} recorded`);
+    }catch(e){setScannerStatus(e.message,'error');toast(e.message,true);button.disabled=false;}
   }
   async function renderApprovals(host) {
     const readOnly=state.event?.status==='archived';
