@@ -1,3 +1,4 @@
+import qrcode from "qrcode-generator";
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
 const STAGES = new Set(["entry", "proof_storage", "food", "exit", "proof_return"]);
 const now = () => new Date().toISOString();
@@ -210,7 +211,11 @@ async function myPassApi(request, env) {
   const event = await env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
   const design = await env.DB.prepare("SELECT design_json FROM pass_design WHERE event_id=?").bind(eventId).first();
   const scans = await env.DB.prepare("SELECT stage,scanned_at FROM scans WHERE guest_id=?").bind(guest.id).all();
-  return json({ ok:true, pass:{ name:guest.full_name, passCode:guest.pass_code, qrToken:guest.qr_token, qrPayload:"EVENTHUB:"+eventId+":"+guest.qr_token, residence:guest.residence, roomNumber:guest.room, food:guest.food_preference, status:guest.status, entryUsed:!!guest.entry_used, foodUsed:!!guest.food_used }, event, design:design ? JSON.parse(design.design_json) : {}, scans:Object.fromEntries(scans.results.map(x=>[x.stage,x.scanned_at])) });
+  const qr=qrcode(0,"M"); qr.addData("EVENTHUB:"+eventId+":"+guest.qr_token); qr.make();
+  const svg=qr.createSvgTag({cellSize:5,margin:4});
+  const image=btoa(String.fromCharCode(...new TextEncoder().encode(svg)));
+  const staff=await eventRole(uid,eventId,env);
+  return json({ ok:true, pass:{ image, name:guest.full_name, passCode:guest.pass_code, qrToken:guest.qr_token, qrPayload:"EVENTHUB:"+eventId+":"+guest.qr_token, residence:guest.residence, roomNumber:guest.room, food:guest.food_preference, passRole:staff==="admin"?"Admin":staff?"Volunteer":"Guest", status:guest.status, entryUsed:!!guest.entry_used, foodUsed:!!guest.food_used }, event, design:design ? JSON.parse(design.design_json) : {}, scans:Object.fromEntries(scans.results.map(x=>[x.stage,x.scanned_at])) });
 }
 
 
