@@ -576,8 +576,8 @@ async function adminApi(request, env) {
     const [auditRows,proof,noProof,exitRow]=await Promise.all([
       env.DB.prepare("SELECT action,target_type,target_id,details_json,created_at,actor_vk_user_id FROM audit_log WHERE event_id=? AND target_type='guest' AND target_id=? ORDER BY id DESC LIMIT 100").bind(eventId,String(guestId)).all(),
       env.DB.prepare("SELECT box_number,section_letter,slot_number,assigned_at,deposited_at,returned_at,assigned_by,deposited_by,returned_by FROM proof_storage WHERE event_id=? AND guest_id=? ORDER BY id DESC LIMIT 1").bind(eventId,guestId).first(),
-      env.DB.prepare("SELECT recorded_at,recorded_by FROM proof_not_collected WHERE event_id=? AND guest_id=? ORDER BY id DESC LIMIT 1").bind(eventId,guestId).first(),
-      env.DB.prepare("SELECT exit_at,exit_by FROM event_exit_records WHERE event_id=? AND guest_id=? ORDER BY id DESC LIMIT 1").bind(eventId,guestId).first()
+      env.DB.prepare("SELECT recorded_at,recorded_by FROM proof_not_collected WHERE event_id=? AND guest_id=? ORDER BY recorded_at DESC LIMIT 1").bind(eventId,guestId).first(),
+      env.DB.prepare("SELECT exit_at,exit_by FROM event_exit_records WHERE event_id=? AND guest_id=? ORDER BY exit_at DESC LIMIT 1").bind(eventId,guestId).first()
     ]);
     const timeline=[];
     const add=(type,label,at,actor="",details={})=>{if(at)timeline.push({type,label,at,actor,details});};
