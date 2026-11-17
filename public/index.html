@@ -10,7 +10,7 @@
   
   <style>
     :root{--bg:#171321;--panel:#211c2d;--panel2:#2b2438;--text:#f8f5fb;--muted:#bcb4c9;--accent:#ff7518;--gold:#ffd166;--line:#ffffff18;--danger:#ff626d;--ok:#47cf91;--radius:20px;--shadow:0 16px 40px #0005}
-    *{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;background:radial-gradient(ellipse at 80% -10%,color-mix(in srgb,var(--accent) 24%,transparent),transparent 42%),var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.shell{width:min(100%,980px);margin:auto;padding:16px 16px 34px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}.brand-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--gold));color:#1a1420;font-size:21px;box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 30%,transparent)}.brand small{display:block;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase}.top-actions{display:flex;gap:8px;align-items:center}.hero{background:linear-gradient(140deg,color-mix(in srgb,var(--accent) 26%,var(--panel)),var(--panel) 64%);border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));border-radius:26px;padding:24px;box-shadow:var(--shadow);position:relative;overflow:hidden}.hero:after{content:"✦";position:absolute;right:20px;top:10px;font-size:80px;color:color-mix(in srgb,var(--gold) 18%,transparent);pointer-events:none}.eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:800}.hero h1{font-size:clamp(28px,6vw,44px);line-height:1.06;margin:9px 0 12px;max-width:720px;overflow-wrap:anywhere}.hero p{color:#e0d9e8;max-width:680px;margin:0;white-space:pre-wrap}.meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:20px}.meta{background:#100d1b66;border:1px solid #ffffff17;border-radius:15px;padding:12px;min-width:0}.meta b{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}.meta span{display:block;font-weight:700;overflow-wrap:anywhere}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}.btn{border:1px solid var(--line);border-radius:13px;padding:11px 15px;background:var(--panel2);color:var(--text);font-weight:750;min-height:43px;transition:transform .12s,filter .12s}.btn:active{transform:scale(.98)}.btn.primary{border-color:transparent;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 75%,var(--gold)));color:#170f18}.btn.ghost{background:transparent}.btn.danger{background:#4a202b;border-color:#ff626d55}.btn.success{background:#123b32;border-color:#47cf9155}.btn.small{padding:7px 10px;min-height:34px;font-size:13px}.muted{color:var(--muted)}.section{margin-top:18px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}.section-title h2{margin:0;font-size:18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{background:linear-gradient(180deg,var(--panel),color-mix(in srgb,var(--panel) 78%,#100d18));border:1px solid var(--line);border-radius:var(--radius);padding:16px;min-width:0;box-shadow:0 8px 24px #0002}.card h3{margin:0 0 7px;font-size:16px}.card p{color:var(--muted);margin:6px 0 0;overflow-wrap:anywhere}.event-card{display:flex;flex-direction:column;gap:10px;min-height:150px}.event-card .actions{margin-top:auto}.status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;border:1px solid var(--line);padding:5px 8px;border-radius:30px;color:var(--muted);width:max-content}.status.active{color:var(--ok);border-color:#47cf9144}.status.draft{color:var(--gold)}.status.archived{color:#f49aa2}.tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;margin:14px 0 4px;scrollbar-width:thin}.tab{white-space:nowrap;background:transparent;border:1px solid var(--line);border-radius:30px;padding:9px 13px;color:var(--muted);font-weight:750}.tab.active{color:#1a1420;background:var(--gold);border-color:var(--gold)}.field{display:flex;flex-direction:column;gap:6px;margin:10px 0}.field label{font-size:12px;font-weight:750;color:#ddd5e6}.field input,.field textarea,.field select,.input{width:100%;background:#100d1b;border:1px solid #ffffff26;border-radius:12px;color:var(--text);padding:12px;outline:none;min-height:44px}.field textarea{min-height:100px;resize:vertical}.field input:focus,.field textarea:focus,.field select:focus,.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}.field input[type=color]{padding:4px;height:45px}.inline-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stat{padding:14px;border-radius:16px;background:var(--panel);border:1px solid var(--line)}.stat strong{font-size:25px;display:block;line-height:1.2}.stat span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.8px;margin-top:5px}.notice{border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));background:color-mix(in srgb,var(--accent) 12%,var(--panel));padding:12px 14px;border-radius:14px;color:#f3e9fa;margin:12px 0}.notice.error{border-color:#ff626d55;background:#4a202b}.notice.good{border-color:#47cf9155;background:#123b32}.hidden{display:none!important}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.wrap{display:flex;gap:8px;flex-wrap:wrap}.list{display:flex;flex-direction:column;gap:9px}.list-item{background:#181422;border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}.list-item strong{display:block;overflow-wrap:anywhere}.list-item .sub{font-size:12px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}.list-item .actions{margin-top:10px}.scanner-box{background:#100d1b;border:1px dashed #ffffff3b;border-radius:18px;padding:12px;min-height:220px}.scanner-box #reader{width:100%;max-width:560px;margin:auto}.guest-result{border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));background:linear-gradient(180deg,var(--panel),#171321);border-radius:18px;padding:16px;margin-top:14px}.pill{display:inline-block;border-radius:24px;padding:4px 8px;background:#ffffff12;color:var(--muted);font-size:11px;font-weight:800;margin:2px}.pill.good{background:#47cf9122;color:#7ce4b3}.pill.warn{background:#ffd16622;color:#ffd166}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:540px;font-size:13px}td,th{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}.pass-image{width:min(100%,360px);display:block;border-radius:16px;border:1px solid var(--line);margin:12px auto;box-shadow:var(--shadow)}.empty{padding:24px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:18px}.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#f8f5fb;color:#171321;border-radius:12px;padding:11px 16px;z-index:50;max-width:min(90vw,480px);box-shadow:var(--shadow);font-weight:750}.loading{opacity:.65;pointer-events:none}.schema-field{border:1px solid var(--line);padding:12px;border-radius:14px;margin:8px 0;background:#171321}.schema-field .inline-fields{align-items:end}.footnote{font-size:12px;color:var(--muted);margin-top:12px}.divider{height:1px;background:var(--line);margin:15px 0}
+    *{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;background:radial-gradient(ellipse at 80% -10%,color-mix(in srgb,var(--accent) 24%,transparent),transparent 42%),var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.shell{width:min(100%,980px);margin:auto;padding:16px 16px 34px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}.brand-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--gold));color:#1a1420;font-size:21px;box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 30%,transparent)}.brand small{display:block;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase}.top-actions{display:flex;gap:8px;align-items:center}.language-select{min-width:105px;padding:7px 9px;color:var(--text);background:var(--panel2)}.language-select option{background:#211c2d;color:#f8f5fb}.hero{background:linear-gradient(140deg,color-mix(in srgb,var(--accent) 26%,var(--panel)),var(--panel) 64%);border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));border-radius:26px;padding:24px;box-shadow:var(--shadow);position:relative;overflow:hidden}.hero:after{content:"✦";position:absolute;right:20px;top:10px;font-size:80px;color:color-mix(in srgb,var(--gold) 18%,transparent);pointer-events:none}.eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:800}.hero h1{font-size:clamp(28px,6vw,44px);line-height:1.06;margin:9px 0 12px;max-width:720px;overflow-wrap:anywhere}.hero p{color:#e0d9e8;max-width:680px;margin:0;white-space:pre-wrap}.meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:20px}.meta{background:#100d1b66;border:1px solid #ffffff17;border-radius:15px;padding:12px;min-width:0}.meta b{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}.meta span{display:block;font-weight:700;overflow-wrap:anywhere}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}.btn{border:1px solid var(--line);border-radius:13px;padding:11px 15px;background:var(--panel2);color:var(--text);font-weight:750;min-height:43px;transition:transform .12s,filter .12s}.btn:active{transform:scale(.98)}.btn.primary{border-color:transparent;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 75%,var(--gold)));color:#170f18}.btn.ghost{background:transparent}.btn.danger{background:#4a202b;border-color:#ff626d55}.btn.success{background:#123b32;border-color:#47cf9155}.btn.small{padding:7px 10px;min-height:34px;font-size:13px}.muted{color:var(--muted)}.section{margin-top:18px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}.section-title h2{margin:0;font-size:18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{background:linear-gradient(180deg,var(--panel),color-mix(in srgb,var(--panel) 78%,#100d18));border:1px solid var(--line);border-radius:var(--radius);padding:16px;min-width:0;box-shadow:0 8px 24px #0002}.card h3{margin:0 0 7px;font-size:16px}.card p{color:var(--muted);margin:6px 0 0;overflow-wrap:anywhere}.event-card{display:flex;flex-direction:column;gap:10px;min-height:150px}.event-card .actions{margin-top:auto}.status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;border:1px solid var(--line);padding:5px 8px;border-radius:30px;color:var(--muted);width:max-content}.status.active{color:var(--ok);border-color:#47cf9144}.status.draft{color:var(--gold)}.status.archived{color:#f49aa2}.tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;margin:14px 0 4px;scrollbar-width:thin}.tab{white-space:nowrap;background:transparent;border:1px solid var(--line);border-radius:30px;padding:9px 13px;color:var(--muted);font-weight:750}.tab.active{color:#1a1420;background:var(--gold);border-color:var(--gold)}.field{display:flex;flex-direction:column;gap:6px;margin:10px 0}.field label{font-size:12px;font-weight:750;color:#ddd5e6}.field input,.field textarea,.field select,.input{width:100%;background:#100d1b;border:1px solid #ffffff26;border-radius:12px;color:var(--text);padding:12px;outline:none;min-height:44px}.field textarea{min-height:100px;resize:vertical}.field input:focus,.field textarea:focus,.field select:focus,.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}.field input[type=color]{padding:4px;height:45px}.inline-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stat{padding:14px;border-radius:16px;background:var(--panel);border:1px solid var(--line)}.stat strong{font-size:25px;display:block;line-height:1.2}.stat span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.8px;margin-top:5px}.notice{border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));background:color-mix(in srgb,var(--accent) 12%,var(--panel));padding:12px 14px;border-radius:14px;color:#f3e9fa;margin:12px 0}.notice.error{border-color:#ff626d55;background:#4a202b}.notice.good{border-color:#47cf9155;background:#123b32}.hidden{display:none!important}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.wrap{display:flex;gap:8px;flex-wrap:wrap}.list{display:flex;flex-direction:column;gap:9px}.list-item{background:#181422;border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}.list-item strong{display:block;overflow-wrap:anywhere}.list-item .sub{font-size:12px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}.list-item .actions{margin-top:10px}.scanner-box{background:#100d1b;border:1px dashed #ffffff3b;border-radius:18px;padding:12px;min-height:220px}.scanner-box #reader{width:100%;max-width:560px;margin:auto}.guest-result{border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));background:linear-gradient(180deg,var(--panel),#171321);border-radius:18px;padding:16px;margin-top:14px}.pill{display:inline-block;border-radius:24px;padding:4px 8px;background:#ffffff12;color:var(--muted);font-size:11px;font-weight:800;margin:2px}.pill.good{background:#47cf9122;color:#7ce4b3}.pill.warn{background:#ffd16622;color:#ffd166}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:540px;font-size:13px}td,th{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}.pass-image{width:min(100%,360px);display:block;border-radius:16px;border:1px solid var(--line);margin:12px auto;box-shadow:var(--shadow)}.empty{padding:24px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:18px}.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#f8f5fb;color:#171321;border-radius:12px;padding:11px 16px;z-index:50;max-width:min(90vw,480px);box-shadow:var(--shadow);font-weight:750}.loading{opacity:.65;pointer-events:none}.schema-field{border:1px solid var(--line);padding:12px;border-radius:14px;margin:8px 0;background:#171321}.schema-field .inline-fields{align-items:end}.footnote{font-size:12px;color:var(--muted);margin-top:12px}.divider{height:1px;background:var(--line);margin:15px 0}
     @media(max-width:650px){.shell{padding:12px 12px 28px}.hero{padding:18px}.meta-grid{grid-template-columns:1fr;gap:8px}.grid{grid-template-columns:1fr}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.inline-fields{grid-template-columns:1fr}.topbar{align-items:flex-start}.top-actions{flex-wrap:wrap;justify-content:flex-end}.hero h1{font-size:32px}.card{padding:14px}}
     @media(min-width:800px){.shell{padding-top:24px}.hero{padding:30px}.grid.cols3{grid-template-columns:repeat(3,minmax(0,1fr))}}
   </style>
@@ -19,7 +19,7 @@
 <div class="shell" id="app">
   <header class="topbar">
     <div class="brand"><div class="brand-mark">✦</div><div>EventHub<small>One event at a time</small></div></div>
-    <div class="top-actions"><button class="btn ghost small hidden" id="backBtn" type="button">← All events</button><button class="btn ghost small" id="refreshBtn" type="button">↻ Refresh</button></div>
+    <div class="top-actions"><select class="btn ghost small language-select" id="languageSelect" aria-label="Choose language"><option value="en">English</option><option value="ru">Русский</option></select><button class="btn ghost small hidden" id="backBtn" type="button">← All events</button><button class="btn ghost small" id="refreshBtn" type="button">↻ Refresh</button></div>
   </header>
   <main id="main"><div class="empty">Loading EventHub…</div></main>
 </div>
@@ -38,6 +38,212 @@
   const $ = (id) => document.getElementById(id);
   const main = $('main');
   const safe = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const LANGUAGE_STORAGE_KEY = 'eventhub.language.v1';
+  const LANGUAGE_TEXTS = {
+    ru: {
+      'Choose language':'Выберите язык','Language':'Язык','One event at a time':'Одно мероприятие за раз',
+      '← All events':'← Все мероприятия','↻ Refresh':'↻ Обновить','Refresh':'Обновить','Updated':'Обновлено',
+      'Your event workspaces':'Ваши мероприятия','Choose one event':'Выберите мероприятие',
+      'Select an event to open its dedicated page. Only the selected event’s details, registrations, passes and scanner records will appear inside it.':'Выберите мероприятие, чтобы открыть его страницу. Здесь будут отображаться данные, регистрации, пропуска и сканирования только выбранного мероприятия.',
+      '＋ Create new event':'＋ Создать мероприятие','Create new event':'Создать мероприятие','All workspaces':'Все мероприятия',
+      'Active events':'Активные мероприятия','No events are available yet.':'Пока нет доступных мероприятий.',
+      "Open this event's dedicated page and tools.":'Откройте отдельную страницу и инструменты этого мероприятия.',
+      'Open this event →':'Открыть мероприятие →','Choose one event':'Выберите мероприятие',
+      'Create an event':'Создать мероприятие','Event name *':'Название мероприятия *','Event name':'Название мероприятия',
+      'Description':'Описание','Date':'Дата','Time':'Время','Venue':'Место проведения','Event venue':'Место проведения',
+      'Create event workspace':'Создать мероприятие','Creating event…':'Создание мероприятия…',
+      'Event name must contain at least 3 characters.':'Название мероприятия должно содержать не менее 3 символов.',
+      'Event overview':'Обзор мероприятия','Selected event only':'Только выбранное мероприятие',
+      'Approved guests':'Подтверждённые участники','Checked in':'Зарегистрировано на входе',
+      'Meals served':'Выдано порций','Volunteers':'Волонтёры','Quick status':'Краткая сводка',
+      'Guest registration':'Регистрация участников','Food collection':'Выдача питания',
+      'Volunteers / proof / exit':'Волонтёры / вещи / выход','assigned volunteers':'назначенных волонтёров',
+      'approved ·':'подтверждено ·','checked in':'зарегистрировано','meals served':'выдано порций',
+      'Vegetarian:':'Вегетарианское:','Non-vegetarian:':'Невегетарианское:',
+      'Google Sheets sync':'Синхронизация с Google Таблицами',
+      'Sync queue status has not been checked.':'Статус очереди синхронизации ещё не проверен.',
+      'Check sync status':'Проверить синхронизацию','Checking…':'Проверка…',
+      'Start QR Scanner':'Запустить QR-сканер','Review registrations':'Проверить заявки',
+      '👥 Guest view':'👥 Просмотр участника','🧑‍🤝‍🧑 Volunteer view':'🧑‍🤝‍🧑 Просмотр волонтёра',
+      'My QR pass':'Мой QR-пропуск','My pass':'Мой пропуск','Open my pass':'Открыть мой пропуск',
+      'Register now':'Зарегистрироваться','Register for this event':'Регистрация на мероприятие',
+      '🎟 Registration':'🎟 Регистрация','🎟 Guest registration':'🎟 Регистрация участника',
+      'Complete this event\\'s registration form. Your pass is sent after approval.':'Заполните регистрационную форму. Пропуск будет доступен после подтверждения заявки.',
+      'View your pass after your registration is approved.':'Ваш пропуск появится после подтверждения регистрации.',
+      'Submit registration':'Отправить заявку','Registration submitted.':'Заявка отправлена.',
+      'Your registration is linked only to this event. Required fields are marked with an asterisk.':'Ваша регистрация относится только к этому мероприятию. Обязательные поля отмечены звёздочкой.',
+      'Register —':'Регистрация —','Full name':'ФИО','Phone number':'Номер телефона',
+      'Residence':'Тип проживания','Hostel number':'Номер общежития','Room number':'Номер комнаты',
+      'Food preference':'Предпочтение в питании','Choose…':'Выберите…','Hostel':'Общежитие',
+      'Apartment':'Квартира','Vegetarian':'Вегетарианское','Non-vegetarian':'Невегетарианское',
+      'Food preference for your staff pass':'Предпочтение в питании для пропуска сотрудника',
+      'Choose a food preference first.':'Сначала выберите предпочтение в питании.',
+      'Create my staff pass':'Создать мой пропуск сотрудника','🎫 Staff QR pass':'🎫 QR-пропуск сотрудника',
+      'Use the same event QR pass format as guests.':'Используется такой же формат QR-пропуска, как у участников.',
+      'Open staff pass':'Открыть пропуск сотрудника','View the staff pass associated with your current VK account.':'Посмотреть пропуск сотрудника, связанный с вашим аккаунтом VK.',
+      'Pass code':'Код пропуска','Download / share pass':'Скачать / поделиться пропуском',
+      'Pass downloaded. You can share it from your device.':'Пропуск скачан. Теперь вы можете поделиться им с устройства.',
+      'Pass shared':'Пропуск отправлен','Loading pass…':'Загрузка пропуска…',
+      'Open registration':'Открыть регистрацию','Try again':'Повторить','Checking this pass…':'Проверка пропуска…',
+      '📷 QR Scanner':'📷 QR-сканер','Open QR Scanner':'Открыть QR-сканер',
+      'Scan a pass and record entry, proof storage, food collection and exit for this event only.':'Сканируйте пропуск и отмечайте вход, сдачу вещей, получение питания и выход только для этого мероприятия.',
+      'Scan a guest\\'s event pass. You can also enter a pass code manually when a camera is unavailable.':'Отсканируйте пропуск участника. Если камера недоступна, введите код пропуска вручную.',
+      'Start camera':'Включить камеру','Stop camera':'Остановить камеру','Manual QR / pass code':'QR-код / код пропуска вручную',
+      'Verify':'Проверить','H5-XXXXXXXX':'H5-XXXXXXXX',
+      'Scanner access is restricted to event volunteers and admins.':'Доступ к сканеру разрешён только волонтёрам и администраторам.',
+      'This event is not active. Its records are available for review, but QR scanning and event-day actions are disabled.':'Мероприятие не активно. Записи доступны для просмотра, но сканирование QR-кодов и действия во время мероприятия отключены.',
+      'This browser does not support camera QR scanning. Use manual pass verification.':'Этот браузер не поддерживает сканирование QR-кодов камерой. Используйте ручную проверку пропуска.',
+      'Camera could not start. Allow camera permission or use manual verification.':'Не удалось запустить камеру. Разрешите доступ к камере или используйте ручную проверку.',
+      'Enter or scan a pass first.':'Сначала введите или отсканируйте пропуск.',
+      'Record entry':'Отметить вход','Store proof':'Принять вещи на хранение','No proof provided':'Вещи не сданы',
+      'Record food collection':'Отметить получение питания','Return stored proof':'Вернуть вещи',
+      'Record exit':'Отметить выход','Entry:':'Вход:','Food:':'Питание:','Proof:':'Вещи:','Exit:':'Выход:',
+      'Recorded':'Отмечено','Pending':'Ожидает','Collected':'Получено','Not collected':'Не получено',
+      'Storage:':'Хранение:','Additional checkpoints':'Дополнительные пункты контроля',
+      'Record this guest at an assigned workshop or activity checkpoint.':'Отметьте участника на назначенном мастер-классе или дополнительном пункте контроля.',
+      'No further actions available':'Дополнительные действия недоступны',
+      'This pass is not active. Event-day actions are disabled.':'Этот пропуск не активен. Действия во время мероприятия отключены.',
+      'Exit has already been recorded. No further event-day actions are available.':'Выход уже отмечен. Другие действия для этого участника недоступны.',
+      'Next step: store the guest’s proof or confirm that no proof was provided. Food collection becomes available after this step.':'Следующий шаг: принять вещи на хранение или подтвердить, что участник ничего не сдавал. После этого станет доступна выдача питания.',
+      'Entry already recorded':'Вход уже отмечен','Registration open':'Регистрация открыта',
+      'Pending registrations':'Ожидающие заявки','No pending registrations for this event.':'Нет ожидающих заявок для этого мероприятия.',
+      'Approve & send QR':'Подтвердить и отправить QR','Approve':'Подтвердить','Reject':'Отклонить','Rejected':'Отклонено',
+      'Approved':'Подтверждено','Revoked':'Аннулировано','Revoke':'Аннулировать','Reissue QR':'Выпустить QR повторно',
+      'Reset entry + proof storage':'Сбросить вход и хранение вещей','Reset food status':'Сбросить статус питания',
+      'Guest register':'Список участников','Search guests…':'Поиск участников…','Search':'Поиск',
+      'Search this event only':'Поиск только в этом мероприятии','Search name, phone or pass code':'Поиск по имени, телефону или коду пропуска',
+      'No matching guests.':'Участники не найдены.','Edit guest details':'Изменить данные участника',
+      'Save guest details':'Сохранить данные участника','Cancel':'Отмена','Remove':'Удалить',
+      'Volunteer VK user ID':'VK ID волонтёра','Event volunteer access':'Доступ волонтёров к мероприятию',
+      'No volunteers assigned to this event.':'К этому мероприятию не назначены волонтёры.',
+      'Assign to this event':'Назначить на это мероприятие','Event role':'Роль на мероприятии',
+      'Event lead':'Руководитель мероприятия','Checkpoint':'Пункт контроля','Checkpoint assignments':'Назначения на пункты контроля',
+      'Assign volunteer to checkpoint':'Назначить волонтёра на пункт контроля',
+      'No checkpoint-specific assignments.':'Нет назначений на отдельные пункты контроля.',
+      'Assigned checkpoints':'Назначенные пункты контроля','All':'Все',
+      'Proof storage':'Хранение вещей','Storage layout':'Схема хранения','Boxes / units':'Количество ящиков / блоков',
+      'Sections per box':'Секций в ящике','Slots per section':'Мест в секции','Box label':'Название ящика','Section label':'Название секции',
+      'No proof records for this event.':'Нет записей о хранении вещей для этого мероприятия.',
+      'Event announcement':'Объявление мероприятия','Announcement history':'История объявлений',
+      'Write your event announcement…':'Введите текст объявления…','Audience':'Аудитория',
+      'Preview recipients':'Предпросмотр получателей','Send announcement':'Отправить объявление',
+      'Send only to users who started this event, or approved guests of this event.':'Отправлять только пользователям, открывшим это мероприятие, или подтверждённым участникам.',
+      'No announcements for this event.':'Для этого мероприятия пока нет объявлений.',
+      'Try unsend':'Отменить отправку','Unsend complete: ':'Отправка отменена: ',
+      'Event details and branding':'Информация о мероприятии и оформление','Save event settings':'Сохранить настройки мероприятия',
+      'Save registration form':'Сохранить регистрационную форму','Registration form builder':'Конструктор регистрационной формы',
+      'Event-specific form fields are shown here. The pass token will not change.':'Здесь отображаются поля формы этого мероприятия. Токен пропуска не изменится.',
+      'Use unique field keys. Keep':'Используйте уникальные ключи полей. Сохраняйте',
+      'Description':'Описание','Primary colour (HEX)':'Основной цвет (HEX)','Accent colour (HEX)':'Акцентный цвет (HEX)',
+      'Background colour (HEX)':'Цвет фона (HEX)','Gold / highlight (HEX)':'Золотой / выделяющий цвет (HEX)',
+      'Google Sheets Web App URL (optional)':'URL веб-приложения Google Таблиц (необязательно)',
+      'This event is archived. Its details and registration form are preserved, but editing and new event operations are disabled.':'Это мероприятие архивировано. Его данные и форма регистрации сохранены, но редактирование и новые операции отключены.',
+      'Archived event settings':'Настройки архивированного мероприятия','Read only':'Только чтение','Back to all events':'Назад ко всем мероприятиям',
+      'Download full event backup':'Скачать полную резервную копию мероприятия',
+      'Automatic database recovery':'Автоматическое восстановление базы данных',
+      'Manual backup download history':'История скачивания резервных копий',
+      'Refresh backup status':'Обновить статус резервного копирования',
+      'No manual backup downloads have been logged for this event yet.':'Для этого мероприятия резервные копии ещё не скачивались.',
+      'This history records when a manual JSON backup was generated; it does not store that downloaded file in the cloud. Keep the downloaded file in a secure location.':'Здесь записывается время создания JSON-копии. Сам скачанный файл не хранится в облаке. Храните его в безопасном месте.',
+      'Loading EventHub…':'Загрузка EventHub…','Open EventHub using the button in your VK bot. This page requires VK sign-in.':'Откройте EventHub с помощью кнопки в VK. Для этой страницы требуется вход через VK.',
+      'Connection lost. New QR captures will be saved on this device for later verification.':'Соединение потеряно. Новые QR-коды будут сохранены на этом устройстве для последующей проверки.',
+      'Connection restored. Verify queued scans one by one before recording actions.':'Соединение восстановлено. Перед регистрацией действий проверьте каждый QR-код из очереди.',
+      'Scans captured without a server connection are saved on this device only. They are not attendance records until you reconnect, verify each pass and record its action.':'Сканирования без подключения к серверу сохраняются только на этом устройстве. Они не считаются отметками посещения, пока вы не подключитесь, не проверите каждый пропуск и не запишете действие.',
+      'No locally queued scans.':'Нет QR-кодов в локальной очереди.','Verify when online':'Проверить при подключении','Remove this locally saved QR from the offline queue?':'Удалить этот QR-код из локальной очереди?',
+      'This device could not save the offline scan. Do not rely on it being stored.':'Не удалось сохранить QR-код на этом устройстве. Не рассчитывайте, что он сохранён.',
+      'Offline scan queue is full. Verify or remove saved scans first.':'Очередь офлайн-сканирований заполнена. Сначала проверьте или удалите сохранённые QR-коды.',
+      'No':'Нет','Yes':'Да','Yes, archive this event':'Да, архивировать мероприятие',
+      'Status':'Статус','Type':'Тип','Label':'Название','Key (unique)':'Ключ (уникальный)','Required':'Обязательно',
+      'Options (for select, comma separated)':'Варианты (для списка, через запятую)','Date not set':'Дата не указана',
+      'Time not set':'Время не указано','Venue not set':'Место не указано','Activate event':'Активировать мероприятие',
+      'Archive this event':'Архивировать мероприятие','Event activated':'Мероприятие активировано',
+      'Event settings saved':'Настройки мероприятия сохранены','Registration form saved':'Регистрационная форма сохранена',
+      'Event backup downloaded':'Резервная копия мероприятия скачана','Updated':'Обновлено',
+      'The full name field is required':'Поле имени обязательно','The full_name key is required':'Требуется поле full_name',
+      'VK numeric user ID':'Числовой ID пользователя VK','Copy this event’s VK link':'Скопировать ссылку VK на это мероприятие',
+      'Copy this event\\'s VK link':'Скопировать ссылку VK на это мероприятие','Event VK link copied':'Ссылка VK на мероприятие скопирована',
+      'e.g. 6:00 PM':'например, 18:00','e.g. Halloween Night 2027':'например, Halloween Night 2027',
+      'Users who opened this event in EventHub':'Пользователи, открывшие это мероприятие в EventHub',
+      'Admin stays signed in':'Администратор остаётся в системе','Admin preview':'Предпросмотр администратора',
+      'Back to Admin':'Назад к панели администратора','Back to Admin →':'Назад к панели администратора →',
+      'Test the app as a user':'Проверить приложение от имени пользователя',
+      'Preview the registration form and submit a real test registration.':'Просмотрите форму регистрации и отправьте настоящую тестовую заявку.',
+      'No code changes needed':'Изменения кода не требуются','Save layout':'Сохранить расположение',
+      'Delete history':'Удалить историю','Loading…':'Загрузка…','Try again':'Повторить',
+      'Not recorded':'Не отмечено','No proof':'Вещи не сдавались','Stored':'Принято на хранение',
+      'Returned':'Возвращено','active':'Активно','draft':'Черновик','archived':'Архивировано',
+      'pending':'Ожидает','approved':'Подтверждено','rejected':'Отклонено','revoked':'Аннулировано'
+    }
+  };
+  function normalizeLanguageText(value) { return String(value ?? '').trim().replace(/\s+/g,' '); }
+  function translateLanguageText(value) {
+    const raw=String(value ?? ''), trimmed=raw.trim();
+    if(!trimmed || currentLanguage==='en') return raw;
+    const normalized=normalizeLanguageText(trimmed), dictionary=LANGUAGE_TEXTS[currentLanguage]||{};
+    let translated=dictionary[normalized];
+    if(!translated) {
+      translated=normalized;
+      const phrases=Object.entries(dictionary).filter(([source])=>source.length>=10).sort((a,b)=>b[0].length-a[0].length);
+      for(const [source,target] of phrases) if(translated.includes(source)) translated=translated.split(source).join(target);
+      if(translated===normalized) return raw;
+    }
+    return raw.slice(0,raw.indexOf(trimmed))+translated+raw.slice(raw.indexOf(trimmed)+trimmed.length);
+  }
+  function applyLanguageTranslations(root) {
+    if(!root || typeof document.createTreeWalker!=='function') return;
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    let node;
+    while((node=walker.nextNode())) {
+      if(!node.__eventHubSourceText) Object.defineProperty(node,'__eventHubSourceText',{value:node.nodeValue,writable:true});
+      const source=node.__eventHubSourceText;
+      const translated=translateLanguageText(source);
+      if(node.nodeValue!==translated) node.nodeValue=translated;
+    }
+    const elements=root.querySelectorAll?root.querySelectorAll('[placeholder],[title],[aria-label],[alt]'):[];
+    for(const el of elements) {
+      for(const attr of ['placeholder','title','aria-label','alt']) {
+        if(!el.hasAttribute(attr)) continue;
+        const marker='__eventHubSource_'+attr;
+        if(!Object.prototype.hasOwnProperty.call(el,marker)) Object.defineProperty(el,marker,{value:el.getAttribute(attr),writable:true});
+        const source=el[marker],translated=translateLanguageText(source);
+        if(el.getAttribute(attr)!==translated) el.setAttribute(attr,translated);
+      }
+    }
+    document.documentElement.lang=currentLanguage;
+  }
+  function detectInitialLanguage() {
+    try {
+      const saved=localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if(saved==='en'||saved==='ru') return saved;
+    } catch(_) {}
+    return /^ru(?:-|$)/i.test(navigator.language||'')?'ru':'en';
+  }
+  let currentLanguage=detectInitialLanguage();
+  function setLanguage(language) {
+    currentLanguage=language==='ru'?'ru':'en';
+    try { localStorage.setItem(LANGUAGE_STORAGE_KEY,currentLanguage); } catch(_) {}
+    const selector=$('languageSelect'); if(selector) selector.value=currentLanguage;
+    applyLanguageTranslations(document.getElementById('app'));
+  }
+  function initLanguageSupport() {
+    const selector=$('languageSelect');
+    if(selector) { selector.value=currentLanguage; selector.addEventListener('change',()=>setLanguage(selector.value)); }
+    applyLanguageTranslations(document.getElementById('app'));
+    if(typeof MutationObserver!=='undefined') {
+      const observer=new MutationObserver(records=>{
+        for(const record of records) {
+          if(record.type==='childList'&&record.addedNodes.length) {
+            for(const added of record.addedNodes) if(added.nodeType===Node.ELEMENT_NODE) applyLanguageTranslations(added);
+            if(record.target.nodeType===Node.ELEMENT_NODE) applyLanguageTranslations(record.target);
+          } else if(record.type==='characterData') {
+            applyLanguageTranslations(record.target.parentElement||document.getElementById('app'));
+          }
+        }
+      });
+      observer.observe(document.getElementById('app'),{subtree:true,childList:true,characterData:true});
+    }
+  }
+
   const parseJSON = (v, fallback) => { try { const x = typeof v === 'string' ? JSON.parse(v || '') : v; return x ?? fallback; } catch (_) { return fallback; } };
   let toastTimer;
   let dashboardRefreshTimer=null;
@@ -326,25 +532,45 @@
     $('startCamera').addEventListener('click',startScanner);$('stopCamera').addEventListener('click',stopScanner);$('lookupManual').addEventListener('click',()=>lookupGuest($('manualQr').value));$('manualQr').addEventListener('keydown',e=>{if(e.key==='Enter')lookupGuest(e.currentTarget.value);});
     try { const c=await post('/api/checkpoints',{event_id:state.eventId});state.checkpoints=c.checkpoints||[]; } catch(e) { state.checkpoints=[];toast(e.message,true); }
   }
+  let scannerStartGeneration=0;
+  let scannerStartPending=false;
   async function startScanner() {
+    if(state.scanner?.active||scannerStartPending)return;
     if(!navigator.mediaDevices?.getUserMedia || !('BarcodeDetector' in window)){toast('This browser does not support camera QR scanning. Use manual pass verification.',true);return;}
+    const generation=++scannerStartGeneration;
+    scannerStartPending=true;
+    let stream=null;
     try {
       $('startCamera').disabled=true; $('stopCamera').disabled=false;
       const detector=new BarcodeDetector({formats:['qr_code']});
       const video=document.createElement('video');video.setAttribute('playsinline','');video.autoplay=true;video.muted=true;video.style.width='100%';video.style.maxWidth='560px';video.style.borderRadius='12px';
       $('reader').replaceChildren(video);
-      const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+      if(generation!==scannerStartGeneration||!scannerStartPending){for(const track of stream.getTracks())track.stop();return;}
       video.srcObject=stream;await video.play();
-      state.scanner={stream,video,detector,active:true,frame:0};
+      if(generation!==scannerStartGeneration||!scannerStartPending){for(const track of stream.getTracks())track.stop();video.pause();return;}
+      const scanner={stream,video,detector,active:true,frame:0};
+      state.scanner=scanner;scannerStartPending=false;
       const scanFrame=async()=>{
-        if(!state.scanner?.active)return;
-        try {if(video.readyState>=2){const codes=await detector.detect(video);if(codes.length){const value=codes[0].rawValue;await stopScanner();await lookupGuest(value);return;}}}catch(_){}
-        if(state.scanner?.active)state.scanner.frame=requestAnimationFrame(scanFrame);
+        if(!scanner.active||state.scanner!==scanner)return;
+        try {
+          if(video.readyState>=2) {
+            const codes=await detector.detect(video);
+            if(!scanner.active||state.scanner!==scanner)return;
+            if(codes.length){const value=codes[0].rawValue;await stopScanner();await lookupGuest(value);return;}
+          }
+        } catch(_) {}
+        if(scanner.active&&state.scanner===scanner)scanner.frame=requestAnimationFrame(scanFrame);
       };
-      state.scanner.frame=requestAnimationFrame(scanFrame);
-    } catch(e){await stopScanner();toast('Camera could not start. Allow camera permission or use manual verification.',true);}
+      scanner.frame=requestAnimationFrame(scanFrame);
+    } catch(e) {
+      for(const track of stream?.getTracks?.()||[])track.stop();
+      if(generation===scannerStartGeneration){await stopScanner();toast('Camera could not start. Allow camera permission or use manual verification.',true);}
+    }
   }
   async function stopScanner() {
+    scannerStartGeneration++;
+    scannerStartPending=false;
     if(state.scanner){state.scanner.active=false;if(state.scanner.frame)cancelAnimationFrame(state.scanner.frame);for(const track of state.scanner.stream?.getTracks?.()||[])track.stop();state.scanner.video?.pause?.();state.scanner=null;}
     if($('reader'))$('reader').replaceChildren();
     if($('startCamera'))$('startCamera').disabled=false;if($('stopCamera'))$('stopCamera').disabled=true;
@@ -587,6 +813,7 @@
     await stopScanner(); state.eventId=Number.isSafeInteger(nextId)&&nextId>0?nextId:0; state.event=null; state.guest=null; state.pass=null;
     try { await loadRole(); if(state.eventId){const permitted=(state.role==='admin'?state.workspaces:state.activeEvents).some(e=>Number(e.id)===state.eventId); if(permitted) await loadEvent(); else {state.eventId=0;eventTheme(null);renderEventList();}} else {eventTheme(null);renderEventList();} } catch(err){main.innerHTML=showNotice(err.message,'error');}
   });
+  initLanguageSupport();
   boot();
 })();
 </script>
