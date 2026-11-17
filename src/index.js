@@ -240,12 +240,15 @@ async function guestLookupApi(request, env) {
   const guest = await env.DB.prepare("SELECT * FROM guests WHERE event_id=? AND (qr_token=? OR pass_code=?)").bind(eventId,token,token).first();
   if (!guest) return fail("Pass not found in this event.",404);
   if (guest.status !== "approved" || guest.revoked_at) return fail("This pass is not active.",403);
-  const proof = await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first();
-  const noProof = await env.DB.prepare("SELECT * FROM proof_not_collected WHERE guest_id=?").bind(guest.id).first();
+  const [proof,noProof,checkpointScans] = await Promise.all([
+    env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first(),
+    env.DB.prepare("SELECT * FROM proof_not_collected WHERE guest_id=?").bind(guest.id).first(),
+    env.DB.prepare("SELECT checkpoint_id,scanned_at FROM event_checkpoint_scans WHERE event_id=? AND guest_id=?").bind(eventId,guest.id).all()
+  ]);
   const exit = await env.DB.prepare("SELECT * FROM event_exit_records WHERE guest_id=?").bind(guest.id).first();
   const proofStatus=proof?.returned_at?"Returned":proof?.deposited_at?"Stored":noProof?"No proof":"Not collected";
   const storageLabel=proof?("Box "+proof.box_number+" / Section "+proof.section_letter+" / Slot "+String(proof.slot_number||"—")):"";
-  return json({ ok:true, guest:{ id:guest.id, name:guest.full_name, full_name:guest.full_name, phone:guest.phone, residence:guest.residence||guest.residence_type, hostel:guest.hostel||guest.hostel_number, roomNumber:guest.room||guest.room_number, food:guest.food_preference, passCode:guest.pass_code, qrToken:guest.qr_token, status:guest.status, entryUsed:!!guest.entry_used, foodUsed:!!guest.food_used, proofStatus, storageLabel, exitRecorded:!!exit, canManage:await hasAdmin(uid,env) } });
+  return json({ ok:true, guest:{ id:guest.id, name:guest.full_name, full_name:guest.full_name, phone:guest.phone, residence:guest.residence||guest.residence_type, hostel:guest.hostel||guest.hostel_number, roomNumber:guest.room||guest.room_number, food:guest.food_preference, passCode:guest.pass_code, qrToken:guest.qr_token, status:guest.status, entryUsed:!!guest.entry_used, foodUsed:!!guest.food_used, proofStatus, storageLabel, exitRecorded:!!exit, canManage:await hasAdmin(uid,env), checkpointScans:Object.fromEntries((checkpointScans.results||[]).map(x=>[x.checkpoint_id,x.scanned_at])) } });
 }
 
 async function actionApi(request, env) {
@@ -339,7 +342,9 @@ async function checkpointsApi(request, env) {
   const uid=await requireUser(request,env), data=await body(request), eventId=Number(data.event_id||0);
   const role=await eventRole(uid,eventId,env);
   if(!role) return fail("Volunteer access required for this event.",403);
-  const rows=await env.DB.prepare("SELECT id,name,checkpoint_type FROM event_checkpoints WHERE event_id=? AND enabled=1 ORDER BY id").bind(eventId).all();
+  const rows=role==="checkpoint"
+    ? await env.DB.prepare("SELECT c.id,c.name,c.checkpoint_type FROM event_checkpoints c JOIN event_checkpoint_assignments a ON a.checkpoint_id=c.id AND a.event_id=c.event_id WHERE c.event_id=? AND c.enabled=1 AND a.vk_user_id=? ORDER BY c.id").bind(eventId,uid).all()
+    : await env.DB.prepare("SELECT id,name,checkpoint_type FROM event_checkpoints WHERE event_id=? AND enabled=1 ORDER BY id").bind(eventId).all();
   return json({ok:true,checkpoints:rows.results});
 }
 async function checkpointScanApi(request, env) {
