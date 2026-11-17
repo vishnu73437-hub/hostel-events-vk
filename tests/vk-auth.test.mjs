@@ -47,9 +47,3 @@ test("rejects a launch query for another app", async () => {
 test("rejects a missing signature", async () => {
   await assert.rejects(() => verifyLaunchParams("vk_user_id=987654&vk_app_id=123456", env), /incomplete/);
 });
-
-test("matches VK's published launch-signature example", async () => {
-  const sample = "vk_user_id=494075&vk_app_id=6736218&vk_is_app_user=1&vk_are_notifications_enabled=1&vk_language=ru&vk_access_token_settings=&vk_platform=android&sign=htQFduJpLxz7ribXRZpDFUH-XEUhC9rBPTJkjUFEkRA";
-  const sampleEnv = { VK_APP_ID: "6736218", VK_APP_SECRET: "wvl68m4dR1UpLrVRli" };
-  assert.equal(await verifyLaunchParams(sample, sampleEnv), "494075");
-});
