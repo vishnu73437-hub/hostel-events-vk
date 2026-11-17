@@ -373,6 +373,61 @@ async function adminApi(request, env) {
   const eventId=Number(data.event_id||0);
   const getEvent=async()=>env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
   const log=async(name,type="event",target=eventId,details={})=>audit(env,uid,name,type,target,details,eventId||null);
+  if(action==="backup") {
+    const event=await getEvent();
+    if(!event) return fail("Event workspace not found.",404);
+    const queries=[
+      ["events","SELECT * FROM events WHERE id=? ORDER BY id",[eventId]],
+      ["app_users","SELECT * FROM app_users WHERE vk_user_id IN (SELECT vk_user_id FROM event_app_users WHERE event_id=?) ORDER BY vk_user_id",[eventId]],
+      ["guests","SELECT * FROM guests WHERE event_id=? ORDER BY id",[eventId]],
+      ["pending_registrations","SELECT * FROM pending_registrations WHERE event_id=? ORDER BY id",[eventId]],
+      ["event_app_users","SELECT * FROM event_app_users WHERE event_id=? ORDER BY vk_user_id",[eventId]],
+      ["event_volunteers","SELECT * FROM event_volunteers WHERE event_id=? ORDER BY vk_user_id",[eventId]],
+      ["event_checkpoints","SELECT * FROM event_checkpoints WHERE event_id=? ORDER BY id",[eventId]],
+      ["event_checkpoint_assignments","SELECT * FROM event_checkpoint_assignments WHERE event_id=? ORDER BY checkpoint_id,vk_user_id",[eventId]],
+      ["scans","SELECT s.* FROM scans s JOIN guests g ON g.id=s.guest_id WHERE g.event_id=? ORDER BY s.id",[eventId]],
+      ["event_checkpoint_scans","SELECT * FROM event_checkpoint_scans WHERE event_id=? ORDER BY id",[eventId]],
+      ["event_storage_configs","SELECT * FROM event_storage_configs WHERE event_id=?",[eventId]],
+      ["proof_storage","SELECT * FROM proof_storage WHERE event_id=? ORDER BY id",[eventId]],
+      ["proof_not_collected","SELECT * FROM proof_not_collected WHERE event_id=? ORDER BY guest_id",[eventId]],
+      ["event_exit_records","SELECT * FROM event_exit_records WHERE event_id=? ORDER BY guest_id",[eventId]],
+      ["pass_design","SELECT * FROM pass_design WHERE event_id=?",[eventId]],
+      ["sheets_outbox","SELECT * FROM sheets_outbox WHERE event_id=? ORDER BY id",[eventId]],
+      ["event_announcements","SELECT * FROM event_announcements WHERE event_id=? ORDER BY id",[eventId]],
+      ["announcement_deliveries","SELECT d.* FROM announcement_deliveries d JOIN event_announcements a ON a.id=d.announcement_id WHERE a.event_id=? ORDER BY d.id",[eventId]],
+      ["audit_log","SELECT * FROM audit_log WHERE event_id=? ORDER BY id",[eventId]],
+      ["event_backup_snapshots","SELECT * FROM event_backup_snapshots WHERE event_id=? ORDER BY id",[eventId]],
+      ["event_app_settings","SELECT * FROM event_app_settings WHERE event_id=?",[eventId]]
+    ];
+    const tables={};let totalRows=0;
+    for(const [table,sql,params] of queries) {
+      const result=await env.DB.prepare(sql).bind(...params).all();
+      const rows=result.results||[];
+      if(rows.length>5000) return fail("This event is too large for a single in-app backup. Use the Cloudflare D1 export procedure in the admin guide.",413);
+      totalRows+=rows.length;
+      if(totalRows>25000) return fail("This event exceeds the safe in-app backup size. Use the Cloudflare D1 export procedure in the admin guide.",413);
+      tables[table]=rows;
+    }
+    const createdAt=now();
+    const slug=String(event.name||"event").normalize("NFKD").replace(/[^a-zA-Z0-9]+/g,"-").replace(/^-|-$/g,"").toLowerCase().slice(0,48)||"event";
+    const fileName="eventhub-"+slug+"-"+eventId+"-"+createdAt.slice(0,10)+".json";
+    const backup={format:"eventhub-event-backup",version:1,created_at:createdAt,event_id:eventId,event,tables,row_counts:Object.fromEntries(Object.entries(tables).map(([key,rows])=>[key,rows.length])),security_notice:"Contains personal data and QR pass tokens. Store securely and never share publicly."};
+    const canonical=JSON.stringify(backup);
+    const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical))),b=>b.toString(16).padStart(2,"0")).join("");
+    const snapshot=await env.DB.prepare("INSERT INTO event_backup_snapshots(event_id,created_by,file_name,created_at,note,sha256) VALUES(?,?,?,?,?,?)")
+      .bind(eventId,uid,fileName,createdAt,"Admin downloaded full event backup",digest).run();
+    tables.event_backup_snapshots.push({id:snapshot.meta.last_row_id,event_id:eventId,created_by:uid,file_name:fileName,created_at:createdAt,note:"Admin downloaded full event backup",sha256:digest});
+    backup.row_counts.event_backup_snapshots=tables.event_backup_snapshots.length;
+    backup.sha256=digest;
+    await log("EVENT_BACKUP_CREATED","event",eventId,{file_name:fileName,sha256:digest,rows:totalRows+1});
+    return new Response(JSON.stringify(backup),{headers:{
+      "content-type":"application/json; charset=utf-8",
+      "content-disposition":'attachment; filename="'+fileName+'"',
+      "cache-control":"no-store, private",
+      "x-content-type-options":"nosniff",
+      "x-eventhub-backup-sha256":digest
+    }});
+  }
   if(action==="events") {
     const rows=await env.DB.prepare("SELECT id,name,description,event_date,event_time,venue,status,registration_open,food_enabled,theme_json,registration_schema FROM events ORDER BY id DESC").all();
     return json({ok:true,events:rows.results});
