@@ -581,7 +581,7 @@ async function adminApi(request, env) {
     return json({ok:true,message:action==="add_volunteer"?"Global volunteer access granted.":"Global volunteer access removed."});
   }
   if(action==="event_volunteers") {
-    const rows=await env.DB.prepare("SELECT * FROM event_volunteers WHERE event_id=? ORDER BY assigned_at DESC").bind(eventId).all();
+    const rows=await env.DB.prepare("SELECT v.*,u.display_name,u.screen_name,u.last_seen_at FROM event_volunteers v LEFT JOIN app_users u ON u.vk_user_id=v.vk_user_id WHERE v.event_id=? ORDER BY v.assigned_at DESC").bind(eventId).all();
     return json({ok:true,volunteers:rows.results});
   }
   if(action==="assign_event_volunteer") {
