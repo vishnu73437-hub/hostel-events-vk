@@ -36,13 +36,20 @@ try:
 except sqlite3.IntegrityError:
     pass
 
-# Legacy Telegram IDs remain in their own field and are never treated as VK IDs.
-legacy_id = db.execute(
-    "INSERT INTO guests(event_id,legacy_telegram_id,full_name,registered_at) VALUES(?,?,?,?)",
-    (event_a, "998877", "Legacy User", "now")
-).lastrowid
-legacy = db.execute("SELECT vk_user_id,legacy_telegram_id FROM guests WHERE id=?", (legacy_id,)).fetchone()
-assert legacy == (None, "998877")
+# Fresh EventHub records must carry a verified VK identity; there are no Telegram identity columns.
+for table in ("guests", "pending_registrations"):
+    columns = {row[1]: row for row in db.execute(f"PRAGMA table_info({table})")}
+    assert "legacy_telegram_id" not in columns, f"{table} must not contain Telegram identity data"
+    assert columns["vk_user_id"][3] == 1, f"{table}.vk_user_id must be NOT NULL"
+    try:
+        db.execute(
+            f"INSERT INTO {table}(event_id,full_name,registered_at) VALUES(?,?,?)" if table == "guests"
+            else f"INSERT INTO {table}(event_id,full_name,created_at) VALUES(?,?,?)",
+            (event_a, "Missing VK identity", "now")
+        )
+        raise AssertionError(f"{table} accepted a record without a VK user ID")
+    except sqlite3.IntegrityError:
+        pass
 
 # A checkpoint can only be recorded once for a given guest.
 checkpoint = db.execute(
