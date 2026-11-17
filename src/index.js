@@ -700,8 +700,8 @@ async function adminApi(request, env) {
         const response=await fetch("https://api.vk.com/method/messages.delete",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:form.toString()});
         const result=await response.json();
         if(result.response!==undefined) { await env.DB.prepare("UPDATE announcement_deliveries SET status='deleted',error='Unsent by EventHub admin' WHERE id=?").bind(row.id).run(); deleted++; }
-        else { await env.DB.prepare("UPDATE announcement_deliveries SET error=? WHERE id=?").bind(String(result.error?.error_msg||"VK delete failed").slice(0,400),row.id).run(); failed++; }
-      } catch(e) { await env.DB.prepare("UPDATE announcement_deliveries SET error=? WHERE id=?").bind(String(e.message||"Network error").slice(0,400),row.id).run(); failed++; }
+        else { await env.DB.prepare("UPDATE announcement_deliveries SET status='unsend_failed',error=? WHERE id=?").bind(String(result.error?.error_msg||"VK delete failed").slice(0,400),row.id).run(); failed++; }
+      } catch(e) { await env.DB.prepare("UPDATE announcement_deliveries SET status='unsend_failed',error=? WHERE id=?").bind(String(e.message||"Network error").slice(0,400),row.id).run(); failed++; }
     }
     const remaining=await env.DB.prepare("SELECT COUNT(*) n FROM announcement_deliveries WHERE announcement_id=? AND status='sent' AND message_id IS NOT NULL").bind(announcementId).first();
     await log("ANNOUNCEMENT_UNSEND","announcement",announcementId,{deleted,failed,remaining:remaining.n||0});
