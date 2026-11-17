@@ -21,7 +21,7 @@
     .scanner-recent{margin-top:14px}.scanner-recent .list-item{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.scanner-recent .activity-time{font-size:11px;color:var(--muted);white-space:nowrap}
     .guest-profile{margin-top:10px;border:1px solid var(--line);border-radius:13px;padding:10px;background:#ffffff06}.guest-profile summary{cursor:pointer;font-weight:750;min-height:40px;display:flex;align-items:center}.guest-profile-content{padding-top:10px}.timeline{display:flex;flex-direction:column;gap:10px;margin-top:10px}.timeline-item{display:grid;grid-template-columns:12px 1fr;gap:10px;align-items:start}.timeline-dot{width:9px;height:9px;border-radius:50%;background:var(--gold);margin-top:6px;box-shadow:0 0 0 4px #ffd16622}.timeline-item .sub{font-size:12px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
     .volunteer-filters{display:grid;grid-template-columns:2fr 1fr;gap:10px}.volunteer-presence{font-size:11px;font-weight:800;color:var(--ok)}.volunteer-presence.stale{color:var(--muted)}.volunteer-activity{margin-top:10px}
-    @media(max-width:650px){.admin-nav-desktop{display:none}.admin-nav-mobile{display:block;position:sticky;top:0;z-index:8;background:var(--bg);padding:8px 0}.admin-nav-mobile label{flex-wrap:wrap}.admin-nav-mobile select{width:100%;flex-basis:100%}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-preview{padding:12px}.stat{padding:12px}.stat strong{font-size:22px}.btn.small{min-height:40px}.scanner-recent .list-item{display:block}.scanner-recent .activity-time{display:block;margin-top:4px}.volunteer-filters{grid-template-columns:1fr}}
+    @media(max-width:650px){.admin-nav-desktop{display:none}.admin-nav-mobile{display:block;position:sticky;top:0;z-index:8;background:var(--bg);padding:8px 0}.admin-nav-mobile label{flex-wrap:wrap}.admin-nav-mobile select{width:100%;flex-basis:100%}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-preview{padding:12px}.stat{padding:12px}.stat strong{font-size:22px}.btn.small{min-height:44px}.scanner-recent .list-item{display:block}.scanner-recent .activity-time{display:block;margin-top:4px}.volunteer-filters{grid-template-columns:1fr}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
     @media(min-width:800px){.shell{padding-top:24px}.hero{padding:30px}.grid.cols3{grid-template-columns:repeat(3,minmax(0,1fr))}}
   </style>
@@ -784,7 +784,7 @@
   let scannerStartPending=false;
   async function startScanner() {
     if(state.scanner?.active||scannerStartPending)return;
-    if(!navigator.mediaDevices?.getUserMedia || !('BarcodeDetector' in window)){toast('This browser does not support camera QR scanning. Use manual pass verification.',true);return;}
+    if(!navigator.mediaDevices?.getUserMedia || !('BarcodeDetector' in window)){setScannerStatus('This browser does not support camera QR scanning. Use manual pass verification.','error');toast('This browser does not support camera QR scanning. Use manual pass verification.',true);return;}
     const generation=++scannerStartGeneration;
     scannerStartPending=true;
     let stream=null;
