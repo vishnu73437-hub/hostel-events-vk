@@ -379,7 +379,7 @@ async function adminApi(request, env) {
   const uid=await requireAdmin(request,env), data=await body(request), action=String(data.action||"");
   const eventId=Number(data.event_id||0);
   const getEvent=async()=>env.DB.prepare("SELECT * FROM events WHERE id=?").bind(eventId).first();
-  const readOnlyOrMaintenance=new Set(["events","stats","guest_search","pending_registrations","event_volunteers","checkpoint_team","checkpoints","storage_config","proof_storage_report","audit","sheets_queue_status","announcement_history","backup","backup_status","sheets_sync","announcement_unsend"]);
+  const readOnlyOrMaintenance=new Set(["events","stats","guest_search","guest_profile","pending_registrations","event_volunteers","checkpoint_team","checkpoints","storage_config","proof_storage_report","audit","sheets_queue_status","announcement_history","backup","backup_status","sheets_sync","announcement_unsend"]);
   if(eventId>0) {
     const selectedEvent=await getEvent();
     if(!selectedEvent) return fail("Event workspace not found.",404);
@@ -567,6 +567,44 @@ async function adminApi(request, env) {
     await outbox(env,eventId,guestId,"upsert",{action:"upsert",...(await guestSheetsPayload(env,eventId,guestId))});
     const fresh=await env.DB.prepare("SELECT id,full_name,phone,residence_type,hostel_number,room_number,food_preference,registration_data FROM guests WHERE id=? AND event_id=?").bind(guestId,eventId).first();
     return json({ok:true,guest:fresh,message:"Guest details updated. Existing QR token and attendance history were preserved."});
+  }
+  if(action==="guest_profile") {
+    const guestId=Number(data.guest_id||0);
+    if(!Number.isSafeInteger(guestId)||guestId<=0) return fail("A valid guest ID is required.");
+    const guest=await env.DB.prepare("SELECT id,full_name,phone,residence_type,hostel_number,room_number,food_preference,pass_code,status,registered_at,approved_at,revoked_at,entry_used,entry_used_at,food_used,food_used_at FROM guests WHERE id=? AND event_id=?").bind(guestId,eventId).first();
+    if(!guest) return fail("Guest record not found in this event.",404);
+    const [auditRows,proof,noProof,exitRow]=await Promise.all([
+      env.DB.prepare("SELECT action,target_type,target_id,details_json,created_at,actor_vk_user_id FROM audit_log WHERE event_id=? AND target_type='guest' AND target_id=? ORDER BY id DESC LIMIT 100").bind(eventId,String(guestId)).all(),
+      env.DB.prepare("SELECT box_number,section_letter,slot_number,assigned_at,deposited_at,returned_at,assigned_by,deposited_by,returned_by FROM proof_storage WHERE event_id=? AND guest_id=? ORDER BY id DESC LIMIT 1").bind(eventId,guestId).first(),
+      env.DB.prepare("SELECT recorded_at,recorded_by FROM proof_not_collected WHERE event_id=? AND guest_id=? ORDER BY id DESC LIMIT 1").bind(eventId,guestId).first(),
+      env.DB.prepare("SELECT exit_at,exit_by FROM event_exit_records WHERE event_id=? AND guest_id=? ORDER BY id DESC LIMIT 1").bind(eventId,guestId).first()
+    ]);
+    const timeline=[];
+    const add=(type,label,at,actor="",details={})=>{if(at)timeline.push({type,label,at,actor,details});};
+    add("registration","Registration created",guest.registered_at);
+    add("approval","Registration approved",guest.approved_at);
+    for(const row of auditRows.results||[]){
+      let details={};try{details=JSON.parse(row.details_json||"{}")}catch{}
+      const labels={
+        REGISTRATION_APPROVED:"Registration approved",REGISTRATION_REJECTED:"Registration rejected",
+        ENTRY_RECORDED:"Entry recorded",FOOD_RECORDED:"Food collected",
+        PROOF_DEPOSIT_RECORDED:"Items stored",PROOF_NO_PROOF_RECORDED:"No items declared",
+        PROOF_RETURN_RECORDED:"Stored items returned",EXIT_RECORDED:"Exit recorded",
+        CHECKPOINT_SCAN:"Checkpoint scanned",GUEST_DETAILS_UPDATED:"Guest details updated",
+        PASS_REISSUED:"QR pass reissued",PASS_REVOKED:"QR pass revoked",PASS_REACTIVATED:"QR pass reactivated",
+        GUEST_STATUS_RESET:"Guest status reset",ENTRY_AND_STORAGE_RESET:"Entry and storage reset"
+      };
+      add("audit",labels[row.action]||String(row.action||"Event updated").replaceAll("_"," "),row.created_at,row.actor_vk_user_id||"",details);
+    }
+    if(proof){
+      add("proof","Items assigned to storage",proof.assigned_at,proof.assigned_by||"",{box:proof.box_number,section:proof.section_letter,slot:proof.slot_number});
+      if(proof.deposited_at)add("proof","Items deposited",proof.deposited_at,proof.deposited_by||"",{box:proof.box_number,section:proof.section_letter,slot:proof.slot_number});
+      if(proof.returned_at)add("proof","Stored items returned",proof.returned_at,proof.returned_by||"",{box:proof.box_number,section:proof.section_letter,slot:proof.slot_number});
+    }
+    if(noProof)add("proof","No items declared",noProof.recorded_at,noProof.recorded_by||"");
+    if(exitRow)add("exit","Exit recorded",exitRow.exit_at,exitRow.exit_by||"");
+    timeline.sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+    return json({ok:true,guest,proof:proof||null,noProof:!!noProof,exitRecorded:!!exitRow,timeline:timeline.slice(0,100)});
   }
   if(action==="guest_search") {
     const query=String(data.query||"").trim().slice(0,120), status=String(data.status||"all");
