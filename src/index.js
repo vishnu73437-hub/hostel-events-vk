@@ -181,8 +181,8 @@ async function registerApi(request, env) {
   const registrationData = JSON.stringify(cleaned);
   const stamp = now();
   const food = foodEnabled ? String(cleaned.food_preference || "Not specified") : "Not applicable";
-  const result = await env.DB.prepare("INSERT INTO pending_registrations(event_id,vk_user_id,full_name,phone,food_preference,residence_type,hostel_number,room_number,registration_data,created_at,status) VALUES(?,?,?,?,?,?,?,?,?,?,'pending') ON CONFLICT(event_id,vk_user_id) DO UPDATE SET full_name=excluded.full_name,phone=excluded.phone,food_preference=excluded.food_preference,residence_type=excluded.residence_type,hostel_number=excluded.hostel_number,room_number=excluded.room_number,registration_data=excluded.registration_data,created_at=excluded.created_at,status='pending'")
-    .bind(eventId,uid,fullName,String(cleaned.phone || ""),food,String(cleaned.residence_type || "Apartment"),String(cleaned.hostel_number || ""),String(cleaned.room_number || ""),registrationData,stamp).run();
+  const result = await env.DB.prepare("INSERT INTO pending_registrations(event_id,vk_user_id,full_name,email,phone,food_preference,residence_type,hostel_number,room_number,registration_data,created_at,status) VALUES(?,?,?,?,?,?,?,?,?,?,?,'pending') ON CONFLICT(event_id,vk_user_id) DO UPDATE SET full_name=excluded.full_name,email=excluded.email,phone=excluded.phone,food_preference=excluded.food_preference,residence_type=excluded.residence_type,hostel_number=excluded.hostel_number,room_number=excluded.room_number,registration_data=excluded.registration_data,created_at=excluded.created_at,status='pending'")
+    .bind(eventId,uid,fullName,String(cleaned.email||""),String(cleaned.phone || ""),food,String(cleaned.residence_type || "Apartment"),String(cleaned.hostel_number || ""),String(cleaned.room_number || ""),registrationData,stamp).run();
   const requestId=result.meta?.last_row_id || uid;
   await audit(env,uid,"registration_submitted","pending_registration",requestId,{event_id:eventId},eventId);
   await outbox(env,eventId,requestId,"upsert",{action:"upsert",guest_id:"event:"+eventId+":vk:"+uid,serial_number:requestId,name:fullName,phone:String(cleaned.phone||""),residence:String(cleaned.residence_type||"Apartment"),hostel_number:String(cleaned.hostel_number||""),room_number:String(cleaned.room_number||""),food,registration_status:"Pending approval",pass_code:"",qr_status:"Pending",entry_status:"Not recorded",food_status:foodEnabled?"Not collected":"Not applicable",registered_at:stamp,timezone:event.timezone||"Europe/Moscow",last_updated:stamp,event_id:eventId});
@@ -756,7 +756,7 @@ async function guestSheetsPayload(env,eventId,guestId) {
   const storageNumber=proof?String(proof.box_number):"";
   const storageLabel=proof?("Box "+proof.box_number+" / Section "+proof.section_letter+" / Slot "+String(proof.slot_number||"")):"";
   return {
-    guest_id:"event:"+eventId+":"+guest.id,serial_number:guest.id,name:guest.full_name,phone:guest.phone||"",
+    guest_id:"event:"+eventId+":"+guest.id,serial_number:guest.id,name:guest.full_name,email:guest.email||"",phone:guest.phone||"",
     residence:guest.residence||guest.residence_type||"",hostel_number:guest.hostel_number||guest.hostel||"",
     room_number:guest.room_number||guest.room||"",food:guest.food_preference||"Not applicable",
     registration_status:guest.status,pass_code:guest.pass_code||"",qr_status:guest.status==="approved"&&!guest.revoked_at?"Active":"Inactive",
