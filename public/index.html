@@ -249,7 +249,7 @@
   function hostButtons(selector){document.querySelectorAll(selector).forEach(b=>{if(!b.dataset.bound){b.dataset.bound='1';b.addEventListener('click',()=>renderAdminPage(b.dataset.adminPage));}});}
   async function renderRegistration(host) {
     if(!state.event) return;
-    const schema=parseJSON(state.event.registration_schema,defaultSchema()); state.formSchema=Array.isArray(schema)&&schema.length?schema:defaultSchema();
+    const schema=parseJSON(state.event.registration_schema,defaultSchema()); const configured=Array.isArray(schema)&&schema.length?schema:defaultSchema(); state.formSchema=asFoodEnabled(state.event)?configured:configured.filter(field=>field.key!=='food_preference');
     host.innerHTML=`<section class="section card"><div class="section-title"><h2>Register — ${safe(state.event.name)}</h2></div><p class="muted">Your registration is linked only to this event. Required fields are marked with an asterisk.</p><form id="registrationForm">${state.formSchema.map(fieldHTML).join('')}<button class="btn primary" type="submit">Submit registration</button></form><div id="registerMessage"></div></section>`;
     $('registrationForm').addEventListener('submit',async e=>{
       e.preventDefault();const values={};
@@ -260,6 +260,7 @@
       finally{button.disabled=false;}
     });
   }
+  function asFoodEnabled(event) { return event?.food_enabled===true || event?.food_enabled===1 || event?.food_enabled==='1' || event?.food_enabled==='true'; }
   function fieldHTML(f) {
     const key=String(f.key||''), id='registration-'+key, label=safe(f.label||key), type=f.type||'text', required=f.required?'required':'';
     if(type==='select') return `<div class="field"><label for="${safe(id)}">${label}${f.required?' *':''}</label><select id="${safe(id)}" name="${safe(key)}" ${required}><option value="">Choose…</option>${(Array.isArray(f.options)?f.options:[]).map(x=>`<option value="${safe(x)}">${safe(x)}</option>`).join('')}</select></div>`;
@@ -274,7 +275,7 @@
       let r;
       try{r=await post('/api/my_pass',{event_id:state.eventId});}
       catch(err){
-        if((state.role==='admin'||state.role==='volunteer') && /Choose Vegetarian/.test(err.message)) {
+        if((state.role==='admin'||state.role==='volunteer') && asFoodEnabled(state.event) && /Choose Vegetarian/.test(err.message)) {
           $('passArea').innerHTML=`<div class="field"><label>Food preference for your staff pass</label><select id="staffFood"><option value="">Choose…</option><option>Vegetarian</option><option>Non-vegetarian</option></select></div><button class="btn primary" id="createStaffPass">Create my staff pass</button>`;
           $('createStaffPass').addEventListener('click',async()=>{const choice=$('staffFood').value;if(!choice){toast('Choose a food preference first.',true);return;}const btn=$('createStaffPass');btn.disabled=true;try{const rr=await post('/api/my_pass',{event_id:state.eventId,food_preference:choice});showPass(rr.pass);}catch(e){toast(e.message,true);btn.disabled=false;}}); return;
         }
