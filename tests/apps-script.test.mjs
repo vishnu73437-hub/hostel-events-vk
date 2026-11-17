@@ -33,3 +33,10 @@ test("event-log retry updates live tabs but deduplicates append-only actions", (
   assert.match(receiver, /last_updated = actionTime/);
   assert.match(receiver, /newTime < oldTime/);
 });
+
+test("obsolete unscoped legacy API routes and implicit event creation are removed", () => {
+  assert.doesNotMatch(worker, /\/api\/bootstrap/);
+  assert.doesNotMatch(worker, /\/api\/scan/);
+  assert.doesNotMatch(worker, /async function activeEvent/);
+  assert.doesNotMatch(worker, /async function requireStaff/);
+});
