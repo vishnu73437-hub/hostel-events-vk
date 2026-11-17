@@ -97,7 +97,8 @@ CREATE TABLE IF NOT EXISTS volunteers (
   vk_user_id TEXT PRIMARY KEY,
   display_name TEXT NOT NULL DEFAULT '',
   added_at TEXT NOT NULL,
-  added_by TEXT NOT NULL
+  added_by TEXT NOT NULL,
+  active INTEGER NOT NULL DEFAULT 1
 );
 CREATE TABLE IF NOT EXISTS global_volunteers (
   vk_user_id TEXT PRIMARY KEY,
