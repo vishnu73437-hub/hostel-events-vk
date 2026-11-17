@@ -95,6 +95,14 @@ def main() -> None:
         fail("backup is missing tables: " + ", ".join(sorted(missing)))
     if extra:
         fail("backup contains unexpected tables: " + ", ".join(sorted(extra)))
+    row_counts = backup.get("row_counts")
+    if not isinstance(row_counts, dict):
+        fail("missing row_counts manifest")
+    for table in TABLE_ORDER:
+        if not isinstance(tables[table], list):
+            fail(f"table {table} must contain an array")
+        if row_counts.get(table) != len(tables[table]):
+            fail(f"row count manifest does not match table {table}")
 
     schema_path = Path(__file__).resolve().parents[1] / "cloudflare" / "schema.sql"
     try:
@@ -110,8 +118,6 @@ def main() -> None:
         total = 0
         for table in TABLE_ORDER:
             rows = tables[table]
-            if not isinstance(rows, list):
-                fail(f"table {table} must contain an array")
             for row in rows:
                 if not isinstance(row, dict):
                     fail(f"table {table} contains a non-object row")
@@ -131,8 +137,27 @@ def main() -> None:
         event_rows = tables["events"]
         if len(event_rows) != 1 or event_rows[0].get("id") != event_id:
             fail("backup must contain exactly its selected event")
-        if backup.get("event", {}).get("id") != event_id:
-            fail("event metadata does not match event_id")
+        if backup.get("event") != event_rows[0]:
+            fail("event metadata does not exactly match the exported events row")
+        for table, rows in tables.items():
+            if table in {"events", "app_users", "scans", "announcement_deliveries"}:
+                continue
+            for row in rows:
+                if row.get("event_id") != event_id:
+                    fail(f"table {table} contains a row from another event")
+        cross_event_checks = [
+            ("event_checkpoint_assignments", "SELECT COUNT(*) FROM event_checkpoint_assignments a LEFT JOIN event_checkpoints c ON c.id=a.checkpoint_id AND c.event_id=a.event_id WHERE c.id IS NULL"),
+            ("event_checkpoint_scans", "SELECT COUNT(*) FROM event_checkpoint_scans s LEFT JOIN event_checkpoints c ON c.id=s.checkpoint_id AND c.event_id=s.event_id LEFT JOIN guests g ON g.id=s.guest_id AND g.event_id=s.event_id WHERE c.id IS NULL OR g.id IS NULL"),
+            ("proof_storage", "SELECT COUNT(*) FROM proof_storage p LEFT JOIN guests g ON g.id=p.guest_id AND g.event_id=p.event_id WHERE g.id IS NULL"),
+            ("proof_not_collected", "SELECT COUNT(*) FROM proof_not_collected p LEFT JOIN guests g ON g.id=p.guest_id AND g.event_id=p.event_id WHERE g.id IS NULL"),
+            ("event_exit_records", "SELECT COUNT(*) FROM event_exit_records x LEFT JOIN guests g ON g.id=x.guest_id AND g.event_id=x.event_id WHERE g.id IS NULL"),
+            ("scans", "SELECT COUNT(*) FROM scans s LEFT JOIN guests g ON g.id=s.guest_id AND g.event_id=? WHERE g.id IS NULL"),
+            ("announcement_deliveries", "SELECT COUNT(*) FROM announcement_deliveries d LEFT JOIN event_announcements a ON a.id=d.announcement_id AND a.event_id=? WHERE a.id IS NULL"),
+        ]
+        for table, query in cross_event_checks:
+            count = validation_db.execute(query, (event_id,)) .fetchone()[0] if "?" in query else validation_db.execute(query).fetchone()[0]
+            if count:
+                fail(f"table {table} contains cross-event relationships")
         validation_db.commit()
     except (sqlite3.Error, KeyError, TypeError, ValueError) as exc:
         fail(f"backup data failed schema/relationship validation: {exc}")
