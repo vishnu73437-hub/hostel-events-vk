@@ -76,7 +76,7 @@ To prepare a restore SQL file locally (Python 3, no paid service or third-party 
 python scripts/restore_event_backup.py eventhub-your-event-1-YYYY-MM-DD.json
 ```
 
-The script verifies the checksum, validates every row against the repository D1 schema and foreign-key relationships in an in-memory SQLite database, then writes a `.restore.sql` file. It does not connect to Cloudflare and does not change any database.
+The script verifies the checksum and row-count manifest, validates every row against the repository D1 schema and event relationships in an in-memory SQLite database, then writes a D1-compatible `.restore.sql` file. It omits explicit `BEGIN`/`COMMIT` and connection-level foreign-key pragmas because D1 manages transactions and enforces foreign keys itself. It does not connect to Cloudflare and does not change any database.
 
 Restore only into a newly-created, EMPTY EventHub D1 database after applying the schema. Confirm the target has zero events before importing. Then run:
 
