@@ -40,3 +40,18 @@ test("obsolete unscoped legacy API routes and implicit event creation are remove
   assert.doesNotMatch(worker, /async function activeEvent/);
   assert.doesNotMatch(worker, /async function requireStaff/);
 });
+
+test("guest register keeps the existing exact 34-column header order", () => {
+  const block = receiver.match(/const EH_LIVE = \[([\\s\\S]*?)\n\];/);
+  assert.ok(block, "EH_LIVE mapping must exist");
+  const headers = [...block[1].matchAll(/\["([^"]+)","[^"]+"\]/g)].map(match => match[1]);
+  assert.deepEqual(headers, [
+    "Guest ID","Serial Number","Guest Name","Phone","Residence","Hostel Number","Room Number",
+    "Food Preference","Registration Status","Pass Code","QR Status","Entry Status",
+    "Food Collection Status","Registered At","Entry Time","Food Collection Time","Timezone",
+    "Last Updated","Event ID","Proof Status","Storage Box","Storage Section","Storage Slot",
+    "Storage Number","Storage Label","Proof Assigned Time","Proof Stored Time","Proof Return Time",
+    "Proof No-Proof Time","Proof Volunteer ID","Proof Return Volunteer ID","Proof No-Proof Volunteer ID",
+    "Exit Time","Exit Volunteer ID"
+  ]);
+});
