@@ -174,9 +174,10 @@ def main() -> None:
         "-- IMPORTANT: Apply only to a newly-created, EMPTY EventHub D1 database.\n"
         "-- This file does not create the schema or restore Worker secrets/admin allowlists.\n"
         "PRAGMA foreign_keys = ON;\n"
+        "BEGIN TRANSACTION;\n"
     )
     try:
-        output.write_text(header + "\n".join(statements) + "\n", encoding="utf-8")
+        output.write_text(header + "\n".join(statements) + "\nCOMMIT;\n", encoding="utf-8")
     except OSError as exc:
         fail(f"cannot write SQL output: {exc}")
 
