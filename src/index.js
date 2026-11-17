@@ -185,7 +185,7 @@ async function registerApi(request, env) {
     .bind(eventId,uid,fullName,String(cleaned.email||""),String(cleaned.phone || ""),food,String(cleaned.residence_type || "Apartment"),String(cleaned.hostel_number || ""),String(cleaned.room_number || ""),registrationData,stamp).run();
   const requestId=result.meta?.last_row_id || uid;
   await audit(env,uid,"registration_submitted","pending_registration",requestId,{event_id:eventId},eventId);
-  await outbox(env,eventId,requestId,"upsert",{action:"upsert",guest_id:"event:"+eventId+":vk:"+uid,serial_number:requestId,name:fullName,phone:String(cleaned.phone||""),residence:String(cleaned.residence_type||"Apartment"),hostel_number:String(cleaned.hostel_number||""),room_number:String(cleaned.room_number||""),food,registration_status:"Pending approval",pass_code:"",qr_status:"Pending",entry_status:"Not recorded",food_status:foodEnabled?"Not collected":"Not applicable",registered_at:stamp,timezone:event.timezone||"Europe/Moscow",last_updated:stamp,event_id:eventId});
+  await outbox(env,eventId,requestId,"upsert",{action:"upsert",guest_id:"event:"+eventId+":vk:"+uid,serial_number:requestId,name:fullName,email:String(cleaned.email||""),phone:String(cleaned.phone||""),residence:String(cleaned.residence_type||"Apartment"),hostel_number:String(cleaned.hostel_number||""),room_number:String(cleaned.room_number||""),food,registration_status:"Pending approval",pass_code:"",qr_status:"Pending",entry_status:"Not recorded",food_status:foodEnabled?"Not collected":"Not applicable",registered_at:stamp,timezone:event.timezone||"Europe/Moscow",last_updated:stamp,event_id:eventId});
   return json({ ok:true, request_id:requestId, message:"Registration submitted. Your request is awaiting admin approval." },201);
 }
 
@@ -443,7 +443,7 @@ async function adminApi(request, env) {
     if(!eventId) return fail("Event ID required.");
     if(!["all","approved","pending","rejected","revoked"].includes(status)) return fail("Invalid guest status filter.");
     const like="%"+query+"%";
-    const rows=await env.DB.prepare("SELECT id,vk_user_id,legacy_telegram_id,full_name,phone,residence_type,hostel_number,room_number,food_preference,pass_code,status,entry_used,food_used,registered_at FROM guests WHERE event_id=? AND (?='all' OR status=?) AND (?='' OR full_name LIKE ? OR phone LIKE ? OR pass_code LIKE ? OR vk_user_id LIKE ? OR legacy_telegram_id LIKE ?) ORDER BY id DESC LIMIT 100")
+    const rows=await env.DB.prepare("SELECT id,vk_user_id,legacy_telegram_id,full_name,email,phone,residence_type,hostel_number,room_number,food_preference,pass_code,status,entry_used,food_used,registered_at FROM guests WHERE event_id=? AND (?='all' OR status=?) AND (?='' OR full_name LIKE ? OR phone LIKE ? OR pass_code LIKE ? OR vk_user_id LIKE ? OR legacy_telegram_id LIKE ?) ORDER BY id DESC LIMIT 100")
       .bind(eventId,status,status,query,like,like,like,like,like).all();
     return json({ok:true,guests:rows.results,limit:100});
   }
@@ -953,10 +953,10 @@ async function api(request, env) {
   if (path === "/api/admin/export.csv" && method === "GET") {
     await requireAdmin(request, env);
     const event = await activeEvent(env);
-    const result = await env.DB.prepare("SELECT id,full_name,phone,residence,hostel,room,food_preference,status,pass_code,registered_at FROM guests WHERE event_id=? ORDER BY registered_at").bind(event.id).all();
-    const fields = ["ID","Full name","Phone","Residence","Hostel","Room","Food preference","Status","Pass code","Registered at"];
+    const result = await env.DB.prepare("SELECT id,full_name,email,phone,residence,hostel,room,food_preference,status,pass_code,registered_at FROM guests WHERE event_id=? ORDER BY registered_at").bind(event.id).all();
+    const fields = ["ID","Full name","Email","Phone","Residence","Hostel","Room","Food preference","Status","Pass code","Registered at"];
     const cell = value => '"' + String(value ?? "").replace(/"/g, '""') + '"';
-    const rows = result.results.map(g => [g.id,g.full_name,g.phone,g.residence,g.hostel,g.room,g.food_preference,g.status,g.pass_code,g.registered_at].map(cell).join(","));
+    const rows = result.results.map(g => [g.id,g.full_name,g.email,g.phone,g.residence,g.hostel,g.room,g.food_preference,g.status,g.pass_code,g.registered_at].map(cell).join(","));
     return new Response([fields.map(cell).join(","), ...rows].join("\r\n"), { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": 'attachment; filename="event-guests.csv"', "cache-control": "no-store" } });
   }
 
