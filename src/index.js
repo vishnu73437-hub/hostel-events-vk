@@ -239,7 +239,9 @@ async function guestLookupApi(request, env) {
   const proof = await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first();
   const noProof = await env.DB.prepare("SELECT * FROM proof_not_collected WHERE guest_id=?").bind(guest.id).first();
   const exit = await env.DB.prepare("SELECT * FROM event_exit_records WHERE guest_id=?").bind(guest.id).first();
-  return json({ ok:true, guest:{ id:guest.id, name:guest.full_name, full_name:guest.full_name, phone:guest.phone, residence:guest.residence, hostel:guest.hostel, roomNumber:guest.room, food:guest.food_preference, passCode:guest.pass_code, qrToken:guest.qr_token, status:guest.status, entryUsed:!!guest.entry_used, foodUsed:!!guest.food_used }, proof:{ assigned:!!proof, box:proof?.box_number ?? null, section:proof?.section_letter ?? null, slot:proof?.slot_number ?? null, deposited:!!proof?.deposited_at, returned:!!proof?.returned_at, noProof:!!noProof, exitRecorded:!!exit } });
+  const proofStatus=proof?.returned_at?"Returned":proof?.deposited_at?"Stored":noProof?"No proof":"Not collected";
+  const storageLabel=proof?("Box "+proof.box_number+" / Section "+proof.section_letter+" / Slot "+String(proof.slot_number||"—")):"";
+  return json({ ok:true, guest:{ id:guest.id, name:guest.full_name, full_name:guest.full_name, phone:guest.phone, residence:guest.residence||guest.residence_type, hostel:guest.hostel||guest.hostel_number, roomNumber:guest.room||guest.room_number, food:guest.food_preference, passCode:guest.pass_code, qrToken:guest.qr_token, status:guest.status, entryUsed:!!guest.entry_used, foodUsed:!!guest.food_used, proofStatus, storageLabel, exitRecorded:!!exit, canManage:await hasAdmin(uid,env) } });
 }
 
 async function actionApi(request, env) {
