@@ -18,7 +18,10 @@ CREATE TABLE IF NOT EXISTS events (
   sheets_url TEXT NOT NULL DEFAULT '',
   created_by TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
-  archived_at TEXT
+  archived_at TEXT,
+  entry_enabled INTEGER NOT NULL DEFAULT 1,
+  proof_storage_enabled INTEGER NOT NULL DEFAULT 1,
+  exit_enabled INTEGER NOT NULL DEFAULT 1
 );
 CREATE INDEX IF NOT EXISTS idx_events_status ON events(status,id);
 CREATE INDEX IF NOT EXISTS idx_events_active ON events(active,id);
@@ -240,6 +243,22 @@ CREATE TABLE IF NOT EXISTS event_announcements (
   attachment_name TEXT NOT NULL DEFAULT '',
   attachment_ref TEXT NOT NULL DEFAULT ''
 );
+CREATE TABLE IF NOT EXISTS event_notices (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_id INTEGER NOT NULL REFERENCES events(id),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  notice_type TEXT NOT NULL DEFAULT 'info' CHECK(notice_type IN ('info','success','warning','urgent')),
+  is_pinned INTEGER NOT NULL DEFAULT 1,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  expires_at TEXT,
+  title_ru TEXT,
+  message_ru TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_event_notices_active ON event_notices(event_id,is_active,is_pinned,id);
+
 CREATE TABLE IF NOT EXISTS announcement_deliveries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   announcement_id INTEGER NOT NULL REFERENCES event_announcements(id),
