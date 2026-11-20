@@ -392,7 +392,7 @@ async function adminApi(request, env) {
     const result=await env.DB.prepare("SELECT id,file_name,created_at,note,sha256 FROM event_backup_snapshots WHERE event_id=? ORDER BY id DESC LIMIT 10").bind(eventId).all();
     return json({
       ok:true,
-      automatic_recovery:{provider:"Cloudflare D1 Time Travel",enabled:true,database:"eventhub-db",scope:"Entire EventHub database, including all events",retention_days:7,plan:"Free",recovery_note:"Restoring a point in time rewinds the entire EventHub database. Capture the current bookmark first and confirm the target time before proceeding."},
+      automatic_recovery:{provider:"Cloudflare D1 Time Travel",enabled:true,database:"eventhub-db",scope:"Entire EventHub database, including all events",retention_days:null,plan:"Account plan not verified",recovery_note:"Time Travel is automatic. Retention depends on the Cloudflare plan: 7 days on Workers Free or 30 days on Workers Paid. Confirm the account plan before relying on a specific retention window. Restoring rewinds the entire EventHub database, including every event. Capture the current bookmark first and confirm the target time before proceeding."},
       manual_download_log:result.results||[]
     });
   }
