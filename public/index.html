@@ -1125,7 +1125,7 @@
           const a=r.automatic_recovery||{};
           const logs=Array.isArray(r.manual_download_log)?r.manual_download_log:[];
           const latest=logs[0];
-          host.innerHTML='<div class="notice good"><strong>'+safe(a.provider||'Automatic database recovery')+' · '+(a.enabled?'Enabled':'Status unavailable')+'</strong><br>Retention: '+safe(a.retention_days||'—')+' days on the Free plan<br>Scope: '+safe(a.scope||'')+'</div>'+
+          host.innerHTML='<div class="notice good"><strong>'+safe(a.provider||'Automatic database recovery')+' · '+(a.enabled?'Enabled':'Status unavailable')+'</strong><br>Retention: '+(a.retention_days?safe(a.retention_days+' days'):safe(a.plan||'Not verified'))+'<br>Scope: '+safe(a.scope||'')+'</div>'+
             '<p class="muted">'+safe(a.recovery_note||'')+'</p>'+
             '<h3>Manual backup download history</h3>'+
             (latest?'<p class="muted">Latest download logged: '+safe(latest.created_at)+' · '+safe(latest.file_name)+'</p>':'<p class="muted">No manual backup downloads have been logged for this event yet.</p>')+
