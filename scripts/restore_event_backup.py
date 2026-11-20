@@ -32,6 +32,7 @@ TABLE_ORDER = [
     "pass_design",
     "sheets_outbox",
     "event_announcements",
+    "event_notices",
     "announcement_deliveries",
     "audit_log",
     "event_backup_snapshots",
