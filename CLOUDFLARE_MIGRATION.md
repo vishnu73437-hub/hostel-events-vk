@@ -66,9 +66,9 @@ Still pending before production:
 
 ## Event data backup and restore
 
-An EventHub administrator can open an event's **Settings → Event data backup → Download full event backup**. This downloads a versioned JSON file containing that event's event settings, registrations and pending applications, VK event-user references, event volunteer/checkpoint assignments, QR/pass tokens, attendance scans, proof-storage assignments and return history, exit records, pass design, Sheets outbox, announcements and delivery history, audit log, backup history, and event app settings.
+An EventHub administrator can open an event's **Settings → Event data backup → Download full event backup**. This downloads a versioned JSON file containing that event's event settings, registrations and pending applications, VK event-user references, event volunteer/checkpoint assignments, QR/pass tokens, attendance scans, proof-storage assignments and return history, exit records, pass design, Sheets outbox, announcements and delivery history, pinned event notices (including Russian translations), audit log, backup history, and event app settings.
 
-The backup endpoint is admin-authenticated, event-scoped, size-bounded (5,000 rows per table and 25,000 rows total), sends no-store headers, and records the download in the event backup history. The JSON includes a SHA-256 checksum. It contains personal information and QR tokens and must be stored privately. VK app secrets, VK group tokens, Worker environment variables, global admin allowlists, and global volunteer/staff accounts are intentionally not included; reconfigure those separately.
+The backup endpoint is admin-authenticated, event-scoped, size-bounded (5,000 rows per table and 25,000 rows total), sends no-store headers, and records the download in the event backup history. The JSON includes a SHA-256 checksum. It contains personal information and QR tokens and must be stored privately. VK app secrets, VK group tokens, Worker environment variables, global admin allowlists, and global volunteer/staff accounts and the short-lived QR PNG download cache are intentionally not included; reconfigure global accounts separately and regenerate expired QR downloads as needed.
 
 To prepare a restore SQL file locally (Python 3, no paid service or third-party package required):
 
