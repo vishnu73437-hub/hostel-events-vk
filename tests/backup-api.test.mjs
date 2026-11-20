@@ -90,6 +90,21 @@ test("admin backup endpoint returns an event-scoped JSON backup with a verifiabl
   assert.ok(calls.filter(sql => sql.startsWith("SELECT")).length >= 20);
 });
 
+test("backup status does not claim an unverified Cloudflare plan", async () => {
+  const { env } = makeEnv({ admin: true });
+  const request = new Request("https://eventhub.example/api/admin", {
+    method: "POST",
+    headers: { "content-type": "application/json", "X-VK-Launch-Params": await signedLaunchParams() },
+    body: JSON.stringify({ action: "backup_status", event_id: event.id })
+  });
+  const response = await worker.fetch(request, env);
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.automatic_recovery.enabled, true);
+  assert.equal(result.automatic_recovery.retention_days, null);
+  assert.equal(result.automatic_recovery.plan, "Account plan not verified");
+});
+
 test("backup endpoint rejects a VK user who is not an administrator", async () => {
   const { env } = makeEnv({ admin: false });
   const request = new Request("https://eventhub.example/api/admin", {
