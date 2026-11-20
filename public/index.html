@@ -1,0 +1,1221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#171321">
+  <meta name="application-name" content="Kazan State Medical University – Hostel 5">
+  <title>Kazan State Medical University – Hostel 5</title>
+  <script async id="vkBridgeScript" src="https://unpkg.com/@vkontakte/vk-bridge@2.15.0/dist/browser.min.js"></script>
+  
+  
+  <style>
+    :root{--bg:#101d2a;--panel:#172b3b;--panel2:#20394b;--text:#f4f9fc;--muted:#a9bfcc;--accent:#1599c4;--gold:#72d0e6;--line:#b8e0ee24;--danger:#ff737d;--ok:#55d6a0;--radius:20px;--shadow:0 14px 34px #06131f55}
+    *{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;background:radial-gradient(ellipse at 80% -10%,color-mix(in srgb,var(--accent) 24%,transparent),transparent 42%),var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.shell{width:min(100%,980px);margin:auto;padding:16px 16px 34px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px;flex:1;min-width:0}.brand-copy{min-width:0;max-width:560px;line-height:1.18;font-size:clamp(12px,2vw,16px);overflow-wrap:anywhere}.brand-university{display:block}.brand-mark{display:grid;place-items:center;flex:0 0 58px;width:58px;height:58px;border-radius:50%;background:#fff;overflow:hidden;border:2px solid #8dd5e8;box-shadow:0 5px 18px #04121c55}.brand-mark img{display:block;width:100%;height:100%;object-fit:contain;border-radius:50%}.brand small{display:block;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase}.top-actions{display:flex;gap:8px;align-items:center}.language-select{min-width:105px;padding:7px 9px;color:var(--text);background:var(--panel2)}.language-select option{background:#211c2d;color:#f8f5fb}.hero{background:linear-gradient(140deg,color-mix(in srgb,var(--accent) 26%,var(--panel)),var(--panel) 64%);border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));border-radius:26px;padding:24px;box-shadow:var(--shadow);position:relative;overflow:hidden}.hero:after{content:"✦";position:absolute;right:20px;top:10px;font-size:80px;color:color-mix(in srgb,var(--gold) 18%,transparent);pointer-events:none}.eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:800}.hero h1{font-size:clamp(28px,6vw,44px);line-height:1.06;margin:9px 0 12px;max-width:720px;overflow-wrap:anywhere}.hero p{color:#e0d9e8;max-width:680px;margin:0;white-space:pre-wrap}.meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:20px}.meta{background:#100d1b66;border:1px solid #ffffff17;border-radius:15px;padding:12px;min-width:0}.meta b{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}.meta span{display:block;font-weight:700;overflow-wrap:anywhere}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}.btn{border:1px solid var(--line);border-radius:13px;padding:11px 15px;background:var(--panel2);color:var(--text);font-weight:750;min-height:43px;transition:transform .12s,filter .12s}.btn:active{transform:scale(.98)}.btn.primary{border-color:transparent;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 75%,var(--gold)));color:#170f18}.btn.ghost{background:transparent}.btn.danger{background:#4a202b;border-color:#ff626d55}.btn.success{background:#123b32;border-color:#47cf9155}.btn.small{padding:7px 10px;min-height:34px;font-size:13px}.muted{color:var(--muted)}.section{margin-top:18px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}.section-title h2{margin:0;font-size:18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{background:linear-gradient(180deg,var(--panel),color-mix(in srgb,var(--panel) 78%,#100d18));border:1px solid var(--line);border-radius:var(--radius);padding:16px;min-width:0;box-shadow:0 8px 24px #0002}.card h3{margin:0 0 7px;font-size:16px}.card p{color:var(--muted);margin:6px 0 0;overflow-wrap:anywhere}.event-card{display:flex;flex-direction:column;gap:10px;min-height:150px}.event-card .actions{margin-top:auto}.status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;border:1px solid var(--line);padding:5px 8px;border-radius:30px;color:var(--muted);width:max-content}.status.active{color:var(--ok);border-color:#47cf9144}.status.draft{color:var(--gold)}.status.archived{color:#f49aa2}.tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;margin:14px 0 4px;scrollbar-width:thin}.tab{white-space:nowrap;background:transparent;border:1px solid var(--line);border-radius:30px;padding:9px 13px;color:var(--muted);font-weight:750}.tab.active{color:#1a1420;background:var(--gold);border-color:var(--gold)}.field{display:flex;flex-direction:column;gap:6px;margin:10px 0}.field label{font-size:12px;font-weight:750;color:#ddd5e6}.field input,.field textarea,.field select,.input{width:100%;background:#100d1b;border:1px solid #ffffff26;border-radius:12px;color:var(--text);padding:12px;outline:none;min-height:44px}.field textarea{min-height:100px;resize:vertical}.field input:focus,.field textarea:focus,.field select:focus,.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}.field input[type=color]{padding:4px;height:45px}.inline-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stat{padding:14px;border-radius:16px;background:var(--panel);border:1px solid var(--line)}.stat strong{font-size:25px;display:block;line-height:1.2}.stat span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.8px;margin-top:5px}.notice{border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));background:color-mix(in srgb,var(--accent) 12%,var(--panel));padding:12px 14px;border-radius:14px;color:#f3e9fa;margin:12px 0}.notice.error{border-color:#ff626d55;background:#4a202b}.notice.good{border-color:#47cf9155;background:#123b32}.hidden{display:none!important}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.wrap{display:flex;gap:8px;flex-wrap:wrap}.list{display:flex;flex-direction:column;gap:9px}.list-item{background:#181422;border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}.list-item strong{display:block;overflow-wrap:anywhere}.list-item .sub{font-size:12px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}.list-item .actions{margin-top:10px}.scanner-box{background:#100d1b;border:1px dashed #ffffff3b;border-radius:18px;padding:12px;min-height:220px}.scanner-box #reader{width:100%;max-width:560px;margin:auto}.guest-result{border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));background:linear-gradient(180deg,var(--panel),#171321);border-radius:18px;padding:16px;margin-top:14px}.pill{display:inline-block;border-radius:24px;padding:4px 8px;background:#ffffff12;color:var(--muted);font-size:11px;font-weight:800;margin:2px}.pill.good{background:#47cf9122;color:#7ce4b3}.pill.warn{background:#ffd16622;color:#ffd166}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:540px;font-size:13px}td,th{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}.pass-image{width:min(100%,360px);display:block;border-radius:16px;border:1px solid var(--line);margin:12px auto;box-shadow:var(--shadow)}.empty{padding:24px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:18px}.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#f8f5fb;color:#171321;border-radius:12px;padding:11px 16px;z-index:50;max-width:min(90vw,480px);box-shadow:var(--shadow);font-weight:750}.loading{opacity:.65;pointer-events:none}.schema-field{border:1px solid var(--line);padding:12px;border-radius:14px;margin:8px 0;background:#171321}.schema-field .inline-fields{align-items:end}.footnote{font-size:12px;color:var(--muted);margin-top:12px}.divider{height:1px;background:var(--line);margin:15px 0}
+    @media(max-width:650px){.shell{padding:12px 12px 28px}.hero{padding:18px}.meta-grid{grid-template-columns:1fr;gap:8px}.grid{grid-template-columns:1fr}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.inline-fields{grid-template-columns:1fr}.topbar{flex-direction:column;align-items:stretch;gap:12px}.brand{width:100%;flex:none;align-items:center}.brand-copy{max-width:none;min-width:0}.top-actions{width:100%;justify-content:flex-start;flex-wrap:wrap}.top-actions .language-select{flex:0 1 150px}.hero h1{font-size:32px}.card{padding:14px}}
+
+    .topbar{padding:12px 14px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(115deg,#172c3b 0%,#1b3040 65%,#203c4a 100%);box-shadow:0 10px 26px #06131f44}
+    .brand{gap:13px}.brand-copy{font-size:clamp(13px,2vw,16px);letter-spacing:.05px}.brand-university{font-weight:800;line-height:1.25}.brand small{font-size:10px;letter-spacing:2px;color:#8ec9dc;margin-top:4px}
+    .top-actions .btn{border-color:#8ac9dc45;background:#ffffff09}.top-actions .language-select{background:#183244;border-color:#8ac9dc55}
+    .hero{background:linear-gradient(145deg,#1b3b4e,#172b3b 68%);border-color:#4aaecb66;box-shadow:0 14px 34px #06131f55}.hero:after{color:#72d0e622}
+    .eyebrow{color:#83d8e9}.btn.primary{background:linear-gradient(135deg,#27a9ce,#72d0e6);color:#092333}
+    .card{background:linear-gradient(160deg,#1b3041,#172635);border-color:#b8e0ee20;box-shadow:0 8px 22px #06131f35}
+    .status.active{color:#65dfb0;border-color:#55d6a055}.tab.active{background:#72d0e6;border-color:#72d0e6;color:#092333}
+    .notice{background:#1d3a4c;border-color:#3d9fbd66}.notice.good{background:#123c37;border-color:#55d6a066}
+    .pass-image{border-color:#72d0e655}
+    @media(max-width:650px){.topbar{padding:12px;border-radius:17px}.brand-mark{flex-basis:54px;width:54px;height:54px}.brand-copy{font-size:13px}.top-actions .btn{min-height:42px}}
+
+    .skip-link{position:fixed;left:12px;top:-60px;z-index:1000;background:var(--gold);color:#171321;padding:10px 14px;border-radius:10px;font-weight:800}.skip-link:focus{top:12px}
+    :focus-visible{outline:3px solid var(--gold)!important;outline-offset:3px}
+    .admin-nav-mobile{display:none;margin:12px 0 4px}.admin-nav-mobile label{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;font-weight:800}.admin-nav-mobile select{flex:1;min-width:0;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:11px;min-height:44px}
+    .admin-preview{margin-top:14px}.admin-preview summary{cursor:pointer;font-weight:800;min-height:44px;display:flex;align-items:center}.admin-preview[open] summary{margin-bottom:10px}.admin-preview .preview-warning{border-left:3px solid var(--gold);padding:8px 11px;background:#ffd16612;border-radius:8px;color:var(--muted);font-size:13px}
+    .stat-link{appearance:none;text-align:left;color:inherit;width:100%;font:inherit;cursor:pointer}.stat-link:active{transform:scale(.99)}.stat-link:focus-visible{outline-offset:2px}
+    .scanner-status{margin-top:12px}.scanner-status.good{border-color:#47cf9155;background:#123b32}.scanner-status.error{border-color:#ff626d55;background:#4a202b}
+    .scanner-recent{margin-top:14px}.scanner-recent .list-item{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.scanner-recent .activity-time{font-size:11px;color:var(--muted);white-space:nowrap}
+    .guest-profile{margin-top:10px;border:1px solid var(--line);border-radius:13px;padding:10px;background:#ffffff06}.guest-profile summary{cursor:pointer;font-weight:750;min-height:40px;display:flex;align-items:center}.guest-profile-content{padding-top:10px}.timeline{display:flex;flex-direction:column;gap:10px;margin-top:10px}.timeline-item{display:grid;grid-template-columns:12px 1fr;gap:10px;align-items:start}.timeline-dot{width:9px;height:9px;border-radius:50%;background:var(--gold);margin-top:6px;box-shadow:0 0 0 4px #ffd16622}.timeline-item .sub{font-size:12px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+    .volunteer-filters{display:grid;grid-template-columns:2fr 1fr;gap:10px}.volunteer-presence{font-size:11px;font-weight:800;color:var(--ok)}.volunteer-presence.stale{color:var(--muted)}.volunteer-activity{margin-top:10px}
+    @media(max-width:650px){.admin-nav-desktop{display:none}.admin-nav-mobile{display:block;position:sticky;top:0;z-index:8;background:var(--bg);padding:8px 0}.admin-nav-mobile label{flex-wrap:wrap}.admin-nav-mobile select{width:100%;flex-basis:100%}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-preview{padding:12px}.stat{padding:12px}.stat strong{font-size:22px}.btn.small{min-height:44px}.scanner-recent .list-item{display:block}.scanner-recent .activity-time{display:block;margin-top:4px}.volunteer-filters{grid-template-columns:1fr}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+    @media(min-width:800px){.shell{padding-top:24px}.hero{padding:30px}.grid.cols3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  </style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="shell" id="app">
+  <header class="topbar">
+    <div class="brand" aria-label="Kazan State Medical University – Hostel 5"><div class="brand-mark" aria-hidden="true"><img src="https://wowprofi.ru/src/Frontend/Files/MediaLibrary/13/kazan-med-univer.jpg" alt="" loading="eager"></div><div class="brand-copy"><span class="brand-university" id="brandUniversity">Kazan State Medical University</span><small id="brandHostel">Hostel 5</small></div></div>
+    <div class="top-actions"><select class="btn ghost small language-select" id="languageSelect" aria-label="Choose language"><option value="en">English</option><option value="ru">Русский</option></select><button class="btn ghost small hidden" id="backBtn" type="button">← All events</button><button class="btn ghost small" id="refreshBtn" type="button">↻ Refresh</button></div>
+  </header>
+  <main id="main" tabindex="-1"><div class="empty">Loading EventHub…</div></main>
+</div>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script>
+(() => {
+  'use strict';
+  function initializeVkBridge() {
+    try {
+      const pending = window.vkBridge?.send?.('VKWebAppInit');
+      pending?.catch?.(() => {});
+    } catch (_) {}
+  }
+  initializeVkBridge();
+  document.getElementById('vkBridgeScript')?.addEventListener('load', initializeVkBridge, { once:true });
+  const params = new URLSearchParams(location.search);
+  const vkLaunchParams = location.search.replace(/^\?/, '');
+  const API_BASE = location.origin.replace(/\/$/, '');
+  const initialEventId = Number(params.get('event_id') || 0);
+  const state = { role:'guest', staffRole:'', user:null, activeEvents:[], workspaces:[], eventId:initialEventId, event:null, stats:null, page:'home', previewRole:null, guest:null, scanner:null, recentScannerActivity:[], formSchema:[], pass:null, checkpoints:[], pendingOfflineScanId:null };
+  const $ = (id) => document.getElementById(id);
+  const main = $('main');
+  const safe = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const LANGUAGE_STORAGE_KEY = 'eventhub.language.v1';
+  const LANGUAGE_TEXTS = {
+    ru: {
+      'Choose language':'Выберите язык','Language':'Язык','One event at a time':'Одно мероприятие за раз',
+      '← All events':'← Все мероприятия','↻ Refresh':'↻ Обновить','Refresh':'Обновить','Updated':'Обновлено',
+      'Your event workspaces':'Ваши мероприятия','Choose one event':'Выберите мероприятие',
+      'Select an event to open its dedicated page. Only the selected event’s details, registrations, passes and scanner records will appear inside it.':'Выберите мероприятие, чтобы открыть его страницу. Здесь будут отображаться данные, регистрации, пропуска и сканирования только выбранного мероприятия.',
+      '＋ Create new event':'＋ Создать мероприятие','Create new event':'Создать мероприятие','All workspaces':'Все мероприятия',
+      'Active events':'Активные мероприятия','No events are available yet.':'Пока нет доступных мероприятий.',
+      "Open this event's dedicated page and tools.":'Откройте отдельную страницу и инструменты этого мероприятия.',
+      'Open this event →':'Открыть мероприятие →','Choose one event':'Выберите мероприятие',
+      'Create an event':'Создать мероприятие','Event name *':'Название мероприятия *','Event name':'Название мероприятия',
+      'Description':'Описание','Date':'Дата','Time':'Время','Venue':'Место проведения','Event venue':'Место проведения',
+      'Create event workspace':'Создать мероприятие','Creating event…':'Создание мероприятия…',
+      'Event name must contain at least 3 characters.':'Название мероприятия должно содержать не менее 3 символов.',
+      'Event overview':'Обзор мероприятия','Selected event only':'Только выбранное мероприятие',
+      'Approved guests':'Подтверждённые участники','Checked in':'Зарегистрировано на входе',
+      'Meals served':'Выдано порций','Volunteers':'Волонтёры','Quick status':'Краткая сводка',
+      'Guest registration':'Регистрация участников','Food collection':'Выдача питания',
+      'Volunteers / proof / exit':'Волонтёры / вещи / выход','assigned volunteers':'назначенных волонтёров',
+      'approved ·':'подтверждено ·','checked in':'зарегистрировано','meals served':'выдано порций',
+      'Vegetarian:':'Вегетарианское:','Non-vegetarian:':'Невегетарианское:',
+      'Google Sheets sync':'Синхронизация с Google Таблицами',
+      'Sync queue status has not been checked.':'Статус очереди синхронизации ещё не проверен.',
+      'Check sync status':'Проверить синхронизацию','Checking…':'Проверка…',
+      'Start QR Scanner':'Запустить QR-сканер','Review registrations':'Проверить заявки',
+      '👥 Guest view':'👥 Просмотр участника','🧑‍🤝‍🧑 Volunteer view':'🧑‍🤝‍🧑 Просмотр волонтёра',
+      'My QR pass':'Мой QR-пропуск','My pass':'Мой пропуск','Open my pass':'Открыть мой пропуск',
+      'Register now':'Зарегистрироваться','Register for this event':'Регистрация на мероприятие',
+      '🎟 Registration':'🎟 Регистрация','🎟 Guest registration':'🎟 Регистрация участника',
+      'Complete this event\'s registration form. Your pass is sent after approval.':'Заполните регистрационную форму. Пропуск будет доступен после подтверждения заявки.',
+      'View your pass after your registration is approved.':'Ваш пропуск появится после подтверждения регистрации.',
+      'Submit registration':'Отправить заявку','Registration submitted.':'Заявка отправлена.',
+      'Your registration is linked only to this event. Required fields are marked with an asterisk.':'Ваша регистрация относится только к этому мероприятию. Обязательные поля отмечены звёздочкой.',
+      'Register —':'Регистрация —','Full name':'ФИО','Phone number':'Номер телефона',
+      'Residence':'Тип проживания','Hostel number':'Номер общежития','Room number':'Номер комнаты',
+      'Food preference':'Предпочтение в питании','Choose…':'Выберите…','Hostel':'Общежитие',
+      'Apartment':'Квартира','Vegetarian':'Вегетарианское','Non-vegetarian':'Невегетарианское',
+      'Food preference for your staff pass':'Предпочтение в питании для пропуска сотрудника',
+      'Choose a food preference first.':'Сначала выберите предпочтение в питании.',
+      'Create my staff pass':'Создать мой пропуск сотрудника','🎫 Staff QR pass':'🎫 QR-пропуск сотрудника',
+      'Use the same event QR pass format as guests.':'Используется такой же формат QR-пропуска, как у участников.',
+      'Open staff pass':'Открыть пропуск сотрудника','View the staff pass associated with your current VK account.':'Посмотреть пропуск сотрудника, связанный с вашим аккаунтом VK.',
+      'Pass code':'Код пропуска','Download / share pass':'Скачать / поделиться пропуском',
+      'Pass downloaded. You can share it from your device.':'Пропуск скачан. Теперь вы можете поделиться им с устройства.',
+      'Pass shared':'Пропуск отправлен','Loading pass…':'Загрузка пропуска…',
+      'Open registration':'Открыть регистрацию','Try again':'Повторить','Checking this pass…':'Проверка пропуска…',
+      '📷 QR Scanner':'📷 QR-сканер','Open QR Scanner':'Открыть QR-сканер',
+      'Scan a pass and record entry, proof storage, food collection and exit for this event only.':'Сканируйте пропуск и отмечайте вход, сдачу вещей, получение питания и выход только для этого мероприятия.',
+      'Scan a guest\'s event pass. You can also enter a pass code manually when a camera is unavailable.':'Отсканируйте пропуск участника. Если камера недоступна, введите код пропуска вручную.',
+      'Start camera':'Включить камеру','Stop camera':'Остановить камеру','Manual QR / pass code':'QR-код / код пропуска вручную',
+      'Verify':'Проверить','H5-XXXXXXXX':'H5-XXXXXXXX',
+      'Scanner access is restricted to event volunteers and admins.':'Доступ к сканеру разрешён только волонтёрам и администраторам.',
+      'This event is not active. Its records are available for review, but QR scanning and event-day actions are disabled.':'Мероприятие не активно. Записи доступны для просмотра, но сканирование QR-кодов и действия во время мероприятия отключены.',
+      'This browser does not support camera QR scanning. Use manual pass verification.':'Этот браузер не поддерживает сканирование QR-кодов камерой. Используйте ручную проверку пропуска.',
+      'Camera could not start. Allow camera permission or use manual verification.':'Не удалось запустить камеру. Разрешите доступ к камере или используйте ручную проверку.',
+      'Enter or scan a pass first.':'Сначала введите или отсканируйте пропуск.',
+      'Record entry':'Отметить вход','Store proof':'Принять вещи на хранение','No proof provided':'Вещи не сданы',
+      'Record food collection':'Отметить получение питания','Return stored proof':'Вернуть вещи',
+      'Record exit':'Отметить выход','Entry:':'Вход:','Food:':'Питание:','Proof:':'Вещи:','Exit:':'Выход:',
+      'Recorded':'Отмечено','Pending':'Ожидает','Collected':'Получено','Not collected':'Не получено',
+      'Storage:':'Хранение:','Additional checkpoints':'Дополнительные пункты контроля',
+      'Record this guest at an assigned workshop or activity checkpoint.':'Отметьте участника на назначенном мастер-классе или дополнительном пункте контроля.',
+      'No further actions available':'Дополнительные действия недоступны',
+      'This pass is not active. Event-day actions are disabled.':'Этот пропуск не активен. Действия во время мероприятия отключены.',
+      'Exit has already been recorded. No further event-day actions are available.':'Выход уже отмечен. Другие действия для этого участника недоступны.',
+      'Next step: store the guest’s proof or confirm that no proof was provided. Food collection becomes available after this step.':'Следующий шаг: принять вещи на хранение или подтвердить, что участник ничего не сдавал. После этого станет доступна выдача питания.',
+      'Entry already recorded':'Вход уже отмечен','Registration open':'Регистрация открыта',
+      'Pending registrations':'Ожидающие заявки','No pending registrations for this event.':'Нет ожидающих заявок для этого мероприятия.',
+      'Approve & send QR':'Подтвердить и отправить QR','Approve':'Подтвердить','Reject':'Отклонить','Rejected':'Отклонено',
+      'Approved':'Подтверждено','Revoked':'Аннулировано','Revoke':'Аннулировать','Reissue QR':'Выпустить QR повторно',
+      'Reset entry + proof storage':'Сбросить вход и хранение вещей','Reset food status':'Сбросить статус питания',
+      'Guest register':'Список участников','Search guests…':'Поиск участников…','Search':'Поиск',
+      'Search this event only':'Поиск только в этом мероприятии','Search name, phone or pass code':'Поиск по имени, телефону или коду пропуска',
+      'No matching guests.':'Участники не найдены.','Edit guest details':'Изменить данные участника',
+      'Save guest details':'Сохранить данные участника','Cancel':'Отмена','Remove':'Удалить',
+      'Volunteer VK user ID':'VK ID волонтёра','Event volunteer access':'Доступ волонтёров к мероприятию',
+      'No volunteers assigned to this event.':'К этому мероприятию не назначены волонтёры.',
+      'Assign to this event':'Назначить на это мероприятие','Event role':'Роль на мероприятии',
+      'Event lead':'Руководитель мероприятия','Checkpoint':'Пункт контроля','Checkpoint assignments':'Назначения на пункты контроля',
+      'Assign volunteer to checkpoint':'Назначить волонтёра на пункт контроля',
+      'No checkpoint-specific assignments.':'Нет назначений на отдельные пункты контроля.',
+      'Assigned checkpoints':'Назначенные пункты контроля','All':'Все',
+      'Proof storage':'Хранение вещей','Storage layout':'Схема хранения','Boxes / units':'Количество ящиков / блоков',
+      'Sections per box':'Секций в ящике','Slots per section':'Мест в секции','Box label':'Название ящика','Section label':'Название секции',
+      'No proof records for this event.':'Нет записей о хранении вещей для этого мероприятия.',
+      'Event announcement':'Объявление мероприятия','Announcement history':'История объявлений',
+      'Write your event announcement…':'Введите текст объявления…','Audience':'Аудитория',
+      'Preview recipients':'Предпросмотр получателей','Send announcement':'Отправить объявление',
+      'Send only to users who started this event, or approved guests of this event.':'Отправлять только пользователям, открывшим это мероприятие, или подтверждённым участникам.',
+      'No announcements for this event.':'Для этого мероприятия пока нет объявлений.',
+      'Try unsend':'Отменить отправку','Unsend complete: ':'Отправка отменена: ',
+      'Event details and branding':'Информация о мероприятии и оформление','Save event settings':'Сохранить настройки мероприятия',
+      'Save registration form':'Сохранить регистрационную форму','Registration form builder':'Конструктор регистрационной формы',
+      'Event-specific form fields are shown here. The pass token will not change.':'Здесь отображаются поля формы этого мероприятия. Токен пропуска не изменится.',
+      'Use unique field keys. Keep':'Используйте уникальные ключи полей. Сохраняйте',
+      'Description':'Описание','Primary colour (HEX)':'Основной цвет (HEX)','Accent colour (HEX)':'Акцентный цвет (HEX)',
+      'Background colour (HEX)':'Цвет фона (HEX)','Gold / highlight (HEX)':'Золотой / выделяющий цвет (HEX)',
+      'Google Sheets Web App URL (optional)':'URL веб-приложения Google Таблиц (необязательно)',
+      'This event is archived. Its details and registration form are preserved, but editing and new event operations are disabled.':'Это мероприятие архивировано. Его данные и форма регистрации сохранены, но редактирование и новые операции отключены.',
+      'Archived event settings':'Настройки архивированного мероприятия','Read only':'Только чтение','Back to all events':'Назад ко всем мероприятиям',
+      'Download full event backup':'Скачать полную резервную копию мероприятия',
+      'Automatic database recovery':'Автоматическое восстановление базы данных',
+      'Manual backup download history':'История скачивания резервных копий',
+      'Refresh backup status':'Обновить статус резервного копирования',
+      'No manual backup downloads have been logged for this event yet.':'Для этого мероприятия резервные копии ещё не скачивались.',
+      'This history records when a manual JSON backup was generated; it does not store that downloaded file in the cloud. Keep the downloaded file in a secure location.':'Здесь записывается время создания JSON-копии. Сам скачанный файл не хранится в облаке. Храните его в безопасном месте.',
+      'Loading EventHub…':'Загрузка EventHub…','Open EventHub using the button in your VK bot. This page requires VK sign-in.':'Откройте EventHub с помощью кнопки в VK. Для этой страницы требуется вход через VK.',
+      'Connection lost. New QR captures will be saved on this device for later verification.':'Соединение потеряно. Новые QR-коды будут сохранены на этом устройстве для последующей проверки.',
+      'Connection restored. Verify queued scans one by one before recording actions.':'Соединение восстановлено. Перед регистрацией действий проверьте каждый QR-код из очереди.',
+      'Scans captured without a server connection are saved on this device only. They are not attendance records until you reconnect, verify each pass and record its action.':'Сканирования без подключения к серверу сохраняются только на этом устройстве. Они не считаются отметками посещения, пока вы не подключитесь, не проверите каждый пропуск и не запишете действие.',
+      'No locally queued scans.':'Нет QR-кодов в локальной очереди.','Verify when online':'Проверить при подключении','Remove this locally saved QR from the offline queue?':'Удалить этот QR-код из локальной очереди?',
+      'This device could not save the offline scan. Do not rely on it being stored.':'Не удалось сохранить QR-код на этом устройстве. Не рассчитывайте, что он сохранён.',
+      'Offline scan queue is full. Verify or remove saved scans first.':'Очередь офлайн-сканирований заполнена. Сначала проверьте или удалите сохранённые QR-коды.',
+      "Event workspace":"Страница мероприятия",
+      "Volunteer workspace":"Страница волонтёра",
+      "Event information":"Информация о мероприятии",
+      "A separate event workspace and QR prefix are created automatically. You can edit the form fields after creation.":"Для мероприятия автоматически создаются отдельная страница и префикс QR-кодов. После создания вы сможете изменить поля формы.",
+      "To be announced":"Будет объявлено позже",
+      "Opening this event…":"Открытие мероприятия…",
+      "All events":"Все мероприятия",
+      "A separate event workspace and QR prefix are created automatically. You can edit the form fields after creation.":"Для мероприятия автоматически создаются отдельная страница и префикс QR-кодов. После создания вы сможете изменить поля формы.",
+      "Event created":"Мероприятие создано",
+      "Event status":"Статус мероприятия",
+      "Create event":"Создать мероприятие",
+      "Last updated":"Последнее обновление",
+      "Last updated ":"Обновлено ",
+      "Refreshes every 15 seconds":"Обновляется каждые 15 секунд",
+      "proof stored ·":"вещи приняты на хранение ·",
+      "exited":"вышли",
+      "assigned volunteers":"назначенных волонтёров",
+      "Check sync status":"Проверить статус синхронизации",
+      "Configured":"Настроено",
+      "Not configured":"Не настроено",
+      "queued":"в очереди",
+      "retrying":"повторные попытки",
+      "Endpoint missing":"Адрес сервиса не указан",
+      "sync secret missing":"секрет синхронизации не указан",
+      "Oldest queued":"Самая старая запись в очереди",
+      "Latest error":"Последняя ошибка",
+      "Data remains safely queued in EventHub. Nothing has been discarded.":"Данные остаются в очереди EventHub. Ничего не удалено.",
+      "Live refresh starts automatically every 15 seconds.":"Данные автоматически обновляются каждые 15 секунд.",
+      "Preview the guest or volunteer screens without changing VK accounts. Submissions and event-day actions in preview are real and will be saved under your admin VK account.":"Просматривайте интерфейс участника или волонтёра, не меняя аккаунт VK. Отправленные заявки и действия во время мероприятия будут настоящими и сохранятся от имени вашего аккаунта администратора.",
+      "👤 Guest view":"👤 Просмотр участника",
+      "🎫 My pass":"🎫 Мой пропуск",
+      "View the pass associated with your current VK account.":"Посмотреть пропуск, связанный с вашим текущим аккаунтом VK.",
+      "📷 Volunteer QR Scanner":"📷 QR-сканер волонтёра",
+      "Test manual pass lookup and camera scanning with admin permissions.":"Проверьте поиск пропуска вручную и сканирование камерой с правами администратора.",
+      "🎫 Staff pass":"🎫 Пропуск сотрудника",
+      "Previewing Guest experience":"Предпросмотр интерфейса участника",
+      "Previewing Volunteer experience":"Предпросмотр интерфейса волонтёра",
+      "This is a role preview, not a separate account. Any submitted registration or scanner action is a real event record attributed to your admin VK account.":"Это предварительный просмотр роли, а не отдельный аккаунт. Любая отправленная регистрация или операция сканера будет настоящей записью мероприятия от имени вашего аккаунта администратора VK.",
+      "Phone":"Телефон",
+      "This pass is valid only for":"Этот пропуск действителен только для",
+      "Scan a pass and record entry, proof storage, food collection and exit for this event only.":"Сканируйте пропуск и отмечайте вход, сдачу вещей на хранение, получение питания и выход только для этого мероприятия.",
+      "Scan a guest's event pass. You can also enter a pass code manually when a camera is unavailable.":"Отсканируйте пропуск участника. Если камера недоступна, можно ввести код пропуска вручную.",
+      "Scanner access is restricted to event volunteers and admins.":"Доступ к сканеру разрешён только волонтёрам и администраторам.",
+      "This event is not active. Its records are available for review, but QR scanning and event-day actions are disabled.":"Мероприятие не активно. Записи доступны для просмотра, но сканирование QR-кодов и действия во время мероприятия отключены.",
+      "This browser does not support camera QR scanning. Use manual pass verification.":"Этот браузер не поддерживает сканирование QR-кодов камерой. Используйте ручную проверку пропуска.",
+      "Camera could not start. Allow camera permission or use manual verification.":"Не удалось запустить камеру. Разрешите доступ к камере или используйте ручную проверку.",
+      "Enter or scan a pass first.":"Сначала введите код или отсканируйте пропуск.",
+      "No further actions available":"Дополнительные действия недоступны",
+      "This pass is not active. Event-day actions are disabled.":"Этот пропуск не активен. Действия во время мероприятия отключены.",
+      "Exit has already been recorded. No further event-day actions are available.":"Выход уже отмечен. Другие действия для этого участника недоступны.",
+      "Next step: store the guest’s proof or confirm that no proof was provided. Food collection becomes available after this step.":"Следующий шаг: принять вещи участника на хранение или подтвердить, что вещи не сдавались. После этого станет доступна выдача питания.",
+      "Entry already recorded":"Вход уже отмечен",
+      "No pending registrations for this event.":"Нет ожидающих заявок для этого мероприятия.",
+      "Search guests...":"Поиск участников...",
+      "Edit details":"Изменить данные",
+      "Pass revoked":"Пропуск аннулирован",
+      "Scanner (all event actions)":"Сканер (все действия мероприятия)",
+      "Entry + proof intake":"Вход и приём вещей",
+      "Proof return + exit":"Возврат вещей и выход",
+      "Assignments apply only to":"Назначения действуют только для",
+      "They do not grant access to other events or to BRS.":"Они не дают доступа к другим мероприятиям или BRS.",
+      "Each event has a separate box/section/slot map.":"Для каждого мероприятия используется отдельная схема ящиков, секций и мест.",
+      "Send only to users who started this event, or approved guests of this event.":"Отправлять только пользователям, открывшим это мероприятие, или подтверждённым участникам.",
+      "Approved guests for this event":"Подтверждённые участники этого мероприятия",
+      "Message":"Сообщение",
+      "Attempt to delete this delivered message from recipients’ VK chats?":"Попытаться удалить это отправленное сообщение из чатов VK получателей?",
+      "Event lifecycle":"Жизненный цикл мероприятия",
+      "Event data backup":"Резервная копия данных мероприятия",
+      "Archived events are read-only. Pending requests can be reviewed but not approved or rejected.":"Архивные мероприятия доступны только для чтения. Заявки можно просматривать, но нельзя подтверждать или отклонять.",
+      "Archived events are read-only. The guest register remains available for review.":"Архивные мероприятия доступны только для чтения. Список участников можно просматривать.",
+      "Checking backup protection…":"Проверка защиты резервных копий…",
+      "This form belongs to this event only. Future events can use a different form without editing bot.py.":"Эта форма относится только к данному мероприятию. Для будущих мероприятий можно использовать другие формы без изменения bot.py.",
+      "The server took too long to respond. Check the connection and try again.":"Сервер слишком долго не отвечает. Проверьте подключение и повторите попытку.",
+      "Could not reach EventHub. Check your internet connection and Cloudflare API address.":"Не удалось подключиться к EventHub. Проверьте интернет-соединение и адрес API Cloudflare.",
+      "The server returned an unreadable response. Check the Cloudflare service logs.":"Сервер вернул нечитаемый ответ. Проверьте журналы Cloudflare.",
+      "The server returned an unexpected response.":"Сервер вернул неожиданный ответ.",
+      "Send this announcement to the selected VK audience for this event?":"Отправить это объявление выбранным пользователям VK для данного мероприятия?",
+      "Remove this volunteer from the selected event?":"Удалить этого волонтёра из выбранного мероприятия?",
+      "No phone":"Телефон не указан",
+      "No food preference":"Без предпочтений в питании",
+      "Guest not found":"Участник не найден",
+      "Last seen:":"Последняя активность:",
+      "Food already collected":"Питание уже получено",
+      "A registration form must contain between 1 and 30 fields.":"Регистрационная форма должна содержать от 1 до 30 полей.",
+      "Each field needs a valid key beginning with a letter.":"Ключ каждого поля должен быть корректным и начинаться с буквы.",
+      "Every form field needs a label.":"У каждого поля формы должна быть подпись.",
+      "Add at least one option for":"Добавьте хотя бы один вариант для",
+      "The registration form must contain a full_name field.":"В форме регистрации должно быть поле full_name.",
+      "The full_name field must use text or textarea.":"Поле full_name должно иметь тип text или textarea.",
+      "No events are available yet.":"Пока нет доступных мероприятий.",
+      "Try unsend":"Отменить отправку",
+      "Delete history":"Удалить историю",
+      "Not recorded":"Не отмечено",
+      "Never":"Никогда",
+      "Full name":"Полное имя",
+      "Residence":"Место проживания",
+      "Overview":"Обзор",
+      "QR Scanner":"QR-сканер",
+      "Approvals":"Заявки",
+      "Guests":"Участники",
+      "Proof storage":"Хранение вещей",
+      "Announcements":"Объявления",
+      "Event settings":"Настройки мероприятия",
+      "Volunteers":"Волонтёры",
+      "ACTIVE":"АКТИВНО",
+      "Active":"Активно",
+      "ONLY SELECTED EVENT":"ТОЛЬКО ВЫБРАННОЕ МЕРОПРИЯТИЕ",
+      "Guest registration":"Регистрация участников",
+      "My QR pass":"Мой QR-пропуск",
+      "Open registration":"Открыть регистрацию",
+      "Open my pass":"Открыть мой пропуск",
+      "Signed in as Admin":"Вход выполнен как администратор",
+      "Back to Admin":"Назад в панель администратора",
+      "Registration —":"Регистрация —",
+      "Registration":"Регистрация",
+      "Phone number":"Номер телефона",
+      "Hostel":"Общежитие",
+      "Apartment":"Квартира",
+      "Food collection":"Выдача питания",
+      "Quick status":"Краткая сводка",
+      "Refresh":"Обновить",
+      "All":"Все",
+      "Approved":"Подтверждено",
+      "Pending":"Ожидает",
+      "Rejected":"Отклонено",
+      "Revoked":"Аннулировано",
+      "Search":"Поиск",
+      "Status":"Статус",
+      "Date":"Дата",
+      "Time":"Время",
+      "Venue":"Место проведения",
+      "Skip to content":"Перейти к содержимому",
+      "Go to section":"Перейти к разделу",
+      "Choose admin section":"Выбрать раздел администратора",
+      "Preview guest and volunteer screens":"Предпросмотр интерфейса участника и волонтёра",
+      "Preview actions are real. Any test registration or event-day action is saved to this event under your admin VK account.":"Действия в режиме просмотра настоящие. Тестовые регистрации и операции во время мероприятия сохраняются в этом мероприятии от имени администратора.",
+      "Pass status":"Статус пропуска",
+      "Attendance timeline":"Хронология посещения",
+      "View profile and attendance timeline":"Открыть профиль и историю посещения",
+      "Open to load the latest profile timeline.":"Откройте, чтобы загрузить актуальную историю участника.",
+      "Loading guest profile…":"Загрузка профиля участника…",
+      "No attendance actions have been recorded yet.":"Действия по посещению ещё не записывались.",
+      "Guest confirmed no items for storage.":"Участник подтвердил, что не сдаёт вещи на хранение.",
+      "Registration created":"Регистрация создана",
+      "Registration approved":"Регистрация подтверждена",
+      "Entry recorded":"Вход отмечен",
+      "Food collected":"Питание получено",
+      "Items stored":"Вещи приняты на хранение",
+      "No items declared":"Вещи не сдавались",
+      "Stored items returned":"Вещи возвращены",
+      "Exit recorded":"Выход отмечен",
+      "Checkpoint scanned":"Отмечен пункт контроля",
+      "Guest details updated":"Данные участника обновлены",
+      "QR pass reissued":"QR-пропуск перевыпущен",
+      "QR pass revoked":"QR-пропуск аннулирован",
+      "Recently seen":"Недавно в приложении",
+      "Recently active":"Недавно активен",
+      "Not recently seen":"Давно не появлялся",
+      "Search and filter volunteers":"Поиск и фильтрация волонтёров",
+      "Search by name or VK ID":"Поиск по имени или VK ID",
+      "Filter by role":"Фильтр по роли",
+      "All roles":"Все роли",
+      "No volunteers match this search and role filter.":"Нет волонтёров, соответствующих поиску и фильтру роли.",
+      "Recent volunteer activity":"Последняя активность волонтёров",
+      "No recorded volunteer activity for this event yet.":"Для этого мероприятия пока нет записей об активности волонтёров.",
+      "Recent scanner activity":"Последняя активность сканера",
+      "Clear":"Очистить",
+      "This list is only for this open app session. A scan is attendance only after the server confirms the action.":"Этот список действует только в текущем сеансе приложения. Сканирование считается посещением только после подтверждения действия сервером.",
+      "No scans in this session yet.":"В этом сеансе сканирований пока нет.",
+      "Ready. Start the camera or enter a pass code manually.":"Готово. Включите камеру или введите код пропуска вручную.",
+      "Camera ready. Point it at a guest QR pass.":"Камера готова. Наведите её на QR-пропуск участника.",
+      "Camera stopped. Manual pass verification is still available.":"Камера остановлена. Ручная проверка пропуска доступна.",
+      "Checking pass with EventHub…":"Проверка пропуска через EventHub…",
+      "Pass verified. Review the guest and choose the correct action.":"Пропуск проверен. Проверьте данные участника и выберите нужное действие.",
+      "Pass verified":"Пропуск проверен",
+      "Verification only — no attendance action was recorded yet.":"Только проверка — посещение ещё не отмечено.",
+      "Saved to offline queue":"Сохранено в офлайн-очередь",
+      "Not verified and not counted as attendance.":"Не проверено и не учитывается как посещение.",
+      "Offline QR saved on this device only — not recorded as attendance.":"QR-код сохранён только на этом устройстве и не записан как посещение.",
+      "Offline scan could not be saved. Reconnect and rescan.":"Не удалось сохранить офлайн-сканирование. Подключитесь к сети и повторите сканирование.",
+      "Pass verification failed":"Не удалось проверить пропуск",
+      "Checkpoint recorded":"Пункт контроля отмечен",
+      "Entry recorded":"Вход отмечен",
+      "Food collection recorded":"Получение питания отмечено",
+      "Items stored":"Вещи приняты на хранение",
+      "No items declared":"Отсутствие вещей подтверждено",
+      "Stored items returned":"Вещи возвращены",
+      "Exit recorded":"Выход отмечен",
+      "Verification failed":"Проверка не пройдена",
+      "Last seen":"Последняя активность",
+      "Registered":"Зарегистрирован",
+      "Approved":"Подтверждено",
+      "Scanner":"Сканер",
+      "Entry":"Вход",
+      "Food":"Питание",
+      "Proof":"Вещи",
+      "Checkpoint":"Пункт контроля",
+      "Event lead":"Руководитель мероприятия",
+      "Storage":"Хранение",
+      "Pass code":"Код пропуска",
+      "Registration created":"Регистрация создана",
+      "Registration approved":"Регистрация подтверждена",
+      "No attendance actions have been recorded yet.":"Действия по посещению ещё не записывались.",
+      'No':'Нет','Yes':'Да','Yes, archive this event':'Да, архивировать мероприятие',
+      'Status':'Статус','Type':'Тип','Label':'Название','Key (unique)':'Ключ (уникальный)','Required':'Обязательно',
+      'Options (for select, comma separated)':'Варианты (для списка, через запятую)','Date not set':'Дата не указана',
+      'Time not set':'Время не указано','Venue not set':'Место не указано','Activate event':'Активировать мероприятие',
+      'Archive this event':'Архивировать мероприятие','Event activated':'Мероприятие активировано',
+      'Event settings saved':'Настройки мероприятия сохранены','Registration form saved':'Регистрационная форма сохранена',
+      'Event backup downloaded':'Резервная копия мероприятия скачана','Updated':'Обновлено',
+      'The full name field is required':'Поле имени обязательно','The full_name key is required':'Требуется поле full_name',
+      'VK numeric user ID':'Числовой ID пользователя VK','Copy this event’s VK link':'Скопировать ссылку VK на это мероприятие',
+      'Copy this event\'s VK link':'Скопировать ссылку VK на это мероприятие','Event VK link copied':'Ссылка VK на мероприятие скопирована',
+      'e.g. 6:00 PM':'например, 18:00','e.g. Halloween Night 2027':'например, Halloween Night 2027',
+      'Users who opened this event in EventHub':'Пользователи, открывшие это мероприятие в EventHub',
+      'Admin stays signed in':'Администратор остаётся в системе','Admin preview':'Предпросмотр администратора',
+      'Back to Admin':'Назад к панели администратора','Back to Admin →':'Назад к панели администратора →',
+      'Test the app as a user':'Проверить приложение от имени пользователя',
+      'Preview the registration form and submit a real test registration.':'Просмотрите форму регистрации и отправьте настоящую тестовую заявку.',
+      'No code changes needed':'Изменения кода не требуются','Save layout':'Сохранить расположение',
+      'Delete history':'Удалить историю','Loading…':'Загрузка…','Try again':'Повторить',
+      'Not recorded':'Не отмечено','No proof':'Вещи не сдавались','Stored':'Принято на хранение',
+      'Returned':'Возвращено','active':'Активно','draft':'Черновик','archived':'Архивировано',
+      'pending':'Ожидает','approved':'Подтверждено','rejected':'Отклонено','revoked':'Аннулировано'
+    }
+  };
+  function normalizeLanguageText(value) { return String(value ?? '').trim().replace(/\s+/g,' '); }
+  function translateLanguageText(value) {
+    const raw=String(value ?? ''), trimmed=raw.trim();
+    if(!trimmed || currentLanguage==='en') return raw;
+    const normalized=normalizeLanguageText(trimmed), dictionary=LANGUAGE_TEXTS[currentLanguage]||{};
+    let translated=dictionary[normalized];
+    if(!translated) {
+      translated=normalized;
+      const entries=Object.entries(dictionary).sort((a,b)=>b[0].length-a[0].length);
+      for(const [source,target] of entries) {
+        if(source.length<4) continue;
+        const escaped=source.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&');
+        const pattern=new RegExp('(^|[^\\p{L}\\p{N}_])('+escaped+')(?=$|[^\\p{L}\\p{N}_])','giu');
+        translated=translated.replace(pattern,(whole,prefix,match)=>{
+          let replacement=target;
+          if(match===match.toUpperCase() && match!==match.toLowerCase()) replacement=target.toLocaleUpperCase('ru');
+          else if(match[0]===match[0].toUpperCase()) replacement=target.charAt(0).toLocaleUpperCase('ru')+target.slice(1);
+          return prefix+replacement;
+        });
+      }
+      if(translated===normalized) return raw;
+    }
+    return raw.slice(0,raw.indexOf(trimmed))+translated+raw.slice(raw.indexOf(trimmed)+trimmed.length);
+  }
+  function applyLanguageTranslations(root) {
+    if(!root || typeof document.createTreeWalker!=='function') return;
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    let node;
+    while((node=walker.nextNode())) {
+      if(!node.__eventHubSourceText) Object.defineProperty(node,'__eventHubSourceText',{value:node.nodeValue,writable:true});
+      const source=node.__eventHubSourceText;
+      const translated=translateLanguageText(source);
+      if(node.nodeValue!==translated) node.nodeValue=translated;
+    }
+    const elements=[];
+    if(root.matches?.('[placeholder],[title],[aria-label],[alt]')) elements.push(root);
+    if(root.querySelectorAll) elements.push(...root.querySelectorAll('[placeholder],[title],[aria-label],[alt]'));
+    for(const el of elements) {
+      for(const attr of ['placeholder','title','aria-label','alt']) {
+        if(!el.hasAttribute(attr)) continue;
+        const marker='__eventHubSource_'+attr;
+        if(!Object.prototype.hasOwnProperty.call(el,marker)) Object.defineProperty(el,marker,{value:el.getAttribute(attr),writable:true});
+        const source=el[marker],translated=translateLanguageText(source);
+        if(el.getAttribute(attr)!==translated) el.setAttribute(attr,translated);
+      }
+    }
+    document.documentElement.lang=currentLanguage;
+  }
+  function detectInitialLanguage() {
+    try {
+      const saved=localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if(saved==='en'||saved==='ru') return saved;
+    } catch(_) {}
+    return /^ru(?:-|$)/i.test(navigator.language||'')?'ru':'en';
+  }
+  let currentLanguage=detectInitialLanguage();
+
+  function brandInfo() {
+    return currentLanguage === 'ru'
+      ? { university:'Казанский государственный медицинский университет', hostel:'Общежитие № 5', short:'КГМУ — Общежитие № 5' }
+      : { university:'Kazan State Medical University', hostel:'Hostel 5', short:'KSMU – Hostel 5' };
+  }
+  function updateAppBranding() {
+    const brand = brandInfo();
+    const fullName = brand.university + ' – ' + brand.hostel;
+    const university = $('brandUniversity'), hostel = $('brandHostel');
+    if (university) university.textContent = brand.university;
+    if (hostel) hostel.textContent = brand.hostel;
+    const header = document.querySelector('.brand');
+    if (header) header.setAttribute('aria-label', fullName);
+    const appName = document.querySelector('meta[name="application-name"]');
+    if (appName) appName.setAttribute('content', fullName);
+    document.title = state.event && state.event.name ? state.event.name + ' | ' + fullName : fullName;
+  }
+  function encodeSvgDataUrl(svg) {
+    const bytes = new TextEncoder().encode(svg);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return 'data:image/svg+xml;base64,' + btoa(binary);
+  }
+  function xmlText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
+  }
+  function brandedPassDataUrl(pass) {
+    const brand = brandInfo();
+    const eventName = state.event && state.event.name || '';
+    const admissionLabel = currentLanguage === 'ru' ? 'ПРОПУСК НА МЕРОПРИЯТИЕ' : 'EVENT ADMISSION PASS';
+    const qr = 'data:image/svg+xml;base64,' + pass.image;
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="720" height="940" viewBox="0 0 720 940">' +
+      '<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#241333"/><stop offset="1" stop-color="#11101b"/></linearGradient></defs>' +
+      '<rect width="720" height="940" rx="34" fill="url(#bg)"/><rect x="18" y="18" width="684" height="904" rx="26" fill="none" stroke="#d9b15f" stroke-width="3"/>' +
+      '<text x="360" y="82" text-anchor="middle" textLength="650" lengthAdjust="spacingAndGlyphs" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#fff">' + xmlText(brand.university) + '</text>' +
+      '<text x="360" y="128" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="700" fill="#d9b15f">' + xmlText(brand.hostel) + '</text>' +
+      '<path d="M90 158H630" stroke="#d9b15f" stroke-width="2" opacity=".75"/>' +
+      '<text x="360" y="213" text-anchor="middle" textLength="620" lengthAdjust="spacingAndGlyphs" font-family="Arial,sans-serif" font-size="31" font-weight="700" fill="#fff">' + xmlText(eventName) + '</text>' +
+      '<text x="360" y="258" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" letter-spacing="3" fill="#d9b15f">' + admissionLabel + '</text>' +
+      '<rect x="125" y="286" width="470" height="470" rx="22" fill="#fff"/><image x="145" y="306" width="430" height="430" href="' + qr + '" xlink:href="' + qr + '"/>' +
+      '<text x="360" y="817" text-anchor="middle" textLength="620" lengthAdjust="spacingAndGlyphs" font-family="Arial,sans-serif" font-size="27" font-weight="700" fill="#fff">' + xmlText(pass.name || '') + '</text>' +
+      '<text x="360" y="865" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#d9b15f">' + (currentLanguage === 'ru' ? 'КОД ПРОПУСКА' : 'PASS CODE') + ': ' + xmlText(pass.passCode || '') + '</text>' +
+      '<text x="360" y="902" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#bcb4c9">' + xmlText(eventName) + '</text></svg>';
+    return encodeSvgDataUrl(svg);
+  }
+  function setLanguage(language) {
+    currentLanguage=language==='ru'?'ru':'en';
+    try { localStorage.setItem(LANGUAGE_STORAGE_KEY,currentLanguage); } catch(_) {}
+    const selector=$('languageSelect'); if(selector) selector.value=currentLanguage;
+    updateAppBranding();
+    applyLanguageTranslations(document.getElementById('app'));
+    const toastEl=$('toast'); if(toastEl?.__eventHubToastSource) toastEl.textContent=translateLanguageText(toastEl.__eventHubToastSource);
+  }
+  function initLanguageSupport() {
+    const selector=$('languageSelect');
+    if(selector) { selector.value=currentLanguage; selector.addEventListener('change',()=>setLanguage(selector.value)); }
+    updateAppBranding();
+    applyLanguageTranslations(document.getElementById('app'));
+    if(typeof MutationObserver!=='undefined') {
+      const observer=new MutationObserver(records=>{
+        for(const record of records) {
+          if(record.type==='childList'&&record.addedNodes.length) {
+            for(const added of record.addedNodes) if(added.nodeType===Node.ELEMENT_NODE) applyLanguageTranslations(added);
+            if(record.target.nodeType===Node.ELEMENT_NODE) applyLanguageTranslations(record.target);
+          } else if(record.type==='characterData') {
+            applyLanguageTranslations(record.target.parentElement||document.getElementById('app'));
+          }
+        }
+      });
+      observer.observe(document.getElementById('app'),{subtree:true,childList:true,characterData:true});
+    }
+  }
+
+  const parseJSON = (v, fallback) => { try { const x = typeof v === 'string' ? JSON.parse(v || '') : v; return x ?? fallback; } catch (_) { return fallback; } };
+  let toastTimer;
+  let dashboardRefreshTimer=null;
+  let dashboardRefreshBusy=false;
+  function toast(message, bad=false) { const el=$('toast'); el.__eventHubToastSource=String(message??''); el.textContent=translateLanguageText(el.__eventHubToastSource); el.style.background=bad?'#ff626d':'#f8f5fb'; el.classList.remove('hidden'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.add('hidden'),3500); }
+  function confirmLocalized(message) { return window.confirm(translateLanguageText(message)); }
+  function promptLocalized(message, initialValue='') { return window.prompt(translateLanguageText(message), initialValue); }
+  function showNotice(message, kind='') { return `<div class="notice ${kind}">${safe(message)}</div>`; }
+  function themeColour(value, fallback) { return /^#[0-9a-f]{6}$/i.test(String(value||'')) ? String(value) : fallback; }
+  function eventTheme(ev) {
+    const t=parseJSON(ev?.theme_json,{});
+    const primary=themeColour(t.primary,'#25113b');
+    const background=themeColour(t.background,ev?shade(primary,-.50):'#171321');
+    const accent=themeColour(t.accent,'#ff7518');
+    const gold=themeColour(t.gold,'#ffd166');
+    const root=document.documentElement;
+    root.style.setProperty('--bg',background);
+    root.style.setProperty('--panel',themeColour(t.panel,primary));
+    root.style.setProperty('--panel2',themeColour(t.panel2,shade(primary,.10)));
+    root.style.setProperty('--accent',accent);
+    root.style.setProperty('--gold',gold);
+    document.querySelector('meta[name="theme-color"]').content=background;
+  }
+  function shade(hex, amount) {
+    if(!/^#[0-9a-f]{6}$/i.test(hex)) return hex;
+    const n=parseInt(hex.slice(1),16), r=Math.max(0,Math.min(255,(n>>16)+Math.round(255*amount))),g=Math.max(0,Math.min(255,((n>>8)&255)+Math.round(255*amount))),b=Math.max(0,Math.min(255,(n&255)+Math.round(255*amount)));
+    return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+  }
+  async function post(path, payload={}, timeoutMs=20000) {
+    if(!API_BASE) throw new Error('API address is not configured. Ask the EventHub admin to configure the Cloudflare API URL.');
+    if(!vkLaunchParams) throw new Error('Open this app from VK so VK can authenticate you.');
+    const controller=typeof AbortController!=='undefined'?new AbortController():null;
+    const timer=controller?setTimeout(()=>controller.abort(),timeoutMs):null;
+    let res;
+    try {
+      res=await fetch(API_BASE+path,{method:'POST',headers:{'Content-Type':'application/json','X-VK-Launch-Params':vkLaunchParams},body:JSON.stringify(payload),signal:controller?.signal});
+    } catch(err) {
+      if(err?.name==='AbortError') throw new Error('The server took too long to respond. Check the connection and try again.');
+      throw new Error('Could not reach EventHub. Check your internet connection and Cloudflare API address.');
+    } finally { if(timer) clearTimeout(timer); }
+    let data;
+    try { data=await res.json(); }
+    catch(_) { throw new Error('The server returned an unreadable response. Check the Cloudflare service logs.'); }
+    if(!data || typeof data!=='object') throw new Error('The server returned an unexpected response.');
+    if(!res.ok || data.ok===false) throw new Error(data.error || data.detail || `Request failed (${res.status}).`);
+    return data;
+  }
+  const adminCall = (action, extra={}) => post('/api/admin',{action,event_id:state.eventId,...extra});
+  function updateUrl(eid, push=false) {
+    const u=new URL(location.href);
+    if(eid) u.searchParams.set('event_id',String(eid)); else u.searchParams.delete('event_id');
+    u.searchParams.delete('api_base');
+    const next=u.pathname+u.search+u.hash;
+    if(push) history.pushState({event_id:Number(eid)||0},'',next);
+    else history.replaceState({event_id:Number(eid)||0},'',next);
+  }
+  async function setEvent(id) {
+    const eid=Number(id);
+    if(!Number.isSafeInteger(eid)||eid<=0) throw new Error('Invalid event selection. Refresh the event list and try again.');
+    await stopScanner();
+    state.eventId=eid; state.event=null; state.guest=null; state.pass=null; state.page='home'; updateUrl(eid,true);
+    main.innerHTML='<div class="empty">Opening this event…</div>';
+    try { await loadRole(); await loadEvent(); }
+    catch(err) { main.innerHTML=showNotice(err.message,'error')+'<div class="actions"><button class="btn" id="returnEvents">← All events</button></div>'; $('returnEvents')?.addEventListener('click',clearEvent); throw err; }
+  }
+  async function clearEvent() {
+    await stopScanner(); state.eventId=0; state.event=null; state.guest=null; state.pass=null; state.page='events'; updateUrl(0,true); eventTheme(null); updateAppBranding();
+    try { await loadRole(); } catch(err) { toast(err.message,true); }
+    renderEventList(); $('backBtn').classList.add('hidden');
+  }
+  async function loadRole() {
+    const data=await post('/api/role', state.eventId?{event_id:state.eventId}:{});
+    state.role=data.role||'guest'; state.staffRole=data.staff_role||''; state.user=data.user||null; state.activeEvents=data.events||[]; state.workspaces=data.workspaces||[];
+    return data;
+  }
+  async function loadEvent() {
+    if(!state.eventId) { renderEventList(); return; }
+    const requestedId=state.eventId;
+    const data=await post('/api/event_details',{event_id:requestedId});
+    if(!data.event || Number(data.event.id)!==requestedId) throw new Error('EventHub returned a different event than the one selected. No event details were displayed.');
+    state.event=data.event; eventTheme(state.event); updateAppBranding(); $('backBtn').classList.remove('hidden');
+    await renderHome();
+  }
+  async function boot() {
+    if(!vkLaunchParams) { main.innerHTML=showNotice('Open EventHub using the button in your VK bot. This page requires VK sign-in.','error'); return; }
+    try {
+      await loadRole();
+      if(state.eventId) {
+        const permitted=(state.role==='admin'?state.workspaces:state.activeEvents).some(e=>Number(e.id)===state.eventId);
+        if(!permitted) { state.eventId=0; updateUrl(0); }
+      }
+      if(state.eventId) await loadEvent(); else renderEventList();
+    } catch(e) { main.innerHTML=showNotice(e.message,'error')+`<div class="actions"><button class="btn" onclick="location.reload()">Try again</button></div>`; }
+  }
+  function renderEventList() {
+    stopScanner(); $('backBtn').classList.add('hidden');
+    const events=state.role==='admin'?state.workspaces:state.activeEvents;
+    const list=(events||[]).filter(e=>state.role==='admin'||e.status==='active');
+    main.innerHTML=`<section class="hero"><div class="eyebrow">Your event workspaces</div><h1>Choose one event</h1><p>Select an event to open its dedicated page. Only the selected event’s details, registrations, passes and scanner records will appear inside it.</p>${state.role==='admin'?`<div class="actions"><button class="btn primary" id="createEventOpen">＋ Create new event</button></div>`:''}</section>
+      <section class="section"><div class="section-title"><h2>${state.role==='admin'?'All workspaces':'Active events'}</h2><span class="muted">${list.length} event${list.length===1?'':'s'}</span></div><div class="grid">${list.map(e=>`<article class="card event-card"><div class="row"><span class="status ${safe(e.status)}">${safe(e.status)}</span><span class="muted">#${Number(e.id)}</span></div><div><h3>${safe(e.name)}</h3><p class="muted">Open this event's dedicated page and tools.</p></div><div class="actions"><button class="btn primary" data-open-event="${Number(e.id)}">Open this event →</button></div></article>`).join('')||'<div class="empty">No events are available yet.</div>'}</div></section>
+      ${state.role==='admin'?createEventForm():''}`;
+    $('createEventOpen')?.addEventListener('click',()=>document.getElementById('createEventForm')?.scrollIntoView({behavior:'smooth',block:'center'}));
+    document.querySelectorAll('[data-open-event]').forEach(b=>b.addEventListener('click',()=>setEvent(b.dataset.openEvent).catch(e=>toast(e.message,true))));
+    bindCreateEvent();
+  }
+  function defaultSchema() {
+    return [
+      {key:'full_name',label:'Full name',type:'text',required:true},
+      {key:'phone',label:'Phone number',type:'tel',required:true},
+      {key:'residence_type',label:'Residence',type:'select',options:['Hostel','Apartment'],required:true},
+      {key:'hostel_number',label:'Hostel number',type:'text',required:true},
+      {key:'room_number',label:'Room number',type:'text',required:true},
+      {key:'food_preference',label:'Food preference',type:'select',options:['Vegetarian','Non-vegetarian'],required:true}
+    ];
+  }
+  function createEventForm() {
+    return `<section class="section card" id="createEventForm"><div class="section-title"><h2>Create an event</h2><span class="status active">No code changes needed</span></div><form id="newEventForm"><div class="field"><label>Event name *</label><input name="name" required maxlength="120" placeholder="e.g. Halloween Night 2027"></div><div class="field"><label>Description</label><textarea name="description" maxlength="1000" placeholder="Describe this event"></textarea></div><div class="inline-fields"><div class="field"><label>Date</label><input name="event_date" type="date"></div><div class="field"><label>Time</label><input name="event_time" placeholder="e.g. 6:00 PM"></div></div><div class="field"><label>Venue</label><input name="venue" maxlength="200" placeholder="Event venue"></div><div class="inline-fields"><div class="field"><label>Primary colour (HEX)</label><input name="primary" type="text" inputmode="text" maxlength="7" pattern="#[0-9a-fA-F]{6}" placeholder="#25113b" value="#25113b"></div><div class="field"><label>Accent colour (HEX)</label><input name="accent" type="text" inputmode="text" maxlength="7" pattern="#[0-9a-fA-F]{6}" placeholder="#ff7518" value="#ff7518"></div></div><div class="inline-fields"><div class="field"><label>Background colour (HEX)</label><input name="background" type="text" inputmode="text" maxlength="7" pattern="#[0-9a-fA-F]{6}" placeholder="#171321" value="#171321"></div><div class="field"><label>Gold / highlight (HEX)</label><input name="gold" type="text" inputmode="text" maxlength="7" pattern="#[0-9a-fA-F]{6}" placeholder="#ffd166" value="#ffd166"></div></div><p class="footnote">A separate event workspace and QR prefix are created automatically. You can edit the form fields after creation.</p><button class="btn primary" type="submit">Create event workspace</button></form></section>`;
+  }
+  function bindCreateEvent() {
+    $('newEventForm')?.addEventListener('submit',async e=>{
+      e.preventDefault();
+      const form=e.currentTarget, submit=form.querySelector('button[type="submit"]');
+      const f=new FormData(form); const name=String(f.get('name')||'').trim();
+      if(name.length<3){toast('Event name must contain at least 3 characters.',true);return;}
+      const theme={primary:f.get('primary'),accent:f.get('accent'),background:f.get('background'),gold:f.get('gold')};
+      submit.disabled=true; submit.textContent='Creating event…';
+      try {
+        const r=await post('/api/admin',{action:'create_event',name,description:f.get('description'),event_date:f.get('event_date'),event_time:f.get('event_time'),venue:f.get('venue'),theme,registration_schema:defaultSchema()});
+        const newId=Number(r.event_id);
+        if(!Number.isSafeInteger(newId)||newId<=0) throw new Error('The server did not return a valid event ID. Refresh the workspace list before trying again.');
+        toast(r.message||'Event created'); await loadRole(); await setEvent(newId);
+      } catch(err){toast(err.message,true);submit.disabled=false;submit.textContent='Create event workspace';}
+    });
+  }
+  function eventHero() {
+    const e=state.event||{};
+    const guestActions=state.role==='guest'?`<button class="btn primary" data-page="register">Register for this event</button><button class="btn" data-page="pass">My QR pass</button>`:'';
+    const adminActions=state.role==='admin'?`<button class="btn ghost" data-copy-event-link>Copy this event's VK link</button>`:'';
+    return `<section class="hero"><div class="eyebrow">${state.role==='admin'?'Event workspace':state.role==='volunteer'?'Volunteer workspace':'Event information'}</div><h1>${safe(e.name)}</h1><p>${safe(e.description||'Event details will be announced soon.')}</p><div class="meta-grid"><div class="meta"><b>Date</b><span>${safe(e.event_date||'To be announced')}</span></div><div class="meta"><b>Time</b><span>${safe(e.event_time||'To be announced')}</span></div><div class="meta"><b>Venue</b><span>${safe(e.venue||'To be announced')}</span></div></div><div class="actions">${guestActions}${adminActions}</div></section>`;
+  }
+  function adminPreviewControls() {
+    return `<details class="section card admin-preview"><summary>🧪 Preview guest and volunteer screens</summary><p class="preview-warning">Preview actions are real. Any test registration or event-day action is saved to this event under your admin VK account.</p><div class="actions"><button class="btn" data-preview-role="guest">👤 Guest view</button><button class="btn" data-preview-role="volunteer">🧑‍🤝‍🧑 Volunteer view</button></div></details>`;
+  }
+  function bindAdminPreview() {
+    document.querySelectorAll('[data-preview-role]').forEach(b=>b.addEventListener('click',()=>{
+      state.previewRole=b.dataset.previewRole;
+      renderHome();
+    }));
+  }
+  async function renderAdminPreview() {
+    const mode=state.previewRole;
+    main.innerHTML=eventHero()+`<section class="section card"><div class="row"><div><strong>Previewing ${mode==='guest'?'Guest':'Volunteer'} experience</strong><div class="sub">Signed in as Admin · VK ID ${safe(state.user?.vk_user_id||'')}</div></div><button class="btn primary small" id="exitPreview">← Back to Admin</button></div><p class="footnote">This is a role preview, not a separate account. Any submitted registration or scanner action is a real event record attributed to your admin VK account.</p></section><section class="section grid">${mode==='guest'?'<article class="card"><h3>🎟 Guest registration</h3><p>Preview the registration form and submit a real test registration.</p><button class="btn primary" data-page="register">Open registration</button></article><article class="card"><h3>🎫 My pass</h3><p>View the pass associated with your current VK account.</p><button class="btn" data-page="pass">Open my pass</button></article>':'<article class="card"><h3>📷 Volunteer QR Scanner</h3><p>Test manual pass lookup and camera scanning with admin permissions.</p><button class="btn primary" data-page="scanner">Open QR Scanner</button></article><article class="card"><h3>🎫 Staff pass</h3><p>View the staff pass associated with your current VK account.</p><button class="btn" data-page="pass">Open staff pass</button></article>'}</section><section id="workspaceContent"></section>`;
+    $('exitPreview')?.addEventListener('click',()=>{state.previewRole=null;renderHome();});
+    bindNavigation();
+  }
+  async function renderHome() {
+    state.page='home';
+    if(state.role==='admin' && state.previewRole){ await renderAdminPreview(); return; }
+    if(state.role==='admin') {
+      let stat={}; try { const r=await adminCall('stats'); stat=r.stats||{}; state.stats=stat; } catch(_){}
+      main.innerHTML=eventHero()+adminPreviewControls()+`<section class="section"><div class="section-title"><h2>Event overview</h2><span class="status ${safe(state.event.status||'active')}">${safe(state.event.status||'active')} · Selected event only</span></div><div class="stat-grid"><button type="button" class="stat stat-link" data-admin-page="guests" aria-label="Open guest register"><strong>${Number(stat.approvedGuests||0)}</strong><span>Approved guests</span></button><button type="button" class="stat stat-link" data-admin-page="guests" aria-label="Open guest attendance register"><strong>${Number(stat.checkedIn||0)}</strong><span>Checked in</span></button><button type="button" class="stat stat-link" data-admin-page="scanner" aria-label="Open food collection scanner"><strong>${Number(stat.mealsServed||0)}</strong><span>Meals served</span></button><button type="button" class="stat stat-link" data-admin-page="staff" aria-label="Open volunteer management"><strong>${Number(stat.volunteers||0)}</strong><span>Volunteers</span></button></div></section>${workspaceNav()}<section class="section" id="workspaceContent"></section>`;
+      bindNavigation(); bindAdminPreview(); await renderAdminPage('overview');
+    } else if(state.role==='volunteer') {
+      main.innerHTML=eventHero()+`<section class="section grid"><article class="card"><h3>📷 QR Scanner</h3><p>Scan a pass and record entry, proof storage, food collection and exit for this event only.</p><div class="actions"><button class="btn primary" data-page="scanner">Open QR Scanner</button></div></article><article class="card"><h3>🎫 Staff QR pass</h3><p>Use the same event QR pass format as guests.</p><div class="actions"><button class="btn" data-page="pass">My QR pass</button></div></article></section><section id="workspaceContent"></section>`;
+      bindNavigation();
+    } else {
+      main.innerHTML=eventHero()+`<section class="section grid"><article class="card"><h3>🎟 Registration</h3><p>Complete this event's registration form. Your pass is sent after approval.</p><div class="actions"><button class="btn primary" data-page="register">Register now</button></div></article><article class="card"><h3>🎫 My QR pass</h3><p>View your pass after your registration is approved.</p><div class="actions"><button class="btn" data-page="pass">Open my pass</button></div></article></section><section id="workspaceContent"></section>`;
+      bindNavigation();
+    }
+  }
+  function workspaceNav() {
+    const tabs=[['overview','Overview'],['scanner','QR Scanner'],['approvals','Approvals'],['guests','Guests'],['storage','Proof storage'],['announcements','Announcements'],['settings','Event settings'],['staff','Volunteers'],['pass','My QR pass']];
+    return `<nav class="tabs admin-nav-desktop" aria-label="Event workspace">${tabs.map(([k,l])=>`<button class="tab ${state.page===k?'active':''}" data-admin-page="${k}">${l}</button>`).join('')}</nav><div class="admin-nav-mobile"><label for="adminMobileNav">Go to section</label><select id="adminMobileNav" aria-label="Choose admin section">${tabs.map(([k,l])=>`<option value="${k}" ${state.page===k?'selected':''}>${l}</option>`).join('')}</select></div>`;
+  }
+  function bindNavigation() {
+    document.querySelectorAll('[data-page]').forEach(b=>{if(!b.dataset.pageBound){b.dataset.pageBound='1';b.addEventListener('click',()=>openPage(b.dataset.page));}});
+    document.querySelectorAll('[data-copy-event-link]').forEach(b=>{if(!b.dataset.bound){b.dataset.bound='1';b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(location.href);toast('Event VK link copied');}catch(_){promptLocalized('Copy this event VK link:',location.href);}});}});
+    hostButtons('[data-admin-page]');
+  }
+  async function openPage(page) {
+    state.page=page;
+    if(page!=='scanner') await stopScanner();
+    if(state.role==='admin' && state.previewRole) { const host=$('workspaceContent'); if(page==='register') await renderRegistration(host); else if(page==='pass') await renderPass(host); else if(page==='scanner' && state.previewRole==='volunteer') await renderScanner(host); return; }
+    if(state.role==='admin') { await renderAdminPage(page); return; }
+    const host=$('workspaceContent');
+    if(page==='register') await renderRegistration(host);
+    else if(page==='pass') await renderPass(host);
+    else if(page==='scanner' && state.role==='volunteer') await renderScanner(host);
+  }
+  async function renderAdminPage(page) {
+    state.page=page; if(dashboardRefreshTimer){clearInterval(dashboardRefreshTimer);dashboardRefreshTimer=null;} if(page!=='scanner') await stopScanner(); const host=$('workspaceContent'); if(!host)return;
+    document.querySelectorAll('[data-admin-page]').forEach(b=>b.classList.toggle('active',b.dataset.adminPage===page));
+    if($('adminMobileNav')) $('adminMobileNav').value=page;
+    if(page==='overview') {
+      const r=await adminCall('stats').catch(()=>({stats:{}})); const s=r.stats||{};
+      host.innerHTML=`<div class="section-title"><h2>Quick status</h2><button class="btn small" id="refreshStats">Refresh</button></div><div class="grid"><div class="card"><h3>Guest registration</h3><p><strong id="overviewApproved">${Number(s.approvedGuests||0)}</strong> approved · <strong id="overviewChecked">${Number(s.checkedIn||0)}</strong> checked in</p></div><div class="card"><h3>Food collection</h3><p><strong id="overviewMeals">${Number(s.mealsServed||0)}</strong> meals served</p><p>Vegetarian: <span id="overviewVeg">${Number(s.vegetarianServed||0)}</span> · Non-vegetarian: <span id="overviewNonveg">${Number(s.nonVegetarianServed||0)}</span></p></div><div class="card"><h3>Volunteers / proof / exit</h3><p><strong id="overviewVolunteers">${Number(s.volunteers||0)}</strong> assigned volunteers</p><p><span id="overviewProof">${Number(s.proofCurrentlyStored||0)}</span> proof stored · <span id="overviewExited">${Number(s.exited||0)}</span> exited</p></div><div class="card"><h3>Google Sheets sync</h3><p id="sheetsStatus">Sync queue status has not been checked.</p><div class="actions"><button class="btn small" id="refreshSheetsStatus">Check sync status</button></div></div></div><p class="footnote" id="overviewUpdated">Live refresh starts automatically every 15 seconds.</p><div class="actions"><button class="btn primary" data-admin-page="scanner">Start QR Scanner</button><button class="btn" data-admin-page="approvals">Review registrations</button><button class="btn" data-admin-page="guests">👥 Guest view</button><button class="btn" data-admin-page="staff">🧑‍🤝‍🧑 Volunteer view</button><button class="btn" data-admin-page="pass">My QR pass</button></div>`;
+      $('refreshStats')?.addEventListener('click',()=>renderAdminPage('overview'));
+      $('refreshSheetsStatus')?.addEventListener('click',async()=>{
+        const target=$('sheetsStatus'); target.textContent='Checking…';
+        try {
+          const q=await adminCall('sheets_queue_status');
+          const parts=[q.configured?'Configured':'Not configured',Number(q.pending||0)+' queued',Number(q.retrying||0)+' retrying'];
+          if(!q.endpointConfigured)parts.push('Sheets endpoint missing');
+          if(!q.secretConfigured)parts.push('sync secret missing');
+          if(q.oldestCreatedAt)parts.push('oldest queued: '+new Date(q.oldestCreatedAt).toLocaleString());
+          target.textContent=parts.join(' · ');
+          if(q.lastError)target.textContent+=' · Latest error: '+q.lastError;
+          if(!q.configured&&Number(q.pending||0)>0)target.textContent+=' · Data remains safely queued in EventHub; nothing has been discarded.';
+        }
+        catch(err){target.textContent=err.message;}
+      });
+      bindAdminNavInPanel();
+      dashboardRefreshTimer=setInterval(async()=>{
+        if(state.page!=='overview'||state.role!=='admin'||state.previewRole||dashboardRefreshBusy)return;
+        dashboardRefreshBusy=true;
+        try{
+          const fresh=await adminCall('stats');const v=fresh.stats||{};
+          const values={overviewApproved:v.approvedGuests,overviewChecked:v.checkedIn,overviewMeals:v.mealsServed,overviewVeg:v.vegetarianServed,overviewNonveg:v.nonVegetarianServed,overviewVolunteers:v.volunteers,overviewProof:v.proofCurrentlyStored,overviewExited:v.exited};
+          for(const [id,value] of Object.entries(values)){const el=$(id);if(el)el.textContent=String(Number(value||0));}
+          if($('overviewUpdated'))$('overviewUpdated').textContent='Last updated '+new Date().toLocaleTimeString()+' · Refreshes every 15 seconds';
+        }catch(_){}finally{dashboardRefreshBusy=false;}
+      },15000);
+    } else if(page==='scanner') await renderScanner(host);
+    else if(page==='approvals') await renderApprovals(host);
+    else if(page==='guests') await renderGuests(host);
+    else if(page==='storage') await renderStorage(host);
+    else if(page==='announcements') await renderAnnouncements(host);
+    else if(page==='settings') await renderSettings(host);
+    else if(page==='staff') await renderStaff(host);
+    else if(page==='pass') await renderPass(host);
+  }
+  function bindAdminNavInPanel(){hostButtons('[data-admin-page]');bindMobileAdminNav();}
+  function bindMobileAdminNav(){const select=$('adminMobileNav');if(select&&!select.dataset.bound){select.dataset.bound='1';select.addEventListener('change',()=>renderAdminPage(select.value));}}
+  function hostButtons(selector){document.querySelectorAll(selector).forEach(b=>{if(!b.dataset.bound){b.dataset.bound='1';b.addEventListener('click',()=>renderAdminPage(b.dataset.adminPage));}});}
+  async function renderRegistration(host) {
+    if(!state.event) return;
+    const schema=parseJSON(state.event.registration_schema,defaultSchema()); const configured=Array.isArray(schema)&&schema.length?schema:defaultSchema(); state.formSchema=asFoodEnabled(state.event)?configured:configured.filter(field=>field.key!=='food_preference');
+    const residenceField=field=>field.key==='hostel_number'||field.key==='room_number';
+    host.innerHTML=`<section class="section card"><div class="section-title"><h2>Register — ${safe(state.event.name)}</h2></div><p class="muted">Your registration is linked only to this event. Required fields are marked with an asterisk.</p><form id="registrationForm">${state.formSchema.map(field=>residenceField(field)?`<div data-residence-field="${safe(field.key)}" class="hidden">${fieldHTML(field)}</div>`:fieldHTML(field)).join('')}<button class="btn primary" type="submit">Submit registration</button></form><div id="registerMessage"></div></section>`;
+    const form=$('registrationForm');
+    const residence=form.elements.namedItem('residence_type');
+    const syncResidenceFields=()=>{
+      const isHostel=residence?.value==='Hostel';
+      for(const field of state.formSchema.filter(residenceField)){
+        const wrapper=form.querySelector(`[data-residence-field="${field.key}"]`);
+        const input=form.elements.namedItem(field.key);
+        wrapper?.classList.toggle('hidden',!isHostel);
+        if(input){input.required=!!field.required&&isHostel;if(!isHostel)input.value='';}
+      }
+    };
+    residence?.addEventListener('change',syncResidenceFields);
+    syncResidenceFields();
+    form.addEventListener('submit',async e=>{
+      e.preventDefault();const values={};
+      for(const field of state.formSchema){
+        if(residenceField(field)&&residence?.value!=='Hostel'){values[field.key]='';continue;}
+        const el=Array.from(e.currentTarget.elements).find(node=>node.name===field.key);if(!el)continue;values[field.key]=field.type==='checkbox'?el.checked:el.value;
+      }
+      const button=e.currentTarget.querySelector('button[type=submit]');button.disabled=true;
+      try{const r=await post('/api/register',{event_id:state.eventId,fields:values});$('registerMessage').innerHTML=showNotice(r.message||'Registration submitted.','good');e.currentTarget.reset();syncResidenceFields();}
+      catch(err){$('registerMessage').innerHTML=showNotice(err.message,'error');}
+      finally{button.disabled=false;}
+    });
+  }
+  function asFoodEnabled(event) { return event?.food_enabled===true || event?.food_enabled===1 || event?.food_enabled==='1' || event?.food_enabled==='true'; }
+  function fieldHTML(f) {
+    const key=String(f.key||''), id='registration-'+key, label=safe(f.label||key), type=f.type||'text', required=f.required?'required':'';
+    if(type==='select') return `<div class="field"><label for="${safe(id)}">${label}${f.required?' *':''}</label><select id="${safe(id)}" name="${safe(key)}" ${required}><option value="">Choose…</option>${(Array.isArray(f.options)?f.options:[]).map(x=>`<option value="${safe(x)}">${safe(x)}</option>`).join('')}</select></div>`;
+    if(type==='textarea') return `<div class="field"><label for="${safe(id)}">${label}${f.required?' *':''}</label><textarea id="${safe(id)}" name="${safe(key)}" ${required} maxlength="1000"></textarea></div>`;
+    if(type==='checkbox') return `<div class="field"><label><input id="${safe(id)}" type="checkbox" name="${safe(key)}" ${required} style="width:auto;min-height:0"> ${label}${f.required?' *':''}</label></div>`;
+    return `<div class="field"><label for="${safe(id)}">${label}${f.required?' *':''}</label><input id="${safe(id)}" name="${safe(key)}" type="${['text','tel','email','number','date'].includes(type)?type:'text'}" ${required} maxlength="1000"></div>`;
+  }
+  async function renderPass(host) {
+    host.innerHTML=`<section class="section card"><h2>My QR pass</h2><p class="muted">This pass is valid only for ${safe(state.event.name)}.</p><div id="passArea">Loading pass…</div></section>`;
+    try {
+      let food='';
+      let r;
+      try{r=await post('/api/my_pass',{event_id:state.eventId});}
+      catch(err){
+        if((state.role==='admin'||state.role==='volunteer') && asFoodEnabled(state.event) && /Choose Vegetarian/.test(err.message)) {
+          $('passArea').innerHTML=`<div class="field"><label>Food preference for your staff pass</label><select id="staffFood"><option value="">Choose…</option><option>Vegetarian</option><option>Non-vegetarian</option></select></div><button class="btn primary" id="createStaffPass">Create my staff pass</button>`;
+          $('createStaffPass').addEventListener('click',async()=>{const choice=$('staffFood').value;if(!choice){toast('Choose a food preference first.',true);return;}const btn=$('createStaffPass');btn.disabled=true;try{const rr=await post('/api/my_pass',{event_id:state.eventId,food_preference:choice});showPass(rr.pass);}catch(e){toast(e.message,true);btn.disabled=false;}}); return;
+        }
+        throw err;
+      }
+      showPass(r.pass);
+    } catch(e) { $('passArea').innerHTML=showNotice(e.message,'error')+(state.role==='guest'?`<button class="btn" id="goRegister">Open registration</button>`:'<button class="btn" id="retryPass">Try again</button>'); $('goRegister')?.addEventListener('click',()=>renderRegistration(host)); $('retryPass')?.addEventListener('click',()=>renderPass(host)); }
+    function showPass(pass){
+      state.pass=pass;
+      const artwork=brandedPassDataUrl(pass);
+      const brand=brandInfo();
+      $('passArea').innerHTML=`<div class="guest-result"><div class="row"><strong>${safe(pass.name)}</strong><span class="pill good">${safe(pass.passRole||'Guest')}</span></div><img class="pass-image" alt="${safe(state.event.name)} QR pass — ${safe(brand.university)} — ${safe(brand.hostel)}" src="${artwork}"><div class="row"><span class="muted">Pass code</span><strong>${safe(pass.passCode)}</strong></div><p class="muted">${safe(pass.food)} · ${safe(pass.residence)} ${pass.roomNumber?`· Room ${safe(pass.roomNumber)}`:''}</p><div class="actions"><button class="btn primary" id="sendPass">Download / share pass</button></div></div>`;
+      $('sendPass').addEventListener('click',async()=>{try{const blob=await (await fetch(artwork)).blob();const file=new File([blob],(pass.passCode||'KSMU-hostel5-pass')+'.svg',{type:'image/svg+xml'});if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:state.event.name+' — '+brand.short});toast('Pass shared');}else{const a=document.createElement('a');a.href=artwork;a.download=(pass.passCode||'KSMU-hostel5-pass')+'.svg';a.click();toast('Pass downloaded. You can share it from your device.');}}catch(e){toast(e.message||'Could not share pass.',true);}});
+    }
+  }
+  function setScannerStatus(message,kind='') {
+    const el=$('scannerStatus');if(!el)return;
+    el.className='notice scanner-status'+(kind?' '+kind:'');
+    el.textContent=message;
+  }
+  function addRecentScannerActivity(label,guest=null,detail='',kind='good') {
+    const item={id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),label,guestName:guest?.name||guest?.full_name||'',passCode:guest?.passCode||guest?.pass_code||'',detail,kind,at:new Date().toISOString()};
+    state.recentScannerActivity=[item,...(state.recentScannerActivity||[])].slice(0,8);
+    renderScannerRecent();
+  }
+  function renderScannerRecent() {
+    const host=$('scannerRecent');if(!host)return;
+    const rows=state.recentScannerActivity||[];
+    host.innerHTML=rows.length?rows.map(x=>`<article class="list-item"><div><strong>${safe(x.label)}</strong>${x.guestName?`<div class="sub">${safe(x.guestName)} · ${safe(x.passCode)}</div>`:''}${x.detail?`<div class="sub">${safe(x.detail)}</div>`:''}</div><time class="activity-time">${safe(new Date(x.at).toLocaleTimeString())}</time></article>`).join(''):'<div class="empty">No scans in this session yet.</div>';
+  }
+  async function renderScanner(host) {
+    if(state.role!=='admin'&&state.role!=='volunteer'){host.innerHTML=showNotice('Scanner access is restricted to event volunteers and admins.','error');return;}
+    if(state.event?.status!=='active'){stopScanner();host.innerHTML=showNotice('This event is not active. Its records are available for review, but QR scanning and event-day actions are disabled.','error');return;}
+    stopScanner();
+    host.innerHTML=`<section class="section card"><div class="section-title"><h2>📷 QR Scanner</h2><span class="status active">${safe(state.event.name)}</span></div><p class="muted">Scan a guest's event pass. You can also enter a pass code manually when a camera is unavailable.</p><div class="scanner-box"><div id="reader"></div></div><div class="actions"><button class="btn primary" id="startCamera">Start camera</button><button class="btn" id="stopCamera" disabled>Stop camera</button></div><div id="scannerStatus" class="notice scanner-status" role="status" aria-live="polite" aria-atomic="true">Ready. Start the camera or enter a pass code manually.</div><div class="field"><label for="manualQr">Manual QR / pass code</label><div class="row"><input id="manualQr" class="input" autocomplete="off" placeholder="H5-XXXXXXXX" aria-label="Manual QR or pass code" style="flex:1;min-width:0"><button class="btn" id="lookupManual">Verify</button></div></div><div id="offlineQueue" class="section"></div><div id="scanResult" role="status" aria-live="polite"></div><section class="section card scanner-recent"><div class="section-title"><h3>Recent scanner activity</h3><button class="btn small" id="clearScannerRecent" type="button">Clear</button></div><p class="footnote">This list is only for this open app session. A scan is attendance only after the server confirms the action.</p><div id="scannerRecent" class="list"></div></section></section>`;
+    renderOfflineQueue();renderScannerRecent();
+    $('startCamera').addEventListener('click',startScanner);$('stopCamera').addEventListener('click',stopScanner);$('lookupManual').addEventListener('click',()=>lookupGuest($('manualQr').value));$('manualQr').addEventListener('keydown',e=>{if(e.key==='Enter')lookupGuest(e.currentTarget.value);});
+    $('clearScannerRecent').addEventListener('click',()=>{state.recentScannerActivity=[];renderScannerRecent();});
+    try { const c=await post('/api/checkpoints',{event_id:state.eventId});state.checkpoints=c.checkpoints||[]; } catch(e) { state.checkpoints=[];toast(e.message,true); }
+  }
+  let scannerStartGeneration=0;
+  let scannerStartPending=false;
+  async function startScanner() {
+    if(state.scanner?.active||scannerStartPending)return;
+    if(!navigator.mediaDevices?.getUserMedia || !('BarcodeDetector' in window)){setScannerStatus('This browser does not support camera QR scanning. Use manual pass verification.','error');toast('This browser does not support camera QR scanning. Use manual pass verification.',true);return;}
+    const generation=++scannerStartGeneration;
+    scannerStartPending=true;
+    let stream=null;
+    try {
+      $('startCamera').disabled=true; $('stopCamera').disabled=false;
+      const detector=new BarcodeDetector({formats:['qr_code']});
+      const video=document.createElement('video');video.setAttribute('playsinline','');video.autoplay=true;video.muted=true;video.style.width='100%';video.style.maxWidth='560px';video.style.borderRadius='12px';
+      $('reader').replaceChildren(video);
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+      if(generation!==scannerStartGeneration||!scannerStartPending){for(const track of stream.getTracks())track.stop();return;}
+      video.srcObject=stream;await video.play();
+      if(generation!==scannerStartGeneration||!scannerStartPending){for(const track of stream.getTracks())track.stop();video.pause();return;}
+      const scanner={stream,video,detector,active:true,frame:0};
+      state.scanner=scanner;scannerStartPending=false;
+      const scanFrame=async()=>{
+        if(!scanner.active||state.scanner!==scanner)return;
+        try {
+          if(video.readyState>=2) {
+            const codes=await detector.detect(video);
+            if(!scanner.active||state.scanner!==scanner)return;
+            if(codes.length){const value=codes[0].rawValue;await stopScanner();await lookupGuest(value);return;}
+          }
+        } catch(_) {}
+        if(scanner.active&&state.scanner===scanner)scanner.frame=requestAnimationFrame(scanFrame);
+      };
+      scanner.frame=requestAnimationFrame(scanFrame);
+      setScannerStatus('Camera ready. Point it at a guest QR pass.','good');
+    } catch(e) {
+      for(const track of stream?.getTracks?.()||[])track.stop();
+      if(generation===scannerStartGeneration){await stopScanner();setScannerStatus('Camera could not start. Allow camera permission or use manual verification.','error');toast('Camera could not start. Allow camera permission or use manual verification.',true);}
+    }
+  }
+  async function stopScanner() {
+    scannerStartGeneration++;
+    scannerStartPending=false;
+    if(state.scanner){state.scanner.active=false;if(state.scanner.frame)cancelAnimationFrame(state.scanner.frame);for(const track of state.scanner.stream?.getTracks?.()||[])track.stop();state.scanner.video?.pause?.();state.scanner=null;}
+    if($('reader'))$('reader').replaceChildren();
+    if($('startCamera'))$('startCamera').disabled=false;if($('stopCamera'))$('stopCamera').disabled=true;
+    if($('scannerStatus'))setScannerStatus('Camera stopped. Manual pass verification is still available.');
+  }
+  const offlineScanKey=()=> 'eventhub-offline-scans-v1:'+state.eventId;
+  function readOfflineScans(){
+    try{const data=JSON.parse(localStorage.getItem(offlineScanKey())||'[]');return Array.isArray(data)?data.filter(x=>x&&typeof x.id==='string'&&typeof x.qr==='string'):[];}catch(_){return [];}
+  }
+  function saveOfflineScans(items){try{localStorage.setItem(offlineScanKey(),JSON.stringify(items));return true;}catch(_){return false;}}
+  function queueOfflineScan(qr){
+    const value=String(qr||'').trim();if(!value||value.length>500)return null;
+    const items=readOfflineScans();let item=items.find(x=>x.qr===value);
+    if(!item){if(items.length>=200){toast('Offline scan queue is full. Verify or remove saved scans first.',true);return null;}
+      item={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2)),qr:value,createdAt:new Date().toISOString()};
+      items.push(item);if(!saveOfflineScans(items)){toast('This device could not save the offline scan. Do not rely on it being stored.',true);return null;}
+    }
+    state.pendingOfflineScanId=item.id;renderOfflineQueue();return item;
+  }
+  function removeOfflineScan(id){if(!id)return;const items=readOfflineScans().filter(x=>x.id!==id);saveOfflineScans(items);renderOfflineQueue();}
+  function renderOfflineQueue(){
+    const host=$('offlineQueue');if(!host)return;const items=readOfflineScans();
+    let markup='<section class="card"><div class="row"><strong>Offline scan queue · '+items.length+'</strong><span class="pill '+(items.length?'warn':'good')+'">'+(items.length?'Needs verification':'Clear')+'</span></div><p class="muted">Scans captured without a server connection are saved on this device only. They are <b>not attendance records</b> until you reconnect, verify each pass and record its action.</p>';
+    items.forEach(x=>{markup+='<div class="list-item"><div class="sub">Captured '+safe(x.createdAt||'')+'</div><div class="actions"><button class="btn primary small" data-offline-verify="'+safe(x.id)+'" '+(navigator.onLine?'':'disabled')+'>Verify when online</button><button class="btn danger small" data-offline-remove="'+safe(x.id)+'">Remove</button></div></div>';});
+    if(!items.length)markup+='<div class="empty">No locally queued scans.</div>';host.innerHTML=markup+'</section>';
+    host.querySelectorAll('[data-offline-verify]').forEach(b=>b.addEventListener('click',()=>{const item=readOfflineScans().find(x=>x.id===b.dataset.offlineVerify);if(item)lookupGuest(item.qr,item.id);}));
+    host.querySelectorAll('[data-offline-remove]').forEach(b=>b.addEventListener('click',()=>{if(confirmLocalized('Remove this locally saved QR from the offline queue?'))removeOfflineScan(b.dataset.offlineRemove);}));
+  }
+  async function lookupGuest(qr,offlineId=null,trackActivity=true) {
+    const value=String(qr||'').trim(); if(!value){toast('Enter or scan a pass first.',true);return;}
+    state.pendingOfflineScanId=offlineId;
+    $('scanResult').innerHTML='<div class="notice">Checking this pass…</div>';setScannerStatus('Checking pass with EventHub…');
+    try {
+      const r=await post('/api/guest',{event_id:state.eventId,qr:value});state.guest=r.guest;
+      renderScannedGuest(offlineId?'Offline QR verified. Select and record the correct action below.':'');
+      setScannerStatus('Pass verified. Review the guest and choose the correct action.','good');
+      if(trackActivity)addRecentScannerActivity('Pass verified',r.guest,'Verification only — no attendance action was recorded yet.');
+    }
+    catch(e){
+      if(!navigator.onLine||/Could not reach EventHub|server took too long/i.test(e.message||'')){
+        const item=queueOfflineScan(value);
+        const message=item?'Connection unavailable. QR saved locally; it has not been recorded as attendance. Reconnect and tap Verify when online.':'Connection unavailable and the scan could not be saved locally. Please rescan when connected.';
+        $('scanResult').innerHTML=showNotice(message,'error');setScannerStatus(item?'Offline QR saved on this device only — not recorded as attendance.':'Offline scan could not be saved. Reconnect and rescan.','error');
+        if(trackActivity&&item)addRecentScannerActivity('Saved to offline queue',null,'Not verified and not counted as attendance.','warn');
+      }else {$('scanResult').innerHTML=showNotice(e.message,'error');setScannerStatus(e.message,'error');if(trackActivity)addRecentScannerActivity('Pass verification failed',null,e.message,'error');}
+    }
+  }
+  function renderScannedGuest(message='') {
+    const g=state.guest;if(!g)return;
+    const actions=[];
+    const activePass=g.status==='approved';
+    const proofResolved=['Stored','No proof','Returned'].includes(g.proofStatus);
+    const staffRole=state.staffRole||'';
+    const canAction=action=>['admin','global','scanner','event_lead'].includes(staffRole)
+      ||(staffRole==='entry'&&['entry','proof_deposit','proof_no_proof'].includes(action))
+      ||(staffRole==='food'&&action==='food')
+      ||(staffRole==='proof'&&['proof_deposit','proof_no_proof','proof_return','exit'].includes(action));
+    if(activePass&&!g.exitRecorded&&!g.entryUsed&&canAction('entry'))actions.push(['entry','Record entry','success']);
+    if(activePass&&g.entryUsed&&!g.exitRecorded&&g.proofStatus==='Not collected') {
+      if(canAction('proof_deposit'))actions.push(['proof_deposit','Store proof','']);
+      if(canAction('proof_no_proof'))actions.push(['proof_no_proof','No proof provided','']);
+    }
+    if(activePass&&g.entryUsed&&!g.exitRecorded&&!g.foodUsed&&proofResolved&&canAction('food'))actions.push(['food','Record food collection','success']);
+    if(activePass&&g.entryUsed&&!g.exitRecorded&&g.proofStatus==='Stored'&&canAction('proof_return'))actions.push(['proof_return','Return stored proof','']);
+    if(activePass&&g.entryUsed&&(g.proofStatus==='Returned'||g.proofStatus==='No proof')&&!g.exitRecorded&&canAction('exit'))actions.push(['exit','Record exit','']);
+    $('scanResult').innerHTML=`${message?showNotice(message,'good'):''}<div class="guest-result"><div class="row"><strong>${safe(g.name)}</strong><span class="pill ${g.status==='approved'?'good':'warn'}">${safe(g.status)}</span></div><p class="muted">${safe(g.residence)}${g.roomNumber?' · Room '+safe(g.roomNumber):''} · ${safe(g.food)}</p><div class="wrap"><span class="pill ${g.entryUsed?'good':'warn'}">Entry: ${g.entryUsed?'Recorded':'Pending'}</span><span class="pill ${g.foodUsed?'good':'warn'}">Food: ${g.foodUsed?'Collected':'Pending'}</span><span class="pill">Proof: ${safe(g.proofStatus||'Not collected')}</span><span class="pill">Exit: ${g.exitRecorded?'Recorded':'Pending'}</span></div>${g.storageLabel?`<p><strong>Storage:</strong> ${safe(g.storageLabel)}</p>`:''}${!activePass?'<div class="notice error">This pass is not active. Event-day actions are disabled.</div>':g.exitRecorded?'<div class="notice good">Exit has already been recorded. No further event-day actions are available.</div>':g.entryUsed&&!proofResolved?'<div class="notice">Next step: store the guest’s proof or confirm that no proof was provided. Food collection becomes available after this step.</div>':''}<p class="muted">Pass code: ${safe(g.passCode)}</p><div class="actions">${actions.map(([a,l,cl])=>`<button class="btn ${cl}" data-scan-action="${a}">${l}</button>`).join('')||'<span class="pill good">No further actions available</span>'}</div>${state.checkpoints.length&&g.entryUsed&&!g.exitRecorded?`<div class="section"><h3>Additional checkpoints</h3><p class="muted">Record this guest at an assigned workshop or activity checkpoint.</p><div class="actions">${state.checkpoints.map(c=>{const scanned=g.checkpointScans?.[c.id];return `<button class="btn" data-checkpoint-scan="${Number(c.id)}" ${scanned?'disabled':''}>${safe(c.name)} · ${scanned?'Recorded':'Scan checkpoint'}</button>`;}).join('')}</div></div>`:''}</div>`;
+    document.querySelectorAll('[data-scan-action]').forEach(b=>b.addEventListener('click',()=>recordAction(b.dataset.scanAction,b)));
+    document.querySelectorAll('[data-checkpoint-scan]').forEach(b=>b.addEventListener('click',()=>recordCheckpointScan(Number(b.dataset.checkpointScan),b)));
+  }
+  async function recordCheckpointScan(checkpointId,button) {
+    if(!state.guest||state.guest.status!=='approved'||state.guest.exitRecorded)return;
+    button.disabled=true;
+    const guestBefore=state.guest;
+    try { const r=await post('/api/checkpoint_scan',{event_id:state.eventId,checkpoint_id:checkpointId,qr:state.guest.qrToken||state.guest.passCode});if(state.pendingOfflineScanId){removeOfflineScan(state.pendingOfflineScanId);state.pendingOfflineScanId=null;}addRecentScannerActivity('Checkpoint recorded',guestBefore,r.message||'Checkpoint scan recorded.','good');setScannerStatus(r.message||'Checkpoint recorded.','good');await lookupGuest(guestBefore.passCode,null,false);toast(r.message||'Checkpoint recorded'); }
+    catch(e){setScannerStatus(e.message,'error');toast(e.message,true);button.disabled=false;}
+  }
+  async function recordAction(action,button) {
+    if(!state.guest || state.guest.status!=='approved' || state.guest.exitRecorded) { toast('This pass is no longer eligible for event-day actions.',true); return; }
+    button.disabled=true;
+    const guestBefore=state.guest;
+    try{
+      const r=await post('/api/action',{event_id:state.eventId,action,qr:state.guest.passCode});
+      if(state.pendingOfflineScanId){removeOfflineScan(state.pendingOfflineScanId);state.pendingOfflineScanId=null;}
+      const labels={entry:'Entry recorded',food:'Food collection recorded',proof_deposit:'Items stored',proof_no_proof:'No items declared',proof_return:'Stored items returned',exit:'Exit recorded'};
+      addRecentScannerActivity(labels[action]||'Event action recorded',guestBefore,r.message||'Server confirmed the action.','good');
+      setScannerStatus(r.message||'Action recorded successfully.','good');
+      await lookupGuest(guestBefore.passCode,null,false);toast(r.message||`${action.replaceAll('_',' ')} recorded`);
+    }catch(e){setScannerStatus(e.message,'error');toast(e.message,true);button.disabled=false;}
+  }
+  async function renderApprovals(host) {
+    const readOnly=state.event?.status==='archived';
+    host.innerHTML=`${readOnly?showNotice('Archived events are read-only. Pending requests can be reviewed but not approved or rejected.','error'):''}<div class="section-title"><h2>Pending registrations</h2><button class="btn small" id="refreshPending">↻ Refresh</button></div><div id="pendingList" class="list"><div class="empty">Loading…</div></div>`;
+    const load=async()=>{const r=await adminCall('pending_registrations');$('pendingList').innerHTML=(r.registrations||[]).map(x=>{
+      const extra=parseJSON(x.registration_data,{});const summary=Object.entries(extra).filter(([k,v])=>!['full_name','phone'].includes(k)&&v!==''&&v!==false).map(([k,v])=>`${safe(k.replaceAll('_',' '))}: ${safe(v)}`).join(' · ');
+      return `<article class="list-item"><div class="row"><strong>${safe(x.full_name)}</strong><span class="pill warn">Pending</span></div><div class="sub">${safe(x.phone||'No phone')} · ${safe(x.residence_type||'')} · ${safe(x.food_preference||'')}</div>${summary?`<div class="sub">${summary}</div>`:''}${readOnly?'<p class="footnote">Read-only archived request.</p>':`<div class="actions"><button class="btn success small" data-decision="approve" data-id="${x.id}">Approve & send QR</button><button class="btn danger small" data-decision="reject" data-id="${x.id}">Reject</button></div>`}</article>`;
+    }).join('')||'<div class="empty">No pending registrations for this event.</div>';
+      if(!readOnly) document.querySelectorAll('[data-decision]').forEach(b=>b.addEventListener('click',async()=>{b.disabled=true;try{const r=await adminCall('registration_decision',{request_id:Number(b.dataset.id),decision:b.dataset.decision});toast(r.message||'Decision saved');await load();}catch(e){toast(e.message,true);b.disabled=false;}}));};
+    $('refreshPending').addEventListener('click',load);await load();
+  }
+  async function renderGuests(host) {
+    const readOnly=state.event?.status==='archived';
+    const schemaRaw=parseJSON(state.event?.registration_schema,defaultSchema());
+    const schema=(Array.isArray(schemaRaw)&&schemaRaw.length?schemaRaw:defaultSchema()).filter(f=>asFoodEnabled(state.event)||f.key!=='food_preference');
+    const renderGuestProfile=profile=>{
+      const g=profile.guest||{},timeline=Array.isArray(profile.timeline)?profile.timeline:[];
+      const time=value=>{if(!value)return '—';const d=new Date(value);return Number.isNaN(d.getTime())?String(value):d.toLocaleString();};
+      const proof=profile.proof;
+      return `<div class="grid"><div class="stat"><strong>${safe(g.status||'—')}</strong><span>Pass status</span></div><div class="stat"><strong>${g.entry_used?'✓':'—'}</strong><span>Entry</span></div><div class="stat"><strong>${g.food_used?'✓':'—'}</strong><span>Food</span></div><div class="stat"><strong>${profile.exitRecorded?'✓':'—'}</strong><span>Exit</span></div></div><div class="sub">Registered: ${safe(time(g.registered_at))} · Approved: ${safe(time(g.approved_at))}</div>${proof?`<div class="notice">Storage: Box ${safe(proof.box_number)} / Section ${safe(proof.section_letter)} / Slot ${safe(proof.slot_number||'—')} · ${proof.returned_at?'Returned':proof.deposited_at?'Stored':'Assigned'}</div>`:profile.noProof?'<div class="notice">Guest confirmed no items for storage.</div>':''}<h3>Attendance timeline</h3>${timeline.length?`<div class="timeline">${timeline.map(x=>`<div class="timeline-item"><span class="timeline-dot"></span><div><strong>${safe(x.label||x.type||'Event update')}</strong><div class="sub">${safe(time(x.at))}${x.actor?' · VK ID '+safe(x.actor):''}</div>${x.details?.checkpoint_name?`<div class="sub">${safe(x.details.checkpoint_name)}</div>`:''}</div></div>`).join('')}</div>`:'<div class="empty">No attendance actions have been recorded yet.</div>'}`;
+    };
+    const bindGuestProfiles=()=>{
+      document.querySelectorAll('[data-guest-profile]').forEach(details=>{
+        if(details.dataset.bound==='1')return;details.dataset.bound='1';
+        details.addEventListener('toggle',async()=>{
+          if(!details.open||details.dataset.loaded==='1'||details.dataset.loading==='1')return;
+          details.dataset.loading='1';const target=$('guestProfile-'+details.dataset.guestProfile);
+          if(!target)return;
+          target.textContent='Loading guest profile…';
+          try{
+            const result=await adminCall('guest_profile',{guest_id:Number(details.dataset.guestProfile)});
+            target.innerHTML=renderGuestProfile(result);details.dataset.loaded='1';
+          }catch(e){target.innerHTML=showNotice(e.message,'error');}
+          finally{delete details.dataset.loading;}
+        });
+      });
+    };
+    const editMarkup=g=>{
+      const values=parseJSON(g.registration_data,{});
+      Object.assign(values,{full_name:g.full_name,phone:g.phone,email:g.email||'',residence_type:g.residence_type||'Apartment',hostel_number:g.hostel_number||'',room_number:g.room_number||'',food_preference:g.food_preference==='Not applicable'?'':g.food_preference});
+      return schema.map(f=>{
+        const key=String(f.key||''),type=f.type||'text',value=values[key]??'',label=safe(f.label||key),required=!!f.required;
+        const residenceField=key==='hostel_number'||key==='room_number';
+        const hidden=residenceField&&values.residence_type!=='Hostel'?'hidden':'';
+        const req=required&&!residenceField?'required':'';
+        if(type==='select') return `<div class="field ${residenceField?hidden:''}" ${residenceField?`data-residence-field="${safe(key)}"`:''}><label>${label}${required?' *':''}</label><select name="${safe(key)}" ${req} ${residenceField&&required?'data-hostel-required="1"':''}><option value="">Choose…</option>${(Array.isArray(f.options)?f.options:[]).map(o=>`<option value="${safe(o)}" ${String(value)===String(o)?'selected':''}>${safe(o)}</option>`).join('')}</select></div>`;
+        if(type==='textarea') return `<div class="field"><label>${label}${required?' *':''}</label><textarea name="${safe(key)}" ${req} maxlength="1000">${safe(value)}</textarea></div>`;
+        if(type==='checkbox') return `<div class="field"><label><input type="checkbox" name="${safe(key)}" ${value?'checked':''} style="width:auto;min-height:0"> ${label}${required?' *':''}</label></div>`;
+        const inputType=['text','tel','email','number','date'].includes(type)?type:'text';
+        return `<div class="field ${residenceField?hidden:''}" ${residenceField?`data-residence-field="${safe(key)}"`:''}><label>${label}${required?' *':''}</label><input name="${safe(key)}" type="${inputType}" value="${safe(value)}" maxlength="1000" ${req} ${residenceField&&required?'data-hostel-required="1"':''}></div>`;
+      }).join('');
+    };
+    host.innerHTML=`${readOnly?showNotice('Archived events are read-only. The guest register remains available for review.','error'):''}<div class="section-title"><h2>Guest register</h2><span class="muted">Search this event only</span></div><div class="inline-fields"><div class="field"><label>Search name, phone or pass code</label><input id="guestQuery" placeholder="Search guests…"></div><div class="field"><label>Status</label><select id="guestStatus"><option value="all">All</option><option value="approved">Approved</option><option value="pending">Pending</option><option value="rejected">Rejected</option><option value="revoked">Revoked</option></select></div></div><div class="actions"><button class="btn primary" id="searchGuests">Search</button></div>${readOnly?'':'<p class="footnote">Editing guest details preserves the existing QR token and attendance history. Reset entry + proof storage is blocked while an item is still recorded as stored.</p>'}<div id="guestList" class="list"></div>`;
+    const search=async()=>{
+      try{
+        const r=await adminCall('guest_search',{query:$('guestQuery').value,status:$('guestStatus').value});
+        $('guestList').innerHTML=(r.guests||[]).map(g=>`<article class="list-item"><div class="row"><strong>${safe(g.full_name)}</strong><span class="pill ${g.status==='approved'?'good':'warn'}">${safe(g.status)}</span></div><div class="sub">${safe(g.phone||'No phone')} · ${safe(g.pass_code)} · ${safe(g.food_preference||'No food preference')}</div><div class="sub">${safe(g.residence_type||'')} ${safe(g.hostel_number||'')} ${safe(g.room_number?'· Room '+g.room_number:'')}</div><div class="sub">VK user ID: ${safe(g.vk_user_id)} · Registered ${safe(g.registered_at||'')}</div><div class="sub">Entry ${g.entry_used?'✓':'—'} · Food ${g.food_used?'✓':'—'}</div><details class="guest-profile" data-guest-profile="${g.id}"><summary>View profile and attendance timeline</summary><div class="guest-profile-content" id="guestProfile-${g.id}"><div class="empty">Open to load the latest profile timeline.</div></div></details>${readOnly?'':`<div class="actions"><button class="btn small" data-edit-guest="${g.id}">Edit details</button>${g.status==='approved'?`<button class="btn small" data-guest-op="reissue_pass" data-id="${g.id}">Reissue QR</button><button class="btn danger small" data-guest-op="revoke_pass" data-id="${g.id}">Revoke</button>`:g.status==='revoked'?'<span class="muted">Pass revoked</span>':''}<button class="btn small" data-guest-op="reset_entry_and_storage" data-id="${g.id}" data-confirm="Reset entry and proof-storage tracking? Any physical proof must already be returned. Food status will stay unchanged.">Reset entry + proof storage</button><button class="btn small" data-guest-op="reset_status" data-target="food" data-id="${g.id}" data-confirm="Reset this guest’s food collection status?">Reset food status</button></div><div id="guestEdit-${g.id}" class="hidden"><form class="card guest-edit-form" data-guest-edit-form="${g.id}"><h3>Edit guest details</h3><p class="muted">Event-specific form fields are shown here. The pass token will not change.</p>${editMarkup(g)}<div class="actions"><button class="btn primary" type="submit">Save guest details</button><button class="btn" type="button" data-cancel-edit="${g.id}">Cancel</button></div></form></div>`}</article>`).join('')||'<div class="empty">No matching guests.</div>';
+        bindGuestProfiles();
+        if(!readOnly){
+          document.querySelectorAll('[data-edit-guest]').forEach(b=>b.addEventListener('click',()=>{$('guestEdit-'+b.dataset.editGuest)?.classList.toggle('hidden');}));
+          document.querySelectorAll('[data-cancel-edit]').forEach(b=>b.addEventListener('click',()=>{$('guestEdit-'+b.dataset.cancelEdit)?.classList.add('hidden');}));
+          document.querySelectorAll('[data-guest-edit-form]').forEach(form=>{
+            const residence=form.elements.namedItem('residence_type');
+            const syncResidence=()=>{
+              const hostel=residence?.value==='Hostel';
+              form.querySelectorAll('[data-residence-field]').forEach(w=>{
+                w.classList.toggle('hidden',!hostel);
+                const input=w.querySelector('input,select,textarea');
+                if(input) input.required=hostel&&input.dataset.hostelRequired==='1';
+              });
+            };
+            residence?.addEventListener('change',syncResidence);syncResidence();
+            form.addEventListener('submit',async e=>{
+              e.preventDefault();
+              const submit=form.querySelector('button[type="submit"]');submit.disabled=true;
+              try{
+                const fields={};
+                for(const f of schema){
+                  const input=form.elements.namedItem(f.key);
+                  fields[f.key]=f.type==='checkbox'?!!input?.checked:(input?.value??'');
+                }
+                const result=await adminCall('guest_edit',{guest_id:Number(form.dataset.guestEditForm),fields});
+                toast(result.message||'Guest details saved');await search();
+              }catch(err){toast(err.message,true);submit.disabled=false;}
+            });
+          });
+          document.querySelectorAll('[data-guest-op]').forEach(b=>b.addEventListener('click',async()=>{
+            if(!confirmLocalized(b.dataset.confirm||`Confirm ${b.dataset.guestOp.replaceAll('_',' ')} for this guest?`))return;
+            b.disabled=true;
+            try{const result=await adminCall('guest_action',{guest_id:Number(b.dataset.id),operation:b.dataset.guestOp,target:b.dataset.target||''});toast(result.message||'Guest action saved');await search();}
+            catch(err){toast(err.message,true);b.disabled=false;}
+          }));
+        }
+      }catch(e){$('guestList').innerHTML=showNotice(e.message,'error');}
+    };
+    $('searchGuests').addEventListener('click',search);
+    $('guestQuery').addEventListener('keydown',e=>{if(e.key==='Enter')search();});
+    await search();
+  }
+  async function renderStorage(host) {
+    host.innerHTML=`<div class="section-title"><h2>Proof storage</h2><button class="btn small" id="refreshStorage">↻ Refresh</button></div><div class="card"><h3>Storage layout</h3><p class="muted">Each event has a separate box/section/slot map.</p><form id="storageForm"><div class="inline-fields"><div class="field"><label>Boxes / units</label><input id="units" type="number" min="1" max="100" value="5"></div><div class="field"><label>Sections per box</label><input id="sections" type="number" min="1" max="26" value="4"></div><div class="field"><label>Slots per section</label><input id="capacity" type="number" min="1" max="500" value="10"></div><div class="field"><label>Box label</label><input id="unitPrefix" value="Box" maxlength="30"></div><div class="field"><label>Section label</label><input id="sectionPrefix" value="Section" maxlength="30"></div></div><button class="btn primary" type="submit">Save layout</button></form><div id="storageMessage"></div></div><div class="section"><div class="stat-grid" id="storageStats"></div><div class="list" id="storageRecords"></div></div>`;
+    const refresh=async()=>{try{const [c,r]=await Promise.all([state.event?.status==='archived'?Promise.resolve({config:{}}):adminCall('storage_config'),adminCall('proof_storage_report')]);const x=c.config||{};$('units').value=x.unit_count||5;$('sections').value=x.sections_per_unit||4;$('capacity').value=x.capacity_per_section||10;$('unitPrefix').value=x.unit_prefix||'Box';$('sectionPrefix').value=x.section_prefix||'Section';if(state.event?.status==='archived')$('storageForm').querySelectorAll('input,button').forEach(el=>el.disabled=true);const z=r.summary||{};$('storageStats').innerHTML=[['Tracked',z.tracked],['Currently stored',z.currentlyStored],['Returned',z.returned],['Total capacity',z.capacity]].map(([l,v])=>`<div class="stat"><strong>${Number(v||0)}</strong><span>${l}</span></div>`).join('');if(state.event?.status==='archived')$('storageMessage').innerHTML=showNotice('Archived event: storage settings are read-only. Historical proof records remain visible.');$('storageRecords').innerHTML=(r.records||[]).map(a=>`<div class="list-item"><strong>${safe(a.full_name||'Guest not found')}</strong><div class="sub">${safe(a.pass_code||'')} · Box ${safe(a.box_number)} / Section ${safe(a.section_letter)} / Slot ${safe(a.slot_number||'—')}</div><div class="sub">Stored: ${safe(a.deposited_at||'Not stored')} · Returned: ${safe(a.returned_at||'Pending')}</div></div>`).join('')||'<div class="empty">No proof records for this event.</div>';}catch(e){$('storageMessage').innerHTML=showNotice(e.message,'error');}};
+    $('refreshStorage').addEventListener('click',refresh);$('storageForm').addEventListener('submit',async e=>{e.preventDefault();try{const r=await adminCall('save_storage_config',{unit_count:Number($('units').value),sections_per_unit:Number($('sections').value),capacity_per_section:Number($('capacity').value),unit_prefix:$('unitPrefix').value,section_prefix:$('sectionPrefix').value});$('storageMessage').innerHTML=showNotice(r.message,'good');await refresh();}catch(err){$('storageMessage').innerHTML=showNotice(err.message,'error');}});await refresh();
+  }
+  async function renderAnnouncements(host) {
+    const archived=state.event?.status==='archived';
+    host.innerHTML=`${archived?showNotice('This event is archived. Announcement history is available, but new announcements are disabled.','error'):''}<section class="card"><h2>Event announcement</h2><p class="muted">Send only to users who started this event, or approved guests of this event.</p><form id="announceForm"><div class="field"><label>Audience</label><select id="announceAudience" ${archived?'disabled':''}><option value="registered_guests">Approved guests for this event</option><option value="all_started">Users who opened this event in EventHub</option></select></div><div class="field"><label>Message</label><textarea id="announceText" maxlength="3500" required placeholder="Write your event announcement…" ${archived?'disabled':''}></textarea></div><div class="actions"><button class="btn" type="button" id="previewAnnouncement" ${archived?'disabled':''}>Preview recipients</button><button class="btn primary" type="submit" ${archived?'disabled':''}>Send announcement</button></div></form><div id="announceMessage"></div></section><section class="section"><div class="section-title"><h2>Announcement history</h2><button class="btn small" id="refreshAnn">Refresh</button></div><div id="announceHistory" class="list"></div></section>`;
+    const preview=async()=>{const r=await adminCall('announcement_preview',{audience:$('announceAudience').value,message:$('announceText').value});$('announceMessage').innerHTML=showNotice(`${r.recipient_count} recipient(s) will receive this announcement for ${r.event.name}.`,'good');};
+    $('previewAnnouncement').addEventListener('click',()=>preview().catch(e=>toast(e.message,true)));
+    $('announceForm').addEventListener('submit',async e=>{e.preventDefault();if(!confirmLocalized('Send this announcement to the selected VK audience for this event?'))return;try{const r=await adminCall('announcement_send',{audience:$('announceAudience').value,message:$('announceText').value});let remaining=Number(r.remaining||0),sent=0,failed=0;$('announceMessage').innerHTML=showNotice(r.message,'good');$('announceText').value='';while(remaining>0){const batch=await adminCall('announcement_process',{announcement_id:r.announcement_id});sent+=Number(batch.sent||0);failed+=Number(batch.failed||0);if(Number(batch.sent||0)+Number(batch.failed||0)===0)break;remaining=Number(batch.remaining||0);$('announceMessage').innerHTML=showNotice('VK delivery progress: '+sent+' sent in this session, '+failed+' failed, '+remaining+' remaining.','good');} $('announceMessage').innerHTML=showNotice('Announcement finished. '+sent+' sent in this session; '+failed+' failed; '+remaining+' remaining.','good');await historyLoad();}catch(err){$('announceMessage').innerHTML=showNotice(err.message,'error');}});
+    const historyLoad=async()=>{try{const r=await adminCall('announcement_history');$('announceHistory').innerHTML=(r.announcements||[]).map(a=>`<article class="list-item"><strong>Announcement #${a.id}</strong><div class="sub">${safe(a.created_at)} · ${Number(a.recipients||0)} recipients · ${Number(a.failed||0)} failed</div><p>${safe(a.message||'[Attachment]')}</p><div class="actions"><button class="btn small" data-unsend="${a.id}" ${archived?'disabled':''}>Try unsend</button><button class="btn danger small" data-delete-ann="${a.id}" ${archived?'disabled':''}>Delete history</button></div></article>`).join('')||'<div class="empty">No announcements for this event.</div>';document.querySelectorAll('[data-unsend]').forEach(b=>b.addEventListener('click',async()=>{if(!confirmLocalized('Attempt to delete this delivered message from recipients’ VK chats?'))return;try{let remaining=1,totalDeleted=0,totalFailed=0;while(remaining>0){const r=await adminCall('announcement_unsend',{announcement_id:Number(b.dataset.unsend)});totalDeleted+=Number(r.deleted||0);totalFailed+=Number(r.failed||0);remaining=Number(r.remaining||0);if(Number(r.deleted||0)+Number(r.failed||0)===0)break;}toast('Unsend complete: '+totalDeleted+' deleted; '+totalFailed+' failed; '+remaining+' remaining.');await historyLoad();}catch(e){toast(e.message,true);}}));document.querySelectorAll('[data-delete-ann]').forEach(b=>b.addEventListener('click',async()=>{if(!confirmLocalized('Delete this local announcement history? Sent messages will not be removed.'))return;try{const r=await adminCall('announcement_delete',{announcement_id:Number(b.dataset.deleteAnn)});toast(r.message);await historyLoad();}catch(e){toast(e.message,true);}}));}catch(e){$('announceHistory').innerHTML=showNotice(e.message,'error');}};
+    $('refreshAnn').addEventListener('click',historyLoad);await historyLoad();
+  }
+  function schemaEditor(schema) {
+    return `<div id="schemaBuilder"><div id="schemaEditor">${schema.map((f,i)=>schemaFieldEditor(f,i)).join('')}</div><div class="actions"><button class="btn small" type="button" id="addSchemaField">＋ Add form field</button></div><p class="footnote">Use unique field keys. Keep <b>full_name</b> required. Supported types: text, tel, email, number, date, textarea, select, checkbox.</p></div>`;
+  }
+  function schemaFieldEditor(f,i) {
+    return `<div class="schema-field" data-schema-index="${i}"><div class="row"><strong>Field ${i+1}</strong><button type="button" class="btn danger small" data-remove-schema="${i}" ${f.key==='full_name'?'disabled title="The full name field is required"':''}>Remove</button></div><div class="inline-fields"><div class="field"><label>Key (unique)</label><input data-schema-key value="${safe(f.key||'field_'+(i+1))}" maxlength="40" ${f.key==='full_name'?'disabled title="The full_name key is required"':''}></div><div class="field"><label>Label</label><input data-schema-label value="${safe(f.label||'')}" maxlength="80"></div><div class="field"><label>Type</label><select data-schema-type ${f.key==='full_name'?'disabled':''}>${(f.key==='full_name'?['text','textarea']:['text','tel','email','number','date','textarea','select','checkbox']).map(t=>`<option ${f.type===t?'selected':''}>${t}</option>`).join('')}</select></div><div class="field"><label>Required</label><select data-schema-required ${f.key==='full_name'?'disabled':''}><option value="false" ${!f.required?'selected':''}>No</option><option value="true" ${f.required?'selected':''}>Yes</option></select></div></div><div class="field"><label>Options (for select, comma separated)</label><input data-schema-options value="${safe((Array.isArray(f.options)?f.options:[]).join(', '))}"></div></div>`;
+  }
+  function readSchemaEditor() {
+    const fields=[...document.querySelectorAll('[data-schema-index]')].map(el=>({
+      key:el.querySelector('[data-schema-key]').value.trim(),label:el.querySelector('[data-schema-label]').value.trim(),type:el.querySelector('[data-schema-type]').value,required:el.querySelector('[data-schema-required]').value==='true',options:el.querySelector('[data-schema-options]').value.split(',').map(x=>x.trim()).filter(Boolean)
+    }));
+    if(fields.length<1||fields.length>30)throw new Error('A registration form must contain between 1 and 30 fields.');
+    const keys=new Set();for(const f of fields){if(!/^[a-zA-Z][a-zA-Z0-9_]{0,39}$/.test(f.key))throw new Error('Each field needs a valid key beginning with a letter.');if(keys.has(f.key))throw new Error(`Duplicate field key: ${f.key}`);keys.add(f.key);if(!f.label)throw new Error('Every form field needs a label.');if(f.type==='select'&&f.options.length===0)throw new Error(`Add at least one option for ${f.label}.`);}
+    const full=fields.find(f=>f.key==='full_name');if(!full)throw new Error('The registration form must contain a full_name field.');if(!['text','textarea'].includes(full.type))throw new Error('The full_name field must use text or textarea.');full.required=true;return fields;
+  }
+  async function renderSettings(host) {
+    const ev=state.event||{};const theme=parseJSON(ev.theme_json,{});const schema=parseJSON(ev.registration_schema,defaultSchema());
+    const bindBackupDownload=()=>{$('downloadEventBackup')?.addEventListener('click',async()=>{const btn=$('downloadEventBackup');const msg=$('backupMessage');btn.disabled=true;btn.textContent='Preparing backup…';msg.textContent='';try{const backup=await post('/api/admin',{action:'backup',event_id:state.eventId},90000);const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=backup.file_name||('eventhub-backup-'+state.eventId+'.json');document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);msg.innerHTML=showNotice('Backup downloaded. SHA-256: '+safe(backup.sha256||'not supplied')+'. Keep this file private.','good');toast('Event backup downloaded');}catch(err){msg.innerHTML=showNotice(err.message,'error');}finally{btn.disabled=false;btn.textContent='Download full event backup';}});};
+    const bindBackupStatus=()=>{
+      const load=async()=>{
+        const host=$('backupStatusMessage');if(!host)return;
+        host.textContent='Checking automatic recovery and manual backup history…';
+        try{
+          const r=await adminCall('backup_status');
+          const a=r.automatic_recovery||{};
+          const logs=Array.isArray(r.manual_download_log)?r.manual_download_log:[];
+          const latest=logs[0];
+          host.innerHTML='<div class="notice good"><strong>'+safe(a.provider||'Automatic database recovery')+' · '+(a.enabled?'Enabled':'Status unavailable')+'</strong><br>Retention: '+(a.retention_days?safe(a.retention_days+' days'):safe(a.plan||'Not verified'))+'<br>Scope: '+safe(a.scope||'')+'</div>'+
+            '<p class="muted">'+safe(a.recovery_note||'')+'</p>'+
+            '<h3>Manual backup download history</h3>'+
+            (latest?'<p class="muted">Latest download logged: '+safe(latest.created_at)+' · '+safe(latest.file_name)+'</p>':'<p class="muted">No manual backup downloads have been logged for this event yet.</p>')+
+            '<p class="footnote">This history records when a manual JSON backup was generated; it does not store that downloaded file in the cloud. Keep the downloaded file in a secure location.</p>';
+        }catch(e){host.innerHTML=showNotice(e.message,'error');}
+      };
+      $('refreshBackupStatus')?.addEventListener('click',load);
+      load();
+    };
+    if(ev.status==='archived') {
+      host.innerHTML=`<section class="card"><div class="section-title"><h2>Archived event settings</h2><span class="status archived">Read only</span></div><p>This event is archived. Its details and registration form are preserved, but editing and new event operations are disabled.</p><h3>${safe(ev.name)}</h3><p>${safe(ev.description||'')}</p><p class="muted">${safe(ev.event_date||'Date not set')} · ${safe(ev.event_time||'Time not set')} · ${safe(ev.venue||'Venue not set')}</p><div class="actions"><button class="btn" id="downloadEventBackup">Download full event backup</button><button class="btn" id="backToEvents">Back to all events</button></div><div id="backupMessage"></div></section><section class="section card"><h2>Automatic database recovery</h2><p class="muted">Cloudflare D1 Time Travel protects the entire EventHub database. A restore rewinds every event, not just this archived event, so it must be handled carefully.</p><div id="backupStatusMessage"></div><button class="btn small" id="refreshBackupStatus">Refresh backup status</button></section>`;
+      bindBackupDownload(); bindBackupStatus(); $('backToEvents').addEventListener('click',clearEvent); return;
+    }
+    host.innerHTML=`<section class="card"><div class="section-title"><h2>Event details and branding</h2><span class="status ${safe(ev.status||'active')}">${safe(ev.status||'active')} · Event #${state.eventId}</span></div><form id="settingsForm"><div class="field"><label>Event name</label><input id="editName" required maxlength="120" value="${safe(ev.name)}"></div><div class="field"><label>Description</label><textarea id="editDescription" maxlength="1000">${safe(ev.description||'')}</textarea></div><div class="inline-fields"><div class="field"><label>Date</label><input id="editDate" type="date" value="${safe((ev.event_date||'').slice(0,10))}"></div><div class="field"><label>Time</label><input id="editTime" value="${safe(ev.event_time||'')}"></div></div><div class="field"><label>Venue</label><input id="editVenue" maxlength="200" value="${safe(ev.venue||'')}"></div><div class="inline-fields"><label class="check"><input id="editRegistrationOpen" type="checkbox" ${ev.registration_open?'checked':''}> Registration open</label><label class="check"><input id="editFoodEnabled" type="checkbox" ${ev.food_enabled?'checked':''}> Food collection enabled</label></div><div class="field"><label>Google Sheets Web App URL (optional)</label><input id="editSheetsUrl" type="url" maxlength="500" value="${safe(ev.sheets_url||'')}" placeholder="https://script.google.com/macros/s/.../exec"></div><div class="inline-fields"><div class="field"><label>Primary colour (HEX)</label><input id="editPrimary" type="text" inputmode="text" maxlength="7" pattern="#[0-9a-fA-F]{6}" value="${safe(theme.primary||'#25113b')}"></div><div class="field"><label>Accent colour (HEX)</label><input id="editAccent" type="text" inputmode="text" maxlength="7" pattern="#[0-9a-fA-F]{6}" value="${safe(theme.accent||'#ff7518')}"></div><div class="field"><label>Background colour (HEX)</label><input id="editBackground" type="text" inputmode="text" maxlength="7" pattern="#[0-9a-fA-F]{6}" value="${safe(theme.background||'#171321')}"></div><div class="field"><label>Gold / highlight (HEX)</label><input id="editGold" type="text" inputmode="text" maxlength="7" pattern="#[0-9a-fA-F]{6}" value="${safe(theme.gold||'#ffd166')}"></div></div><button class="btn primary" type="submit">Save event settings</button></form><div id="settingsMessage"></div></section><section class="section card"><h2>Registration form builder</h2><p class="muted">This form belongs to this event only. Future events can use a different form without editing bot.py.</p>${schemaEditor(Array.isArray(schema)&&schema.length?schema:defaultSchema())}<div class="actions"><button class="btn primary" id="saveSchema">Save registration form</button></div><div id="schemaMessage"></div></section><section class="section card"><h2>Event lifecycle</h2><p class="muted">Draft events are private to admins until activated. Activating makes the event available to guests and enables registration and scanning. Archiving closes an active event while retaining its history.</p><div class="actions">${ev.status==='draft'?'<button class="btn success" id="activateEvent">Activate event</button>':''}${ev.status==='active'?'<button class="btn danger" id="archiveEvent">Archive this event</button>':''}<button class="btn" id="backToEvents">Back to all events</button></div><div id="archiveMessage"></div></section><section class="section card"><h2>Event data backup</h2><p class="muted">Download a complete JSON backup of this event, including registrations, QR tokens, attendance, checkpoints, proof-storage records, volunteer assignments, announcements, Sheets sync history and audit logs. The file contains personal information and pass tokens; store it securely.</p><div class="actions"><button class="btn" id="downloadEventBackup">Download full event backup</button></div><div id="backupMessage"></div></section><section class="section card"><h2>Automatic database recovery</h2><div id="backupStatusMessage">Checking backup protection…</div><button class="btn small" id="refreshBackupStatus">Refresh backup status</button><p class="footnote">A Time Travel restore rewinds the entire EventHub database, including all events. It is destructive and must only be done after recording the current bookmark and confirming the target time.</p></section>`;
+    $('settingsForm').addEventListener('submit',async e=>{e.preventDefault();try{const r=await adminCall('update_event',{name:$('editName').value,description:$('editDescription').value,event_date:$('editDate').value,event_time:$('editTime').value,venue:$('editVenue').value,registration_open:$('editRegistrationOpen').checked,food_enabled:$('editFoodEnabled').checked,sheets_url:$('editSheetsUrl').value,theme:{primary:$('editPrimary').value,accent:$('editAccent').value,background:$('editBackground').value,gold:$('editGold').value},registration_schema:Array.isArray(schema)?schema:defaultSchema()});$('settingsMessage').innerHTML=showNotice(r.message,'good');const d=await post('/api/event_details',{event_id:state.eventId});state.event=d.event;eventTheme(state.event);updateAppBranding();const oldHero=main.querySelector('.hero');if(oldHero){oldHero.outerHTML=eventHero();}toast('Event settings saved');}catch(err){$('settingsMessage').innerHTML=showNotice(err.message,'error');}});
+    if(host.dataset.schemaAddBound!=='1'){host.dataset.schemaAddBound='1';host.addEventListener('click',e=>{if(!e.target.closest('#addSchemaField'))return;try{const arr=readSchemaEditor();if(arr.length>=30)throw new Error('A registration form can have at most 30 fields.');arr.push({key:'custom_'+(arr.length+1),label:'New field',type:'text',required:false,options:[]});$('schemaBuilder').outerHTML=schemaEditor(arr);bindSchemaEditorButtons();}catch(err){toast(err.message,true);}});}
+    bindSchemaEditorButtons();
+    $('saveSchema').addEventListener('click',async()=>{try{const arr=readSchemaEditor();const r=await adminCall('update_event',{name:ev.name,description:ev.description||'',event_date:ev.event_date||'',event_time:ev.event_time||'',venue:ev.venue||'',theme,registration_schema:arr});$('schemaMessage').innerHTML=showNotice(r.message,'good');const d=await post('/api/event_details',{event_id:state.eventId});state.event=d.event;toast('Registration form saved');}catch(e){$('schemaMessage').innerHTML=showNotice(e.message,'error');}});
+    $('activateEvent')?.addEventListener('click',async()=>{if(!confirmLocalized(`Activate ${ev.name}? It will become visible to guests and registration/scanning will open.`))return;const btn=$('activateEvent');btn.disabled=true;try{const r=await adminCall('activate_event');$('archiveMessage').innerHTML=showNotice(r.message||'Event activated.','good');await loadRole();await loadEvent();toast('Event activated');}catch(e){$('archiveMessage').innerHTML=showNotice(e.message,'error');btn.disabled=false;}});
+    $('archiveEvent')?.addEventListener('click',async()=>{if(!confirmLocalized(`Archive ${ev.name}? New registrations and scans will stop.`))return;const btn=$('archiveEvent');btn.disabled=true;try{const r=await post('/api/admin',{action:'archive_event',event_id:state.eventId});$('archiveMessage').innerHTML=showNotice(r.message,'good');await loadRole();setTimeout(clearEvent,800);}catch(e){$('archiveMessage').innerHTML=showNotice(e.message,'error');btn.disabled=false;}});
+    bindBackupDownload();
+    bindBackupStatus();
+    $('backToEvents').addEventListener('click',clearEvent);
+  }
+  function bindSchemaEditorButtons(){document.querySelectorAll('[data-remove-schema]').forEach(b=>{if(b.dataset.bound==='1')return;b.dataset.bound='1';b.addEventListener('click',()=>{const row=b.closest('[data-schema-index]');row?.remove();renumberSchema();});});}
+  function renumberSchema(){document.querySelectorAll('[data-schema-index]').forEach((el,i)=>{el.dataset.schemaIndex=i;const t=el.querySelector('.row strong');if(t)t.textContent='Field '+(i+1);const b=el.querySelector('[data-remove-schema]');if(b)b.dataset.removeSchema=i;});}
+  async function renderStaff(host) {
+    host.innerHTML=`<div class="section-title"><h2>Event volunteer access</h2><button class="btn small" id="refreshStaff">Refresh</button></div><section class="card"><form id="addVolunteer"><div class="inline-fields"><div class="field"><label>VK user ID</label><input id="volunteerId" inputmode="numeric" placeholder="VK numeric user ID" required></div><div class="field"><label>Event role</label><select id="volunteerRole"><option value="scanner">Scanner (all event actions)</option><option value="entry">Entry + proof intake</option><option value="food">Food collection</option><option value="proof">Proof return + exit</option><option value="checkpoint">Assigned checkpoints</option><option value="event_lead">Event lead</option></select></div></div><button class="btn primary" type="submit">Assign to this event</button></form><p class="footnote">Assignments apply only to <b>${safe(state.event?.name)}</b>. They do not grant access to other events or to BRS.</p></section><section class="section card"><div class="section-title"><h3>Search and filter volunteers</h3><span class="muted" id="volunteerCount">0 volunteers</span></div><div class="volunteer-filters"><div class="field"><label for="volunteerSearch">Search by name or VK ID</label><input id="volunteerSearch" placeholder="Search volunteers…"></div><div class="field"><label for="volunteerRoleFilter">Filter by role</label><select id="volunteerRoleFilter"><option value="all">All roles</option><option value="scanner">Scanner</option><option value="entry">Entry</option><option value="food">Food</option><option value="proof">Proof</option><option value="checkpoint">Checkpoint</option><option value="event_lead">Event lead</option></select></div></div><div id="volunteerList" class="list"></div></section><section class="section card volunteer-activity"><div class="section-title"><h3>Recent volunteer activity</h3><span class="muted">This event only</span></div><div id="volunteerActivity" class="list"><div class="empty">Loading activity…</div></div></section><section class="section card"><h3>Checkpoint assignments</h3><form id="checkpointAssignment"><div class="field"><label>Checkpoint</label><select id="checkpointId" required></select></div><div class="field"><label>Volunteer VK user ID</label><input id="checkpointVolunteerId" required></div><button class="btn" type="submit">Assign volunteer to checkpoint</button></form><div id="checkpointAssignments" class="list"></div></section>`;
+    let volunteerRows=[];
+    const drawVolunteers=()=>{
+      const query=$('volunteerSearch').value.trim().toLocaleLowerCase();
+      const role=$('volunteerRoleFilter').value;
+      const rows=volunteerRows.filter(x=>{
+        const name=String(x.display_name||'').toLocaleLowerCase(),id=String(x.vk_user_id||'');
+        return (role==='all'||x.role===role)&&(!query||name.includes(query)||id.includes(query));
+      });
+      $('volunteerCount').textContent=rows.length+' / '+volunteerRows.length+' volunteers';
+      $('volunteerList').innerHTML=rows.map(x=>{
+        const seen=Date.parse(x.last_seen_at||''),recent=Number.isFinite(seen)&&Date.now()-seen<15*60*1000;
+        const presence=recent?'Recently seen':'Last seen';
+        const when=x.last_seen_at?new Date(x.last_seen_at).toLocaleString():'Not recorded';
+        return `<article class="list-item"><div class="row"><div><strong>${safe(x.display_name||'VK user '+x.vk_user_id)}</strong><div class="sub">VK ID: ${safe(x.vk_user_id)} · ${safe(x.role)} · Assigned ${safe(x.assigned_at||'')}</div><div class="sub">${presence}: ${safe(when)}</div></div><span class="volunteer-presence ${recent?'':'stale'}">${recent?'● Recently active':'○ Not recently seen'}</span></div><div class="actions"><button class="btn danger small" data-remove-event-vol="${safe(x.vk_user_id)}">Remove</button></div></article>`;
+      }).join('')||'<div class="empty">No volunteers match this search and role filter.</div>';
+      document.querySelectorAll('[data-remove-event-vol]').forEach(b=>b.addEventListener('click',async()=>{
+        if(!confirmLocalized('Remove this volunteer from the selected event?'))return;
+        b.disabled=true;
+        try{const r=await adminCall('remove_event_volunteer',{vk_user_id:b.dataset.removeEventVol});toast(r.message);await load();}
+        catch(e){toast(e.message,true);b.disabled=false;}
+      }));
+    };
+    const load=async()=>{
+      try{
+        const [v,c,a]=await Promise.all([adminCall('event_volunteers'),adminCall('checkpoints'),adminCall('audit')]);
+        volunteerRows=v.volunteers||[];
+        drawVolunteers();
+        $('checkpointId').innerHTML=(c.checkpoints||[]).map(x=>`<option value="${Number(x.id)}">${safe(x.name)} · ${safe(x.checkpoint_type)}</option>`).join('');
+        const assignedIds=new Set(volunteerRows.map(x=>String(x.vk_user_id)));
+        const activity=(a.logs||[]).filter(x=>assignedIds.has(String(x.actor_id))).slice(0,20);
+        $('volunteerActivity').innerHTML=activity.map(x=>{
+          let details={};try{details=JSON.parse(x.details_json||'{}')}catch(_){}
+          return `<article class="list-item"><strong>${safe(String(x.action||'Activity').replaceAll('_',' '))}</strong><div class="sub">VK ID: ${safe(x.actor_id)} · ${safe(x.target_type||'')} ${safe(x.target_id||'')}</div><div class="sub">${safe(new Date(x.created_at).toLocaleString())}${details.checkpoint_name?' · '+safe(details.checkpoint_name):''}</div></article>`;
+        }).join('')||'<div class="empty">No recorded volunteer activity for this event yet.</div>';
+        const team=await adminCall('checkpoint_team');
+        $('checkpointAssignments').innerHTML=(team.assignments||[]).map(x=>`<div class="list-item row"><div><strong>${safe(x.vk_user_id)}</strong><div class="sub">${safe(x.checkpoint_name)}</div></div><button class="btn danger small" data-remove-checkpoint="${Number(x.checkpoint_id)}|${safe(x.vk_user_id)}">Remove</button></div>`).join('')||'<div class="empty">No checkpoint-specific assignments.</div>';
+        document.querySelectorAll('[data-remove-checkpoint]').forEach(b=>b.addEventListener('click',async()=>{
+          const [checkpoint_id,vk_user_id]=b.dataset.removeCheckpoint.split('|');
+          try{const r=await adminCall('remove_checkpoint_volunteer',{checkpoint_id:Number(checkpoint_id),vk_user_id});toast(r.message);await load();}
+          catch(e){toast(e.message,true);}
+        }));
+      }catch(e){$('volunteerList').innerHTML=showNotice(e.message,'error');$('volunteerActivity').innerHTML=showNotice(e.message,'error');}
+    };
+    $('refreshStaff').addEventListener('click',load);
+    $('volunteerSearch').addEventListener('input',drawVolunteers);
+    $('volunteerRoleFilter').addEventListener('change',drawVolunteers);
+    $('addVolunteer').addEventListener('submit',async e=>{e.preventDefault();const submit=e.currentTarget.querySelector('button[type="submit"]');submit.disabled=true;try{const r=await adminCall('assign_event_volunteer',{vk_user_id:$('volunteerId').value.trim(),role:$('volunteerRole').value});toast(r.message);$('volunteerId').value='';await load();}catch(err){toast(err.message,true);}finally{submit.disabled=false;}});
+    $('checkpointAssignment').addEventListener('submit',async e=>{e.preventDefault();const submit=e.currentTarget.querySelector('button[type="submit"]');submit.disabled=true;try{const r=await adminCall('assign_checkpoint_volunteer',{checkpoint_id:Number($('checkpointId').value),vk_user_id:$('checkpointVolunteerId').value.trim()});toast(r.message);$('checkpointVolunteerId').value='';await load();}catch(err){toast(err.message,true);}finally{submit.disabled=false;}});
+    await load();
+  }
+  async function refresh() { try{await stopScanner();await loadRole();if(state.eventId)await loadEvent();else renderEventList();toast('Updated');}catch(e){toast(e.message,true);} }
+  window.addEventListener('online',()=>{renderOfflineQueue();if(state.page==='scanner')toast('Connection restored. Verify queued scans one by one before recording actions.');});
+  window.addEventListener('offline',()=>{renderOfflineQueue();if(state.page==='scanner')toast('Connection lost. New QR captures will be saved on this device for later verification.',true);});
+  $('refreshBtn').addEventListener('click',refresh);$('backBtn').addEventListener('click',clearEvent);
+  window.addEventListener('popstate',async()=>{
+    const nextId=Number(new URLSearchParams(location.search).get('event_id')||0);
+    await stopScanner(); state.eventId=Number.isSafeInteger(nextId)&&nextId>0?nextId:0; state.event=null; state.guest=null; state.pass=null;
+    try { await loadRole(); if(state.eventId){const permitted=(state.role==='admin'?state.workspaces:state.activeEvents).some(e=>Number(e.id)===state.eventId); if(permitted) await loadEvent(); else {state.eventId=0;eventTheme(null);renderEventList();}} else {eventTheme(null);renderEventList();} } catch(err){main.innerHTML=showNotice(err.message,'error');}
+  });
+  initLanguageSupport();
+  boot();
+})();
+</script>
+</body>
+</html>

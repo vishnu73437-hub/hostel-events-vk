@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "eventhub-vk",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-17",
+  "triggers": { "crons": ["*/5 * * * *"] },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "eventhub-db",
+      "database_id": "87928d1e-9bf6-49ee-9082-0631f9933333"
+    }
+  ],
+  "vars": {
+    "VK_APP_ID": "54902627",
+    "VK_ADMIN_IDS": "716722419",
+    "EVENT_NAME": "EventHub",
+    "EVENT_DATE": "Set event date",
+    "EVENT_VENUE": "Set event venue",
+    "FOOD_COLLECTION_ENABLED": "true",
+    "DEV_MODE": "false"
+  }
+}
