@@ -14,7 +14,7 @@ TABLE_ORDER = [
     "events", "app_users", "guests", "pending_registrations", "event_app_users",
     "event_volunteers", "event_checkpoints", "event_checkpoint_assignments", "scans",
     "event_checkpoint_scans", "event_storage_configs", "proof_storage", "proof_not_collected",
-    "event_exit_records", "pass_design", "sheets_outbox", "event_announcements",
+    "event_exit_records", "pass_design", "sheets_outbox", "event_announcements", "event_notices",
     "announcement_deliveries", "audit_log", "event_backup_snapshots", "event_app_settings",
 ]
 
@@ -28,8 +28,15 @@ def make_backup():
     ).lastrowid
     event = dict(zip([x[1] for x in db.execute("PRAGMA table_info(events)")],
                      db.execute("SELECT * FROM events WHERE id=?", (event_id,)).fetchone()))
+    notice_id = db.execute(
+        "INSERT INTO event_notices(event_id,title,message,created_by,created_at) VALUES(?,?,?,?,?)",
+        (event_id, "Test notice", "Welcome, don't forget your pass", "vk-admin", "2026-11-17T10:00:00Z")
+    ).lastrowid
+    notice = dict(zip([x[1] for x in db.execute("PRAGMA table_info(event_notices)")],
+                      db.execute("SELECT * FROM event_notices WHERE id=?", (notice_id,)).fetchone()))
     tables = {table: [] for table in TABLE_ORDER}
     tables["events"] = [event]
+    tables["event_notices"] = [notice]
     backup = {
         "format": "eventhub-event-backup",
         "version": 1,
@@ -69,6 +76,7 @@ class BackupRestoreTests(unittest.TestCase):
             target.executescript(SCHEMA.read_text(encoding="utf-8"))
             target.executescript(sql_path.read_text(encoding="utf-8"))
             self.assertEqual(target.execute("SELECT name FROM events").fetchone()[0], "Backup Test Event")
+            self.assertEqual(target.execute("SELECT message FROM event_notices").fetchone()[0], "Welcome, don't forget your pass")
             target.close()
 
     def test_modified_backup_is_rejected(self):
