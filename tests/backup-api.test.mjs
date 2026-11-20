@@ -11,6 +11,7 @@ const event = {
   id: 7, name: "Backup Test Event", description: "Test", event_date: "2026-11-17",
   event_time: "18:00", venue: "Test Hall", theme_json: "{}", registration_schema: "[]",
   status: "active", active: 1, registration_open: 1, food_enabled: 1,
+  entry_enabled: 1, proof_storage_enabled: 1, exit_enabled: 1,
   timezone: "Europe/Moscow", sheets_url: "", created_by: userId,
   created_at: "2026-11-17T10:00:00.000Z", archived_at: null
 };
@@ -77,6 +78,8 @@ test("admin backup endpoint returns an event-scoped JSON backup with a verifiabl
   assert.equal(backup.format, "eventhub-event-backup");
   assert.equal(backup.event_id, event.id);
   assert.deepEqual(backup.tables.events, [event]);
+  assert.deepEqual(backup.tables.event_notices, []);
+  assert.ok(calls.some(sql => sql.includes("FROM event_notices")));
   assert.equal(backup.row_counts.events, 1);
   const payload = { ...backup };
   delete payload.sha256;
