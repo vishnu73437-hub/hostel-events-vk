@@ -420,6 +420,7 @@ async function adminApi(request, env) {
       ["pass_design","SELECT * FROM pass_design WHERE event_id=?",[eventId]],
       ["sheets_outbox","SELECT * FROM sheets_outbox WHERE event_id=? ORDER BY id",[eventId]],
       ["event_announcements","SELECT * FROM event_announcements WHERE event_id=? ORDER BY id",[eventId]],
+      ["event_notices","SELECT * FROM event_notices WHERE event_id=? ORDER BY id",[eventId]],
       ["announcement_deliveries","SELECT d.* FROM announcement_deliveries d JOIN event_announcements a ON a.id=d.announcement_id WHERE a.event_id=? ORDER BY d.id",[eventId]],
       ["audit_log","SELECT * FROM audit_log WHERE event_id=? ORDER BY id",[eventId]],
       ["event_backup_snapshots","SELECT * FROM event_backup_snapshots WHERE event_id=? ORDER BY id",[eventId]],
