@@ -12,10 +12,15 @@ required = {
     "event_volunteers", "event_checkpoints", "event_checkpoint_assignments", "scans",
     "event_checkpoint_scans", "event_storage_configs", "proof_storage",
     "proof_not_collected", "event_exit_records", "pass_design", "sheets_outbox",
-    "event_announcements", "announcement_deliveries", "audit_log", "event_backup_snapshots",
+    "event_announcements", "event_notices", "announcement_deliveries", "audit_log", "event_backup_snapshots",
     "event_app_settings"
 }
 assert required <= tables, f"Missing tables: {required - tables}"
+
+event_columns = {row[1]: row for row in db.execute("PRAGMA table_info(events)")}
+for flag in ("entry_enabled", "proof_storage_enabled", "exit_enabled"):
+    assert flag in event_columns, f"Missing event workflow flag: {flag}"
+    assert event_columns[flag][3] == 1 and event_columns[flag][4] == "1", f"{flag} must default to enabled"
 
 # Same VK user may participate in separate events, but not register twice in one event.
 event_a = db.execute("INSERT INTO events(name,created_at,status,active) VALUES('A','now','active',1)").lastrowid
