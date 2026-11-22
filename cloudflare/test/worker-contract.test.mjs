@@ -63,7 +63,7 @@ test("checkpoint scanning enforces active passes and unique checkpoint scans", (
   assert.ok(source.includes("status='approved' AND revoked_at IS NULL"));
   assert.ok(source.includes("event_checkpoint_assignments"));
   assert.ok(source.includes("event_checkpoint_scans"));
-  assert.ok(source.includes("UNIQUE(checkpoint_id,guest_id)") || source.includes("INSERT OR IGNORE"));
+  assert.ok(source.includes('String(e.message).toLowerCase().includes("unique")'));
 });
 
 test("offline queue does not present unverified captures as attendance", () => {
