@@ -1,0 +1,12 @@
+{
+  "name": "eventhub-cloudflare-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check worker.js && node --check qrcode.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
