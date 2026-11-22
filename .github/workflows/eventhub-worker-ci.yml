@@ -1,0 +1,37 @@
+name: EventHub Cloudflare Worker CI
+
+on:
+  push:
+    branches:
+      - main
+      - complete-eventhub-cloudflare-ci
+    paths:
+      - "cloudflare/**"
+      - ".github/workflows/eventhub-worker-ci.yml"
+  pull_request:
+    paths:
+      - "cloudflare/**"
+      - ".github/workflows/eventhub-worker-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  worker-contract:
+    name: Worker syntax and contract tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cloudflare
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check Worker module syntax
+        run: npm run check
+      - name: Run Worker contract tests
+        run: npm test
