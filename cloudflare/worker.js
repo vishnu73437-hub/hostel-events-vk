@@ -283,22 +283,22 @@ async function actionApi(request, env) {
   const proof=await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first();
   const noProof=await env.DB.prepare("SELECT * FROM proof_not_collected WHERE guest_id=?").bind(guest.id).first();
   const exited=await env.DB.prepare("SELECT 1 AS ok FROM event_exit_records WHERE guest_id=?").bind(guest.id).first();
-  if(exitEnabled&&exited) return fail("Exit is already recorded. No further event-day actions are allowed.",409);
+  if(exitEnabled&&exited) return rejectGuestAction(env,uid,eventId,guest,action,"Exit is already recorded. No further event-day actions are allowed.");
   if(action==="entry") {
-    if(guest.entry_used) return fail("Entry already recorded for this pass.",409);
+    if(guest.entry_used) return rejectGuestAction(env,uid,eventId,guest,action,"Entry already recorded for this pass.");
     const changed=await env.DB.prepare("UPDATE guests SET entry_used=1,entry_used_at=? WHERE id=? AND entry_used=0 AND status='approved'").bind(stamp,guest.id).run();
-    if(!changed.meta.changes) return fail("Entry was already recorded by another scanner.",409);
+    if(!changed.meta.changes) return rejectGuestAction(env,uid,eventId,guest,action,"Entry was already recorded by another scanner.");
   } else if(action==="food") {
-    if(entryEnabled&&!guest.entry_used) return fail("Entry must be recorded before food collection.",409);
-    if(guest.food_used) return fail("Food collection already recorded for this pass.",409);
-    if(proofEnabled&&!((proof && proof.deposited_at && !proof.returned_at) || noProof)) return fail("Record proof storage or confirm no proof was provided before food collection.",409);
+    if(entryEnabled&&!guest.entry_used) return rejectGuestAction(env,uid,eventId,guest,action,"Entry must be recorded before food collection.");
+    if(guest.food_used) return rejectGuestAction(env,uid,eventId,guest,action,"Food collection already recorded for this pass.");
+    if(proofEnabled&&!((proof && proof.deposited_at && !proof.returned_at) || noProof)) return rejectGuestAction(env,uid,eventId,guest,action,"Record proof storage or confirm no proof was provided before food collection.");
     const changed=await env.DB.prepare("UPDATE guests SET food_used=1,food_used_at=? WHERE id=? AND food_used=0 AND (?=0 OR entry_used=1) AND status='approved'").bind(stamp,guest.id,entryEnabled?1:0).run();
-    if(!changed.meta.changes) return fail("Food collection was already recorded by another scanner.",409);
+    if(!changed.meta.changes) return rejectGuestAction(env,uid,eventId,guest,action,"Food collection was already recorded by another scanner.");
   } else if(action==="proof_deposit") {
-    if(entryEnabled&&!guest.entry_used) return fail("Record entry before storing proof.",409);
-    if(noProof) return fail("No-proof status is already recorded for this guest.",409);
-    if(proof && proof.deposited_at && !proof.returned_at) return fail("Proof is already stored in the assigned slot.",409);
-    if(proof && proof.returned_at) return fail("Proof was already returned. Ask an admin for correction.",409);
+    if(entryEnabled&&!guest.entry_used) return rejectGuestAction(env,uid,eventId,guest,action,"Record entry before storing proof.");
+    if(noProof) return rejectGuestAction(env,uid,eventId,guest,action,"No-proof status is already recorded for this guest.");
+    if(proof && proof.deposited_at && !proof.returned_at) return rejectGuestAction(env,uid,eventId,guest,action,"Proof is already stored in the assigned slot.");
+    if(proof && proof.returned_at) return rejectGuestAction(env,uid,eventId,guest,action,"Proof was already returned. Ask an admin for correction.");
     const cfg=await env.DB.prepare("SELECT * FROM event_storage_configs WHERE event_id=?").bind(eventId).first();
     const units=Number(cfg?.unit_count||5), sections=Number(cfg?.sections_per_unit||4), capacity=Number(cfg?.capacity_per_section||10);
     const occupied=await env.DB.prepare("SELECT box_number,section_letter,slot_number FROM proof_storage WHERE event_id=? AND returned_at IS NULL AND slot_number IS NOT NULL").bind(eventId).all();
@@ -308,38 +308,40 @@ async function actionApi(request, env) {
       const section=String.fromCharCode(65+si);
       if(!used.has(box+":"+section+":"+n)){slot={box,section,n};break;}
     }
-    if(!slot) return fail("Proof storage is full. Ask an admin to review capacity.",409);
+    if(!slot) return rejectGuestAction(env,uid,eventId,guest,action,"Proof storage is full. Ask an admin to review capacity.");
     try {
       await env.DB.prepare("INSERT INTO proof_storage(event_id,guest_id,box_number,section_letter,slot_number,assigned_at,assigned_by,deposited_at,deposited_by) VALUES(?,?,?,?,?,?,?,?,?)")
         .bind(eventId,guest.id,slot.box,slot.section,slot.n,stamp,uid,stamp,uid).run();
     } catch(e) {
-      if(String(e.message).toLowerCase().includes("unique")) return fail("Another scanner assigned that storage slot first. Scan again.",409);
+      if(String(e.message).toLowerCase().includes("unique")) return rejectGuestAction(env,uid,eventId,guest,action,"Another scanner assigned that storage slot first. Scan again.");
       throw e;
     }
     await env.DB.prepare("DELETE FROM proof_not_collected WHERE guest_id=?").bind(guest.id).run();
   } else if(action==="proof_no_proof") {
-    if(entryEnabled&&!guest.entry_used) return fail("Record entry before accepting a guest without proof.",409);
-    if(proof) return fail("A proof-storage record already exists for this guest. Do not replace it with a no-proof record.",409);
-    if(noProof) return fail("No-proof confirmation was already recorded.",409);
+    if(entryEnabled&&!guest.entry_used) return rejectGuestAction(env,uid,eventId,guest,action,"Record entry before accepting a guest without proof.");
+    if(proof) return rejectGuestAction(env,uid,eventId,guest,action,"A proof-storage record already exists for this guest. Do not replace it with a no-proof record.");
+    if(noProof) return rejectGuestAction(env,uid,eventId,guest,action,"No-proof confirmation was already recorded.");
     try { await env.DB.prepare("INSERT INTO proof_not_collected(event_id,guest_id,recorded_at,recorded_by) VALUES(?,?,?,?)").bind(eventId,guest.id,stamp,uid).run(); }
-    catch(e) { if(String(e.message).toLowerCase().includes("unique")) return fail("No-proof confirmation was already recorded.",409); throw e; }
+    catch(e) { if(String(e.message).toLowerCase().includes("unique")) return rejectGuestAction(env,uid,eventId,guest,action,"No-proof confirmation was already recorded."); throw e; }
   } else if(action==="proof_return") {
-    if(!proof || !proof.deposited_at) return fail("No stored proof record found.",409);
-    if(proof.returned_at) return fail("Proof return was already recorded.",409);
+    if(!proof || !proof.deposited_at) return rejectGuestAction(env,uid,eventId,guest,action,"No stored proof record found.");
+    if(proof.returned_at) return rejectGuestAction(env,uid,eventId,guest,action,"Proof return was already recorded.");
     const changed=await env.DB.prepare("UPDATE proof_storage SET returned_at=?,returned_by=? WHERE guest_id=? AND returned_at IS NULL").bind(stamp,uid,guest.id).run();
-    if(!changed.meta.changes) return fail("Proof return was already recorded by another scanner.",409);
+    if(!changed.meta.changes) return rejectGuestAction(env,uid,eventId,guest,action,"Proof return was already recorded by another scanner.");
   } else if(action==="exit") {
-    if(entryEnabled&&!guest.entry_used) return fail("Guest entry has not been recorded.",409);
-    if(proofEnabled&&proof && proof.deposited_at && !proof.returned_at) return fail("Return the guest's stored proof before completing exit.",409);
-    if(proofEnabled&&!noProof&&!proof) return fail("Record proof storage or confirm no proof was provided before completing exit.",409);
+    if(entryEnabled&&!guest.entry_used) return rejectGuestAction(env,uid,eventId,guest,action,"Guest entry has not been recorded.");
+    if(proofEnabled&&proof && proof.deposited_at && !proof.returned_at) return rejectGuestAction(env,uid,eventId,guest,action,"Return the guest's stored proof before completing exit.");
+    if(proofEnabled&&!noProof&&!proof) return rejectGuestAction(env,uid,eventId,guest,action,"Record proof storage or confirm no proof was provided before completing exit.");
     try { await env.DB.prepare("INSERT INTO event_exit_records(event_id,guest_id,exit_at,exit_by) VALUES(?,?,?,?)").bind(eventId,guest.id,stamp,uid).run(); }
-    catch(e) { if(String(e.message).toLowerCase().includes("unique")) return fail("Exit was already recorded.",409); throw e; }
+    catch(e) { if(String(e.message).toLowerCase().includes("unique")) return rejectGuestAction(env,uid,eventId,guest,action,"Exit was already recorded."); throw e; }
   }
   await audit(env,uid,action.toUpperCase()+"_RECORDED","guest",guest.id,{stage:action},eventId);
   const snapshot=await guestSheetsPayload(env,eventId,guest.id);
   const currentStorage=await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first();
   const actionLog={action:"event_log",action_id:crypto.randomUUID(),event_id:eventId,guest_id:snapshot.guest_id,guest_serial_number:guest.id,guest_name:guest.full_name,pass_code:guest.pass_code,action_type:action.toUpperCase(),action_time_utc:stamp,storage_number:currentStorage?String(currentStorage.box_number):"",storage_label:currentStorage?("Box "+currentStorage.box_number+" / Section "+currentStorage.section_letter+" / Slot "+String(currentStorage.slot_number||"")):"",food_preference:guest.food_preference,volunteer_name:"VK user "+uid,volunteer_id:uid,details:action.replaceAll("_"," "),timezone:event.timezone||"Europe/Moscow",guest_snapshot:snapshot};
   await outbox(env,eventId,guest.id,"event_log",actionLog);
+  // Keep the Google Sheets guest row current after every successful action.
+  await queueGuestSheetsState(env,eventId,guest.id);
   const fresh=await env.DB.prepare("SELECT * FROM guests WHERE id=?").bind(guest.id).first();
   const currentProof=await env.DB.prepare("SELECT * FROM proof_storage WHERE guest_id=?").bind(guest.id).first();
   const currentNoProof=await env.DB.prepare("SELECT 1 AS ok FROM proof_not_collected WHERE guest_id=?").bind(guest.id).first();
@@ -380,13 +382,13 @@ async function checkpointScanApi(request, env) {
   const parts=token.split("|"); if(parts.length===2)token=parts[1];
   const guest=await env.DB.prepare("SELECT * FROM guests WHERE event_id=? AND (qr_token=? OR pass_code=?) AND status='approved' AND revoked_at IS NULL").bind(eventId,token,token).first();
   if(!guest) return fail("Active guest pass not found.",404);
-  if(entryRequired&&!guest.entry_used) return fail("Record guest entry before scanning an additional checkpoint.",409);
+  if(entryRequired&&!guest.entry_used) return rejectGuestAction(env,uid,eventId,guest,"checkpoint_scan","Record guest entry before scanning an additional checkpoint.");
   const exited=await env.DB.prepare("SELECT 1 AS ok FROM event_exit_records WHERE event_id=? AND guest_id=?").bind(eventId,guest.id).first();
-  if(exitTracked&&exited) return fail("Guest exit is already recorded. Additional checkpoint scans are disabled.",409);
+  if(exitTracked&&exited) return rejectGuestAction(env,uid,eventId,guest,"checkpoint_scan","Guest exit is already recorded. Additional checkpoint scans are disabled.");
   try {
     await env.DB.prepare("INSERT INTO event_checkpoint_scans(event_id,checkpoint_id,guest_id,volunteer_vk_user_id,scanned_at) VALUES(?,?,?,?,?)").bind(eventId,checkpointId,guest.id,uid,now()).run();
   } catch(e) {
-    if(String(e.message).toLowerCase().includes("unique")) return fail("This guest was already scanned at this checkpoint.",409);
+    if(String(e.message).toLowerCase().includes("unique")) return rejectGuestAction(env,uid,eventId,guest,"checkpoint_scan","This guest was already scanned at this checkpoint.");
     throw e;
   }
   await audit(env,uid,"CHECKPOINT_SCAN","guest",guest.id,{checkpoint_id:checkpointId,checkpoint_name:checkpoint.name},eventId);
@@ -399,6 +401,7 @@ async function checkpointScanApi(request, env) {
     details:"Additional checkpoint: "+checkpoint.name,timezone:(await env.DB.prepare("SELECT timezone FROM events WHERE id=?").bind(eventId).first())?.timezone||"Europe/Moscow",
     guest_snapshot:snapshot
   });
+  await queueGuestSheetsState(env,eventId,guest.id);
   return json({ok:true,message:checkpoint.name+" recorded for "+guest.full_name,guest:{id:guest.id,name:guest.full_name}});
 }
 
@@ -984,6 +987,20 @@ async function guestSheetsPayload(env,eventId,guestId) {
     proof_no_proof_volunteer_id:noProof?.recorded_by||"",exit_time:exit?.exit_at||"",exit_volunteer_id:exit?.exit_by||"",
     registered_at:guest.registered_at||guest.created_at||"",approved_at:guest.approved_at||"",event_name:event.name||("Event "+eventId)
   };
+}
+
+
+async function queueGuestSheetsState(env,eventId,guestId) {
+  const payload=await guestSheetsPayload(env,eventId,guestId);
+  await outbox(env,eventId,guestId,"upsert",{action:"upsert",...payload});
+}
+
+async function rejectGuestAction(env,uid,eventId,guest,action,message) {
+  try { await audit(env,uid,action.toUpperCase()+"_SKIPPED","guest",guest.id,{stage:action,reason:message},eventId); }
+  catch(error) { console.error("Rejected guest action audit failed:",String(error?.message||error).slice(0,200)); }
+  try { await queueGuestSheetsState(env,eventId,guest.id); }
+  catch(error) { console.error("Rejected guest action Sheets refresh failed:",String(error?.message||error).slice(0,200)); }
+  return fail(message,409);
 }
 
 async function syncSheetsBatch(env, limit=5, eventId=null) {

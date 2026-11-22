@@ -134,3 +134,28 @@ test("entry, food, proof and exit actions enforce prerequisites and single-use s
   assert.ok(handler.includes("event_exit_records"));
   assert.ok(handler.includes("UNIQUE") || handler.includes("already recorded"));
 });
+
+
+test("successful attendance actions refresh the current Google Sheets guest row", () => {
+  assert.match(source, /async function queueGuestSheetsState\(env,eventId,guestId\)/);
+  assert.match(source, /outbox\(env,eventId,guestId,"upsert"/);
+  const start = source.indexOf("async function actionApi");
+  const end = source.indexOf("async function checkpointsApi", start);
+  const handler = source.slice(start, end);
+  assert.ok(handler.includes("await queueGuestSheetsState(env,eventId,guest.id)"));
+});
+
+test("duplicate attendance attempts stay auditable and re-sync without duplicating actions", () => {
+  assert.match(source, /async function rejectGuestAction\(/);
+  assert.ok(source.includes('action.toUpperCase()+"_SKIPPED"'));
+  assert.ok(source.includes('return rejectGuestAction(env,uid,eventId,guest,action,"Entry already recorded for this pass.")'));
+  assert.ok(source.includes('return rejectGuestAction(env,uid,eventId,guest,action,"Food collection already recorded for this pass.")'));
+});
+
+test("checkpoint success and duplicate attempts keep the guest sheet row current", () => {
+  const start = source.indexOf("async function checkpointScanApi");
+  const end = source.indexOf("async function adminApi", start);
+  const handler = source.slice(start, end);
+  assert.ok(handler.includes("await queueGuestSheetsState(env,eventId,guest.id)"));
+  assert.ok(handler.includes('rejectGuestAction(env,uid,eventId,guest,"checkpoint_scan"'));
+});
