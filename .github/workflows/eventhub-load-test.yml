@@ -1,0 +1,33 @@
+name: EventHub 600-user edge smoke test
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "cloudflare/loadtest/**"
+      - ".github/workflows/eventhub-load-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  edge-smoke:
+    name: 600 concurrent read-only health clients
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run 600-user edge smoke test
+        env:
+          EVENTHUB_TARGET_URL: https://eventhub-vk.ksmu.workers.dev
+          VUS: "600"
+          ROUNDS: "3"
+          TIMEOUT_MS: "10000"
+          MAX_P95_MS: "5000"
+        run: node cloudflare/loadtest/health-smoke.mjs
