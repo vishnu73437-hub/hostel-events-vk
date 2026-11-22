@@ -1,0 +1,24 @@
+name = "eventhub-vk"
+main = "worker.js"
+compatibility_date = "2026-11-17"
+workers_dev = true
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "eventhub-db"
+database_id = "87928d1e-9bf6-49ee-9082-0631f9933333"
+
+[vars]
+DEV_MODE = "false"
+EVENT_NAME = "EventHub"
+EVENT_DATE = "Set event date"
+EVENT_VENUE = "Set event venue"
+FOOD_COLLECTION_ENABLED = "true"
+VK_ADMIN_IDS = "716722419"
+VK_APP_ID = "54902627"
+
+[triggers]
+crons = ["* * * * *"]
