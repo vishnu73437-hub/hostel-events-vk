@@ -1,38 +1,69 @@
-# VK EventHub
+# KSMU EventHub – VK Mini App
 
-VK Mini App migration of the DEEPOTSAV / Telegram EventHub workflows.
+KSMU EventHub is a VK Mini App for managing event registration, guest QR passes, volunteer roles, checkpoint scanning, event operations and Google Sheets synchronization.
 
-## Implemented in this repository
-- VK Mini Apps launch-parameter signature verification on the backend.
-- Guest registration with required full name, phone, residence, hostel and room.
-- Food preference is collected only when food collection is enabled.
-- Admin approval/rejection/revocation; QR token and pass code are created on approval.
-- Volunteer management with server-enforced role checks.
-- Checkpoints: entry, proof storage, food collection, exit and proof return.
-- Duplicate checkpoint protection (one scan per guest per checkpoint).
-- Central pass design settings; saving a design does not regenerate QR tokens or erase scan history.
-- Admin dashboard, registration counts, CSV export, audit log and a persistent Sheets outbox queue.
+## Current production architecture
 
-## Deploy
-1. Import this repository into Render as a Web Service (the included `render.yaml` is a Blueprint).
-2. Set `VK_APP_ID`, `VK_APP_SECRET`, and `VK_ADMIN_IDS` (comma-separated VK numeric user IDs).
-3. Set `EVENT_DATE`, `EVENT_VENUE`, and `FOOD_COLLECTION_ENABLED`.
-4. Set the VK Mini App launch URL to the deployed HTTPS URL.
-5. **Before accepting real registrations, configure persistent storage.** The free Render filesystem is ephemeral and can lose SQLite data on redeploy/restart. Use a persistent disk with `DATABASE_PATH` pointing into its mount path, or migrate to managed PostgreSQL.
-6. Keep `DEV_MODE=false` in production. Never put `VK_APP_SECRET` in frontend code.
+The live production runtime is **Cloudflare Workers + D1**, not the older Render/FastAPI prototype.
 
-## Local development
-```bash
-python -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
-DEV_MODE=true DEV_VK_USER_ID=1 VK_ADMIN_IDS=1 uvicorn app:app --reload
+| Component | Production configuration |
+|---|---|
+| Worker | `eventhub-vk` |
+| Worker URL | `https://eventhub-vk.ksmu.workers.dev` |
+| D1 database | `eventhub-db` |
+| D1 binding | `DB` |
+| Workers AI binding | `AI` |
+| VK Mini App ID | `54902627` |
+| Scheduled sync | Every minute |
+
+The current Worker source has been mirrored from the live Cloudflare deployment into [`cloudflare/`](cloudflare/). Treat the Worker deployed in Cloudflare as the production source of truth until a reviewed deployment process is agreed.
+
+## Repository layout
+
+- `cloudflare/worker.js` – deployed Worker backend and embedded Mini App frontend.
+- `cloudflare/qrcode.mjs` – QR code module imported by the Worker.
+- `cloudflare/wrangler.toml` – non-secret Worker, D1, AI and Cron configuration reference.
+- `cloudflare/test/` – automated source-contract tests.
+- `.github/workflows/eventhub-worker-ci.yml` – syntax checks and contract tests; no production deployment.
+- `app.py`, `render.yaml` – retained legacy Render/FastAPI prototype and migration reference. They are not the current production runtime.
+
+## Implemented production capabilities
+
+The current Cloudflare Worker includes VK launch parameter signature verification, event-scoped registration, admin approval/rejection, QR pass generation and revocation, event-specific volunteer roles, checkpoint assignments and scans, event operations, audit history, per-event Google Sheets outbox delivery, pass image downloads, bilingual UI strings, and manual event backup export.
+
+Google Sheets synchronization is configured as a recurring one-minute Worker Cron job. The outbox uses bounded batches and event-tab setup before guest upserts.
+
+## Important operational limitations
+
+- Offline QR captures are held in the local device queue. They are **not attendance records** until a volunteer reconnects, verifies each pass and records the action online.
+- VK announcement delivery requires the Worker secret `VK_GROUP_TOKEN`. That secret is not currently configured in the production Worker. Do not attempt announcement delivery until it is added securely in Cloudflare.
+- The event backup button creates a manual event-scoped JSON export containing personal data and QR pass tokens. Store downloaded files securely.
+- D1 Time Travel is the database-level recovery mechanism. A point-in-time restore rewinds the entire D1 database and must not be tested destructively against production.
+- Source-contract tests and CI do not replace Android/iOS/VK browser camera testing, multi-device acceptance testing or a production-scale load test.
+
+## Secrets
+
+Set secret values only in Cloudflare Worker secret bindings. Never commit them to GitHub or include them in CI output.
+
+- `VK_APP_SECRET` – required for VK launch signature verification.
+- `SHEETS_SYNC_SECRET` – required for the Sheets receiver.
+- `VK_GROUP_TOKEN` – required for VK group announcement delivery; currently absent from production bindings.
+
+The Worker also uses the non-secret `VK_APP_ID` and `VK_ADMIN_IDS` settings. The reference configuration is in `cloudflare/wrangler.toml`.
+
+## CI and local checks
+
+The GitHub Actions workflow checks Worker JavaScript syntax and runs contract tests using Node.js 22. It intentionally does **not** deploy to production.
+
+From the Cloudflare directory:
+
+```sh
+npm run check
+npm test
 ```
-Open http://localhost:8000. The development identity bypass is only for local testing and must remain disabled in production.
 
-## Important migration notes
-- Existing Telegram registrations are not automatically imported. Do not point this service at the Telegram SQLite database. Use a reviewed export/import after confirming the old data and schema.
-- Google Sheets delivery is not yet connected. Registration, approval and scan changes are kept in `sheets_outbox`; the queue is not deleted or silently reset.
-- Offline scanner queue/sync, a complete visual pass editor, multi-event creation UI, admin notifications and a production Sheets sync worker remain follow-up work.
-- The current VK app uses one active event record; the schema supports event-scoped guests and designs, but multi-event administration UI is not finished.
-- QR camera scanning depends on the VK in-app browser supporting `BarcodeDetector`; manual QR token entry remains available as a fallback.
+## Deployment safety
+
+Do not use the legacy Render files to deploy the current production system. Do not recreate, reset or migrate the production D1 database as part of a Worker code update. Before any manual production deployment, compare all existing Worker bindings, secrets, database association and Cron schedules with the live Cloudflare settings.
+
+All production changes must preserve existing events, guest registrations, QR tokens, scan history, volunteer assignments, audit records and settings.
