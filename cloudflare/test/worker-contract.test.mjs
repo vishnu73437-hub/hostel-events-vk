@@ -88,3 +88,49 @@ test("health route is public, while platform status is admin-only", () => {
   assert.match(source, /path === ["']\/api\/health["'] && method === ["']GET["']/);
   assert.match(source, /async function platformStatusApi\(request, env\)\s*\{\s*await requireAdmin\(request,env\)/);
 });
+
+test("each event volunteer role has its explicit action permissions", () => {
+  assert.match(source, /const roleActions = \{ entry:\["entry","proof_deposit","proof_no_proof"\], food:\["food"\], proof:\["proof_deposit","proof_no_proof","proof_return","exit"\], checkpoint:\[\], scanner:\[\.\.\.allowed\], event_lead:\[\.\.\.allowed\], admin:\[\.\.\.allowed\] \}/);
+  const scanStart = source.indexOf("async function checkpointScanApi");
+  const scanEnd = source.indexOf("async function adminApi", scanStart);
+  const scanHandler = source.slice(scanStart, scanEnd);
+  assert.ok(scanHandler.includes('["admin","scanner","event_lead","checkpoint"]'));
+  assert.ok(scanHandler.includes("event_checkpoint_assignments WHERE event_id=? AND checkpoint_id=? AND vk_user_id=?"));
+  const checkpointStart = source.indexOf("async function checkpointsApi");
+  const checkpointEnd = source.indexOf("async function checkpointScanApi", checkpointStart);
+  const checkpointHandler = source.slice(checkpointStart, checkpointEnd);
+  assert.ok(checkpointHandler.includes('["admin","scanner","event_lead","checkpoint"]'));
+  assert.ok(checkpointHandler.includes("event_checkpoint_assignments"));
+});
+
+test("registration-to-pass lifecycle enforces approval and active QR identity", () => {
+  const start = source.indexOf("async function registerApi");
+  const end = source.indexOf("async function myPassApi", start);
+  const registration = source.slice(start, end);
+  assert.ok(registration.includes("INSERT INTO pending_registrations"));
+  assert.ok(registration.includes("status='pending'"));
+  assert.ok(registration.includes("Enter a valid phone number"));
+  assert.ok(registration.includes("requestedResidence !== \"Hostel\""));
+  const adminApproval = source.slice(source.indexOf('if(action==="registration_decision")'), source.indexOf('if(action==="guest_action")'));
+  assert.ok(adminApproval.includes('["approve","reject"]'));
+  assert.ok(adminApproval.includes("INSERT INTO guests"));
+  assert.ok(adminApproval.includes("crypto.getRandomValues(new Uint8Array(32))"));
+  const passStart = source.indexOf("async function myPassApi");
+  const passEnd = source.indexOf("async function guestLookupApi", passStart);
+  const passHandler = source.slice(passStart, passEnd);
+  assert.ok(passHandler.includes('guest.status !== "approved" || guest.revoked_at'));
+  assert.ok(passHandler.includes('qr.addData("EVENTHUB:"'));
+});
+
+test("entry, food, proof and exit actions enforce prerequisites and single-use state", () => {
+  const start = source.indexOf("async function actionApi");
+  const end = source.indexOf("async function checkpointsApi", start);
+  const handler = source.slice(start, end);
+  assert.ok(handler.includes("guest.entry_used"));
+  assert.ok(handler.includes("guest.food_used"));
+  assert.ok(handler.includes("Proof storage is full"));
+  assert.ok(handler.includes("UPDATE guests SET entry_used=1"));
+  assert.ok(handler.includes("UPDATE guests SET food_used=1"));
+  assert.ok(handler.includes("event_exit_records"));
+  assert.ok(handler.includes("UNIQUE") || handler.includes("already recorded"));
+});
