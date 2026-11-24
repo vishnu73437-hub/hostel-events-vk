@@ -159,3 +159,28 @@ test("checkpoint success and duplicate attempts keep the guest sheet row current
   assert.ok(handler.includes("await queueGuestSheetsState(env,eventId,guest.id)"));
   assert.ok(handler.includes('rejectGuestAction(env,uid,eventId,guest,"checkpoint_scan"'));
 });
+
+
+test("iOS VK scanner uses a QR decoding fallback and a camera/photo picker", () => {
+  assert.ok(source.includes("function ensureQrDecoder()"));
+  assert.ok(source.includes("function scanQrPhoto(file)"));
+  assert.ok(source.includes("window.jsQR"));
+  assert.ok(source.includes("getImageData(0,0"));
+  assert.ok(source.includes("inversionAttempts:'attemptBoth'"));
+  assert.ok(source.includes("qrPhotoInput"));
+  assert.ok(source.includes("scanFromPhoto"));
+  assert.ok(source.includes("getUserMedia!=='function'"));
+  assert.ok(!source.includes("!('BarcodeDetector' in window)"), "native BarcodeDetector must not be a hard requirement");
+});
+
+test("QR decoder fallback is served same-origin and scanner access remains role-restricted", () => {
+  assert.ok(source.includes("async function serveQrDecoder(request,ctx)"));
+  assert.ok(source.includes('url.pathname==="/qr-decoder.js"'));
+  assert.ok(source.includes("https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"));
+  assert.ok(source.includes("https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"));
+  const scannerStart = source.indexOf("async function renderScanner(host)");
+  const scannerEnd = source.indexOf("let scannerStartGeneration", scannerStart);
+  assert.ok(scannerStart >= 0 && scannerEnd > scannerStart, "scanner view should exist");
+  const scannerView = source.slice(scannerStart, scannerEnd);
+  assert.ok(scannerView.includes("state.role!=='admin'&&state.role!=='volunteer'"), "camera and photo scanning must remain restricted to volunteers/admins");
+});
