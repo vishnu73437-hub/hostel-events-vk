@@ -176,8 +176,9 @@ test("iOS VK scanner uses a QR decoding fallback and a camera/photo picker", () 
 test("QR decoder fallback is served same-origin and scanner access remains role-restricted", () => {
   assert.ok(source.includes("async function serveQrDecoder(request,ctx)"));
   assert.ok(source.includes('url.pathname==="/qr-decoder.js"'));
-  assert.ok(source.includes("https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"));
   assert.ok(source.includes("https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"));
+  assert.ok(source.includes("https://fastly.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"));
+  assert.ok(!source.includes("cdnjs.cloudflare.com/ajax/libs/jsQR"), "decoder source must use a confirmed jsQR CDN path");
   const scannerStart = source.indexOf("async function renderScanner(host)");
   const scannerEnd = source.indexOf("let scannerStartGeneration", scannerStart);
   assert.ok(scannerStart >= 0 && scannerEnd > scannerStart, "scanner view should exist");
