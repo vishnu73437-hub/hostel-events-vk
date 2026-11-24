@@ -1135,8 +1135,8 @@ async function serveQrDecoder(request,ctx) {
   try{cache=caches.default;}catch(_){}
   if(cache){try{const cached=await cache.match(request);if(cached)return cached;}catch(_){}}
   const sources=[
-    'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js',
-    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'
+    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js',
+    'https://fastly.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'
   ];
   let source='';
   for(const url of sources){
